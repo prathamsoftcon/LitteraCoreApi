@@ -1,0 +1,63 @@
+﻿namespace LitteraCore.Models
+{
+    public class Content
+    {
+        public string ttsam_id { get; set; }
+        public string ttsam_trg_id { get; set; }
+        public string ttsam_ttttt_session_id { get; set; }
+        public string ttsam_created_by { get; set; }
+        public string ttsam_created_on { get; set; }
+        public string ttsam_globalcontentid { get; set; }
+        public string ttsad_ttsam_id { get; set; }
+        public string ttsad_title { get; set; }
+        public string ttsad_tag { get; set; }
+        public string ttsad_status { get; set; }
+
+        public string ttttt_session_dt { get; set; }
+
+
+        public string ttsar_user_type_id { get; set; }
+
+        public string empname { get; set; }
+        public string emailid { get; set; }
+        public string modifiedempname { get; set; }
+        public string modifiedemailid { get; set; }
+        public string GlobalContentyTypeID { get; set; }
+        public string GlobalContentFolderID { get; set; }
+        public string GlobalWysiwagText { get; set; }
+
+        public string GlobalFilePath { get; set; }
+        public string GlobalthumbnailPath { get; set; }
+        public string GlobalFileName { get; set; }
+
+        public string SessionAttachmentType { get; set; }
+        public string tdds_status { get; set; }
+
+
+        public int minreadingtime { get { return 2; } set { minreadingtime = 2; } }
+
+        public contentuserpermission[] contentuserpermission { get; set; }
+    }
+    public class contentType
+    {
+        public string GlobalContentTypeID { get; set; }
+        public string GlobalContentType { get; set; }
+        public string GlobalContentDescription { get; set; }
+        public string SessionAttachmentType { get; set; }
+    }
+    public class contentuserpermission
+    {
+        public string usertype { get; set; }
+        public contentPermissions permission { get; set; }
+    }
+    public class contentPermissions
+    {
+        public string ttsar_view { get; set; }
+
+        public string ttsar_edit { get; set; }
+
+        public string ttsar_download { get; set; }
+        public string ttsar_delete { get; set; }
+    }
+  
+}

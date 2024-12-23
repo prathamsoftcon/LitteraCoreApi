@@ -1,0 +1,57 @@
+// Module = 1,Week = 2,Date = 3,Day = 4,SrNo = 5
+{
+  "SessionAccessibility": {
+    "Restricted": true,
+    "RestrictOn": 3
+  },
+  "Self_Paced_TRG_SessionEntry": {
+    "srno": true,
+    "Day": true,
+    "Date": false,
+    "Week": true,
+    "Module": true,
+    "Complementory": true
+  },
+  "Other_TRG_SessionEntry": {
+    "srno": false,
+    "Day": true,
+    "Date": true,
+    "Week": true,
+    "Module": true,
+    "Complementory": false
+  },
+  "SessionOrder_selfpaced_trg": "1,4,2,5,3",
+  //"SessionOrder_selfpaced_trg": "5,4,2,1",
+  "SessionOrder_other_trg": "1,2,4,3,5",
+  "CompletionType": [
+    {
+      "id": 1,
+      "name": "Self",
+      "isactive": true,
+      "activities": []
+    },
+    {
+      "id": 2,
+      "name": "Self Test",
+      "isactive": true,
+      "activities": []
+    },
+    {
+      "id": 3,
+      "name": "By Faculty",
+      "isactive": true,
+      "activities": []
+    },
+    {
+      "id": 4,
+      "name": "By Activity",
+      "isactive": false,
+      "activities": [
+        {
+          "type": "Test",
+          "id": ""
+        }
+      ]
+    }
+  ]
+}

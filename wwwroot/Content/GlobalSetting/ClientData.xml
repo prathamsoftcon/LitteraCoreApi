@@ -1,0 +1,368 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ClientData>
+	<setting>
+		<key>LOGIN_LOGO</key>
+		<value>/Content/GlobalSetting/Dev/logo_login.png?1.1</value>
+	</setting>
+<setting>
+		<key>CERTIFICATE_TXT</key>
+		<value>
+			For Participating in  (#trgname#) held on  (#startdate#) to (#enddate#) Organised by (#clientname#).
+			
+		</value>
+	</setting>
+<setting>
+		<key>ACHIEVEMENT_FIRST_BOX_HEADER</key>
+		<value>TEACHERS</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_FIRST_BOX_VALUE</key>
+		<value>50</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_SECOND_BOX_HEADER</key>
+		<value>COURSES</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_SECOND_BOX_VALUE</key>
+		<value>100</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_THIRD_BOX_HEADER</key>
+		<value>STUDENTS</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_THIRD_BOX_VALUE</key>
+		<value>400</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_FOURTH_BOX_HEADER</key>
+		<value>TRAINING TIME</value>
+	</setting>
+	<setting>
+		<key>ACHIEVEMENT_FOURTH_BOX_VALUE</key>
+		<value>360</value>
+	</setting>
+<setting>
+		<key>QR_IMG</key>
+		<value></value>
+	</setting>
+	<setting>
+		<key>FB_LINK</key>
+		<value>http://facebook.com</value>
+	</setting>
+	<setting>
+		<key>TWT_LINK</key>
+		<!--Admin Mail id to send mail in case of admin-->
+		<value>http://twitter.com</value>
+	</setting>
+	<setting>
+		<key>LINKEDIN_LINK</key>
+		<value>http://Linkedin.com</value>
+	</setting>
+	<setting>
+		<key>SLIDER_1_IMG</key>
+		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+	</setting>
+	<setting>
+		<key>SLIDER_2_IMG</key>
+		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+	</setting>
+	<setting>
+		<key>SLIDER_3_IMG</key>
+		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+	</setting>
+	<setting>
+		<key>WELCOME_TXT_HEADER</key>
+		<value>WELCOME TO LITTERA</value>
+	</setting>
+	<setting>
+		<key>WELCOME_TXT_DETAILS</key>
+		<value>Digital Technology are reshaping the way of learning.</value>
+	</setting>
+	<setting>
+		<key>TRENDING_TRG_Header</key>
+		<value>
+			Trending Trainings
+		</value>
+	</setting>
+	<setting>
+		<key>TRENDING_TRG_TEXT</key>
+		<value>
+			Professional Trainings provide excellent avenues for developing your knowledge and skills
+		</value>
+	</setting>
+	<setting>
+		<key>TRG_CALENDAR_TEXT</key>
+		<value>
+			Our Training continues to provide you with the best possible learning experience throughout the year.
+		</value>
+	</setting>
+	<setting>
+		<key>CERTIFIED_FACULTY_TEXT</key>
+		<value>
+			More then 60 Prominent certified Faculty on our Platform.
+		</value>
+	</setting>
+	<setting>
+		<key>CERTIFICATION_TEXT</key>
+		<value>
+			More then 60 Prominent certified Faculty on our Platform.
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_VIDEO</key>
+		<value>
+			/content/GlobalSetting/Dev/LitteraIntro.mp4
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_VIDEO_IMG</key>
+		<value>
+			/content/GlobalSetting/Dev/about_littera.jpg?1.1
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_MAIN_TXT</key>
+		<value>
+			Littera Learning platform specifically designed to provide you with a unique educational experience, whether in the classroom or virtual, to acquire the necessary skills to increase your success in conducting Training.
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_WELCOME_HEADER</key>
+		<value>
+			WELCOME TO LITTERA
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_WELCOME_DETAIL</key>
+		<value>
+			Littera from where the knowledge sprouts
+
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_CONCEPT_HEADER</key>
+		<value>
+			Concept to Littera Learning Platform
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_CONCEPT_DETAIL</key>
+		<value>
+			Based on our decade long expertise and using concept of Knowledge engineering, we have developed Littera Learning Platform so persons can acquire new competency. Littera Learning collection, include learning course, learning profile and learning resources. In this learning process participant will acquire new competency with outcome as knowledge, skill and abilities. Littera comes with performance indicators in reference to complexity, scope, social and psychomotor.
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_MISSION_HEADER</key>
+		<value>
+			Our Mission
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_MISSION_DETAILS</key>
+		<value>
+			<![CDATA[
+			There are three commitments we've made to the world. We've been grounded by these since day one:
+
+			• Increase access to high-quality education for everyone, everywhere
+
+			• Enhance teaching and learning on campus and online
+
+			• Advance teaching and learning through research
+			
+			]]>
+
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_VISION_HEADER</key>
+		<value>
+			Our Vision
+		</value>
+	</setting>
+	<setting>
+		<key>ABT_US_VISION_DETAIL</key>
+		<value>
+			We are building and promoting a software platform that brings together the best people from all around the world to create courses for everyone, everywhere in the world
+		</value>
+	</setting>
+	<setting>
+		<key>ACHEIVEMENT_TEXT</key>
+		<value>
+			A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart like mine.
+		</value>
+	</setting>
+	<setting>
+		<key>ACHEIVEMENT_IMG</key>
+		<value>
+			/content/GlobalSetting/Dev/deg.jpg?1.1
+		</value>
+	</setting>
+
+	<setting>
+		<key>CONTACTUS_ADDRESS</key>
+		<value>
+			9 A Amaltas, Chuna bhatti Bhopal
+		</value>
+	</setting>
+	<setting>
+		<key>CONTACTUS_PHONENO</key>
+		<value>
+			9425008752
+
+		</value>
+	</setting>
+	<setting>
+		<key>CONTACTUS_EMAIL</key>
+		<value>
+			info@littera.in		</value>
+	</setting>
+
+	<setting>
+		<key>READ_MORE_PAGE_HEADER</key>
+		<value>
+			What Is Littera Platform?
+		</value>
+	</setting>
+	<setting>
+		<key>READ_MORE_PAGE_DETAILS</key>
+		<value>
+			<![CDATA[
+			
+			  <p>Over the years, the challenge is in understanding what Learning really is, or how Learning is conducted effectively. Many teachers and learners are still confused as to what Learning really is?.</p>
+                      <p>There’s no single technology or software that enables Learning transformation. It is a combination of cultural as well as the technological change that leads to improved performance and efficiency for a teacher and learner.</p>
+                    <p>People today do not worry about the limitations of technology in achieving learning objectives but worry about choosing and eliminating the vast variety of technological tools at their disposal to teach and learn.</p>
+                    <p>In the backdrop of this Littera came into picture as a platform. </p>
+                    <p>Littera is a platform for Learning which encompasses learning process with the combination of content that is both delivered digitally and through face-to-face learning. It’s a paradigm shifts from traditional face-to-face learning to the use of web technological tools which enhances collaborative learning and presents an entirely new learning platform for students. </p>
+                    <p>It’s a platform to create training courses  by  an  institution or  individual.  Littera is  a tool  to  create and run courses  anywhere and anytime .  On littera any one can deploy and track remote training as well as gather all the info in one convenient location. </p>
+                    <p>Littera streamline content maintenance and enhance accessibility. In other words, they’re ideally suited for modern, mobile-friendly support. </p>
+                    <p>Teacher/instructors or department  can create their own content or access a pre-existing learning content library that includes a mix of video, PPT, and performance support resources like e-books, Quick Reference Guides, infographics, to name a few.</p>
+                    <p style="font-weight:bold">It has been designed  in such a way  that  learning  objectives  of user  can  be  met easily. It has following features</p>
+
+                    <ul style="text-align:justify;">
+                        <li>* Course  creation,  free or paid or sponsored</li>
+                        <li>* Enrolment of  learners. </li>
+                        <li>* Content  creation by  creator or  faculty or both. </li>
+                        <li>* Selection  of best  faculty  for teaching contents.</li>
+                        <li>* Monitoring of  course progress.</li>
+                        <li>* Evaluation of  learners.</li>
+                        <li>* Feedback tools</li>
+                        <li>* Certification</li>
+                    </ul>
+
+			]]>
+
+		</value>
+	</setting>
+	<setting>
+		<key>READ_MORE_PAGE_VIDEO</key>
+		<value>
+			
+		</value>
+	</setting>
+	<setting>
+		<key>READ_MORE_PAGE_GOALS</key>
+		<value>
+			<![CDATA[
+		  <p>•	Enhance the quality of learning and teaching. </p>
+                            <p>•	Meet the learning style or needs of students. Improve the efficiency and effectiveness</p>
+                            <p>•	Improve user-accessibility and time flexibility to engage learners in the learning process. </p>
+			]]>
+		</value>
+	</setting>
+	<setting>
+		<key>PRIVACY_PAGE_HEADER</key>
+		<value>
+			<![CDATA[
+			Privacy & Policy
+			]]>
+		</value>
+	</setting>
+	<setting>
+		<key>PRIVACY_PAGE_CONTENT</key>
+		<value>
+			<![CDATA[
+			Privacy & Policy
+			]]>
+		</value>
+	</setting>
+	<setting>
+		<key>SLIDER_READ_MORE_DISPLAY</key>
+		<value>0</value>
+	</setting>
+	<setting>
+		<key>LITTERA_SITE_TAGLINE</key>
+		<value>Littera from where the knowledge sprouts</value>
+	</setting>
+	<setting>
+		<key>LITTERA_LOGO</key>
+		<value>/Content/GlobalSetting/Dev/default_logo.png?1.1</value>
+	</setting>
+	
+	<setting>
+		<key>DASHBOARD_LOGO</key>
+		<value>/Content/GlobalSetting/Dev/logo_Dashboard.png?1.1</value>
+	</setting>
+	<setting>
+		<key>APP_TITLE</key>
+		<value>LITTERA LEARNING PLATFORM</value>
+	</setting>
+	<setting>
+		<key>FAV_ICON</key>
+		<value>/content/GlobalSetting/Dev/logo.png?1.1</value>
+	</setting>
+	<setting>
+		<key>ASSIGNMENT_UPLOAD_PATH</key>
+		<value>~/Training_Upload/Assignment</value>
+	</setting>
+<setting>
+		<key>PLATFORM_NAME</key>
+		<value>Littera Learning Platform</value>
+	</setting>
+	<setting>
+		<key>APP_LOGIN_LOGO</key>
+		<value>/Content/GlobalSetting/Dev/app_login_logo.png?1.1</value>
+	</setting>
+	<setting>
+		<key>APP_OTP_LOGO</key>
+		<value>/Content/GlobalSetting/Dev/app_otp_logo.png?1.1</value>
+	</setting>
+	<setting>
+		<key>APP_LOGIN_TITLE</key>
+		<value>Client Name</value>
+	</setting>
+	<setting>
+		<key>APP_OTP_TITLE</key>
+		<value>TrainingAPP</value>
+	</setting>
+	<setting>
+		<key>APP_DASHBOARD_TITLE</key>
+		<value>Client Name</value>
+	</setting>
+<setting>
+		<key>TRENDING_CALENDAR_Header</key>
+		<value>
+			Training Calendar
+		</value>
+	</setting>
+
+	<setting>
+		<key>CERTIFIED_FAC_Header</key>
+		<value>
+			Certified Faculty
+		</value>
+	</setting>
+
+	<setting>
+		<key>CERTIFICATION_Header</key>
+		<value>
+			Certification
+		</value>
+	</setting>
+	
+</ClientData>
+
+
+
+

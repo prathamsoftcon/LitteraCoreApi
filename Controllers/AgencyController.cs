@@ -1,0 +1,119 @@
+﻿using LitteraCore.BLContext;
+using LitteraCore.Common;
+using LitteraCore.DBContext;
+using LitteraCore.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+
+namespace LitteraCore.Controllers
+{
+    public class AgencyController : Controller
+    {
+        private readonly ILogger<AgencyController> _logger;
+       
+        private readonly IConfiguration _configuration;
+        public AgencyController(IConfiguration configuration, ILogger<AgencyController> logger)
+        {
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        [Route("api/GetDesignations")] 
+        public IActionResult GetDesignation([FromQuery] PaginationParam filter)
+        {
+            _logger.LogError("test error.");
+            AgencyDB cdb = new AgencyDB(_configuration);
+
+            var pagedList = cdb.Get_Designations(filter);
+            if (pagedList.Count() > 0)
+            {
+                var metadata = new
+                {
+                    pagedList.TotalCount,
+                    pagedList.PageSize,
+                    pagedList.CurrentPage,
+                    pagedList.TotalPages,
+                    pagedList.HasNext,
+                    pagedList.HasPrevious,
+
+
+                };
+                return Ok(new PagedResult<Agency>
+                {
+                    Items = pagedList,
+                    TotalRecords = pagedList.TotalCount,
+                    PageSize = pagedList.PageSize,
+                    TotalPages = (int)Math.Ceiling((double)pagedList.TotalCount / pagedList.PageSize),
+                    CurrentPage = pagedList.CurrentPage
+                });
+
+                // return Ok(pagedList);
+            }
+            else
+                return NotFound();
+        }
+
+
+        [HttpGet]
+        [Route("api/Agency")]
+        public IActionResult getAgency(string agencytype = null,string filters = null, string agencyid = null, string tat_type_id = null, [FromQuery] PaginationParam param=null,string filter=null)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            PagedResult<Agency> AL = new PagedResult<Agency>();
+            AL = ABL.Get_Agency(agencytype, agencyid, tat_type_id, param, filter);
+
+
+
+            return Ok(AL);
+        }
+
+        [HttpGet]
+        [Route("api/agency_by_charge")]
+        public IActionResult agency_by_charge(string chargeid)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            List<Agency> a = new List<Agency>();
+            a = ABL.Get_Agency_by_charge(chargeid);
+
+            return Ok(a);
+        }
+
+        [HttpGet]
+        [Route("api/Get_cast_category")]
+        public IActionResult Get_cast_category()
+        {
+            List<cast_category> c = new List<cast_category>();
+            _logger.LogError("test error.");
+            AgencyBL cdb = new AgencyBL(_configuration);
+            c = cdb.Get_Cast_Category();
+            return Ok(c);
+
+
+        }
+
+        [HttpPut]
+        [Route("api/Update_Profile")]
+        public IActionResult Update_Profile(string agencyid,[FromBody] Update_Profile_Data agency)
+        {
+            bool issaved=false;
+            AgencyBL cdb = new AgencyBL(_configuration);
+            issaved = cdb.Update_Profile(agencyid,agency);
+            return Ok(issaved);
+
+
+        }
+
+        [HttpGet]
+        [Route("api/Salutation")]
+        public IActionResult Salutation()
+        {
+            List<SALUTATION> s = new List<SALUTATION>();
+            AgencyBL cdb = new AgencyBL(_configuration);
+            s = cdb.Get_Salutation();
+            return Ok(s);
+
+
+        }
+    }
+}

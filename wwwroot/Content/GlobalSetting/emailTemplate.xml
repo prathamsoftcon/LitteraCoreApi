@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailTemplate>
+<Template>
+		<ID>RECEIPT_SUCCESS_PRINT</ID>
+		<subject>Transaction Response</subject>
+		<text>
+         <![CDATA[
+		  <font size='2' face='verdana'>
+		 
+		 Dear <b>(#participantname#)</b>,<br/><br/>
+
+Thank you for purchasing Training [(#trgtitle#)].Your payment successfully received.
+<br/><br/>
+Transaction Details	
+<table style='width:100%;border-collapse: collapse;' border='1'>
+<tr>
+<td>
+Training :(#trgtitle#)-(#trgcode#)
+</td>
+<td>
+Participant :(#participantname#)
+</td>
+</tr>
+<tr>
+<td>
+Mobile No.:(#participantmobile#)
+</td>
+<td>
+Email (#participantemail#)
+</td>
+</tr>
+<tr>
+<td>
+Payment Mode: (#paymentmode#)
+</td>
+<td>
+Bank: (#bankname#)<br/>
+</td>
+</tr>
+<tr>
+<td>
+OrderNo: (#litteraorderid#)
+</td>
+<td>
+Receipt NO: (#receiptno#)<br/>
+</td>
+</tr>
+<tr>
+<td>
+Receipt Date: (#receiptdate#)
+</td>
+<td>
+
+</td>
+</tr>
+</table>
+	 
+		 <table style='width:100%'>
+
+
+<tr>
+<td colspan='3'>
+(#paymentdetails#)
+</td>
+</tr>
+<tr>
+<td style="width:75%">
+ <br/>
+<br/>
+
+</td>
+<td >
+Total:(#totalamount#) <br/>
+DISCOUNT:(#discount#)<br/>
+GST:(#gst#)<br/>
+GRAND TOTAL:(#grandtotal#)<br/>
+</td>
+</tr>
+<tr>
+<td style="width:75%">
+ <br/>
+ Thanks for registering with us
+<br/>
+(#clientname#)
+<br/>
+(#clientaddress#)
+<br/>
+(#clientstate#), Pin: (#clientpincode#)<br/>
+Ph.(#clientphone#)<br/>
+</td>
+<td >
+
+</td>
+</tr>
+
+
+
+</table>
+		 </font>
+		 
+         ]]>
+		</text>
+	</Template>
+	<Template>
+		<ID>RECEIPT_FAIL_PRINT</ID>
+		<subject>Transaction Response</subject>
+		<text>
+			<![CDATA[
+		 <font size='2' face='verdana'>
+		 
+		 Dear <b>(#participantname#)</b>,<br/><br/>
+
+Thank you for registering. Your transaction of rs.(#grandtotal#) has been failed.Your Transaction no is (#litteraorderid#) <br/>
+Your payment will be refunded within 2-3 days if deducted.
+<br/><br/>
+
+		 </font>
+		 
+         ]]>
+		</text>
+	</Template>
+
+ <Template>
+	<ID>TrainingCreation</ID>
+	<subject>Littera-Training Created - [Training Name -(#trgcode#) -(#startdate#)]</subject>
+	<text> <![CDATA[
+	<font size='2' face='verdana'>
+
+		Dear <b>(#regname#)</b>,<br/><br/>
+
+		Training Created with following Details
+		<br/><br/>
+
+		Training Name-Code : <b>(#trgname#)- (#trgcode#)</b><br/><br/>
+
+		Course Director : <b>(#cdname#)</b><br/><br/>
+
+		ACD : <b>(#acdname#)</b><br/><br/>
+
+		Training Period: <b>Start Date -(#trgstartdate#)</b> <b>End Date -(#trgenddate#) </b><br/><br/>
+
+</font>
+	]]>
+
+</text>
+		
+</Template>
+	<Template>
+	<ID>SessionCreation</ID>
+	<subject>Littera-  Session Created - [(#trgname#) -(#trgcode#)- (#trgstartdate#) </subject>
+	<text>	<![CDATA[
+	<font size="2" face="verdana">
+
+		Dear <b>(#regname#)</b>,<br/><br/>
+
+		Session created for (#trgname#)- (#trgcode#)  with following Details.
+		<br/><br/>
+
+		Training Name-Code : <b>(#trgname#)- (#trgcode#)</b><br/><br/>
+
+		Course Director : <b>(#cdname#)</b><br/><br/>
+
+		ACD : <b>(#acdname#)</b><br/><br/>
+
+		Training Period: <b>Start Date -(#trgstartdate#) and End Date -(#trgenddate#) </b><br/><br/>
+		To See Session Details <a href="https://Dev.littera.in/frm_trg_session.aspx?q=(#trgid#)">Click Here</a>
+		</font>
+	]]>
+	
+	</text>
+		
+</Template>
+	<Template>
+		<ID>RegisterParticipantInTraining</ID>
+		<subject>Littera-Participant Added - [Training Name -(#trgcode#) -(#startdate#)]  </subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+You have been added to following Training.
+<br/><br/>
+
+Training Name-Code : <b>(#trgname#)- (#trgcode#)</b><br/><br/>
+
+Course Director : <b>(#cdname#)</b><br/><br/>
+
+Training Period: <b>Start Date -(#startdate#)and End Date -(#endname#) </b><br/><br/>
+
+Please login to <LitteraClientLink> for further information.
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+	<Template>
+		<ID>ParticipantRegistration</ID>
+		<subject>Littera- Participant Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website. please, find below your login details.
+<br/><br/>
+
+Login Name : <b>(#loginid#)</b><br/><br/>
+
+Password : <b>(#password#)</b><br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+	<Template>
+		<ID>SHAREMEETINGLINK</ID>
+		<subject>Littera- Session Details [(#trgname#) - (#sessionsubject#) - (#sessiondatetime#)] </subject>
+		<text>
+			<![CDATA[
+Greetings,
+Please Join Session on following Link.<br/><br/>
+
+Training Name-Code : (#trgname#)- (#trgcode#)<br/><br/>
+
+Course Director : (#cdname#)<br/><br/>
+
+Training Period: Start Date -(#startdate#) and End Date -(#enddate#) <br/><br/>
+
+Session Name: (#sessionsubject#)<br/><br/>
+
+Session Date:(#sessiondate#)<br/><br/>
+
+Session Time:(#sessiontime#)<br/><br/>
+
+Session Faculty : (#faculties#)<br/><br/>
+
+Meeting Link : (#meetinglink#)
+
+
+	]]>
+
+		</text>
+
+	</Template>
+
+	<Template>
+		<ID>FACULTYREGISTRATION</ID>
+		<subject>Littera- Faculty Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website. please, find below your login details.
+<br/><br/>
+
+Login Name : <b>(#loginid#)</b><br/><br/>
+
+Password : <b>(#password#)</b><br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+	<Template>
+		<ID>REGISTERREPRESENTATIVE</ID>
+		<subject>Littera- User Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website. please, find below your login details.
+<br/><br/>
+
+Login Name : <b>(#loginid#)</b><br/><br/>
+
+Password : <b>(#password#)</b><br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+	<Template>
+		<ID>REGISTERCD</ID>
+		<subject>Littera- User Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website. please, find below your login details.
+<br/><br/>
+
+Login Name : <b>(#loginid#)</b><br/><br/>
+
+Password : <b>(#password#)</b><br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+
+	<Template>
+		<ID>SENDOTP</ID>
+		<subject>Littera- Secure Code Details</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Your security code for reference id (#otpid#) is (#otp#).<br/> Please don't share with anyone.
+<br/><br/>
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+
+
+	<Template>
+		<ID>ADMINISTRATORREGISTRATION</ID>
+		<subject>Littera- Administrator Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website. please, find below your login details.
+<br/><br/>
+
+Login Name : <b>(#loginid#)</b><br/><br/>
+
+Password : <b>(#password#)</b><br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+	<Template>
+		<ID>ParticipantApproval</ID>
+		<subject>Littera- Participant Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering in our website, Please login with valid credentials .
+<br/><br/>
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+<Template>
+		<ID>RESETPASSWORD</ID>
+		<subject>SECURITY ALERT - Password Changed</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Admin has reset your login password,Your new password is  :-(#password#).<br/>
+After login kindly change this password
+<br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+	<Template>
+		<ID>CHANGEPASSWORD</ID>
+		<subject>SECURITY ALERT - Password Changed</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Your login password has been changed.<br/>
+After login kindly change this password
+<br/><br/>
+
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+<Template>
+		<ID>USERREGISTRATION</ID>
+		<subject>User Created (#name#)</subject>
+		<text>
+			<![CDATA[
+	<font size='2' face='verdana'>
+
+Dear <b>(#regname#)</b>,<br/><br/>
+
+Thank you for registering with (#domain#).<br/>
+You can login using your registered  email or mobile number  as  user name .<br/>
+Password : (#pwd#)<br/>
+Alternatively you can login  using OTP
+<br/>
+
+</font>
+	]]>
+
+		</text>
+
+	</Template>
+
+</EmailTemplate>

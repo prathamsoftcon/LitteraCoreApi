@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SMSConfiguration>
+  <url>https://cloud.smsindiahub.in/api/mt/SendSMS</url>
+  <key>55BB20B181018E</key>
+  <USERID>prathamsoft</USERID>
+  <PASSWORD>Soft908P</PASSWORD>
+  <routeid>288</routeid>
+  <SENDER_ID>PSCONS</SENDER_ID>
+  <PEID>1201160688601737991</PEID>
+
+ </SMSConfiguration>
+
+
+
+

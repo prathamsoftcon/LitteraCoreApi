@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EmailConfiguration>
+	<clienturl>https://trial.littera.in</clienturl>
+	<clientname>Littera Training And Workshop Platform</clientname>
+	<login>prathamsoftware@prathamsoft.com</login>
+<password>uwbgeybkgugwttnn</password>
+<portno>587</portno>
+<host>smtp.gmail.com</host>
+
+	<header>
+		<![CDATA[
+  <table width="100%">
+	<tr>
+	<td align="left" width="80"><img height="32" style="width:auto;max-width:100%" src=" https://dev.littera.in/Theme/images/logo_login.png" /></td>
+	<td><font size="5"><b>Littera Learning Platform</b></font></td>
+	</tr>
+	</table>
+	<hr size="3" color="navy" />
+	<div style="float:right;font-size:11px;">(#todaydate#)</div>
+	<br/>
+  ]]>
+
+	</header>
+	<footer>
+		<![CDATA[
+		 <hr size="1" color="navy" />
+  <font size="1" face="verdana">
+  Regards,Littera Learning platform
+  </font>
+		]]>
+	</footer>
+</EmailConfiguration>
+
+
+
+

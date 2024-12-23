@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SMSTemplate>
+ <Template>
+	<ID>1</ID>
+	<DLT_CT_ID>1207168958251321642</DLT_CT_ID>
+	<text>Your OTP for (#otpid#) is (#otp#) Please don't share with anyone. PSCON</text>
+		
+</Template>
+	<Template>
+		<ID>2</ID>
+		<DLT_CT_ID>1007257549810894934</DLT_CT_ID>
+		<text>Notification For New Document No : (#appid#) -MPRCVP</text>
+	</Template>
+<Template>
+	<ID>3</ID>
+	<DLT_CT_ID>1007825212429843781</DLT_CT_ID>
+	<text>Faculty Registration Request Submitted Successfully, Your Reference  is: (#appid#) -MPRCVP</text>
+</Template>
+<Template>
+	<ID>4</ID>
+	<DLT_CT_ID>1007125383360701849</DLT_CT_ID>
+	<text>Training Proposal Submitted Successfully, Your Reference  is:(#appid#) -MPRCVP</text>
+</Template>
+<Template>
+	<ID>5</ID>
+	<DLT_CT_ID>1007002093533260390</DLT_CT_ID>
+	<text>Nodal Officer Registration Request Received Successfully. We Will Be Notified By Mail When The Account Is Activated. -MPRCVP</text>
+</Template>
+	<Template>
+		<ID>6</ID>
+		<DLT_CT_ID>1007809237631172449</DLT_CT_ID>
+		<text>Hall Reservation Request Submitted Successfully, Your Reference  is:(#appid#) -MPRCVP</text>
+	</Template>
+	<Template>
+		<ID>7</ID>
+		<DLT_CT_ID>1007788242439188923</DLT_CT_ID>
+		<text>Your Account Has Been Activated ,Use Registered User Name And Password Or Mobile No To Send Proposal. -MPRCVP</text>
+	</Template>
+	<Template>
+		<ID>8</ID>
+		<DLT_CT_ID>1007749709877962391</DLT_CT_ID>
+		<text>Request Received For Rectification/Cancellation Of Proposal No :- (#appid#) -MPRCVP</text>
+	</Template>
+	<Template>
+		<ID>9</ID>
+		<DLT_CT_ID>1007005993517901372</DLT_CT_ID>
+		<text>Your Honorarium Payment Done. Your Transaction No Is: (#appid#) -MPRCVP</text>
+	</Template>
+	<Template>
+		<ID>10</ID>
+		<DLT_CT_ID>1007888749922399800</DLT_CT_ID>
+		<text>Your OTP for id (#otpid#) is (#otp#). Please don't share with anyone.</text>
+	</Template>
+	<Template>
+		<ID>11</ID>
+		<DLT_CT_ID>1207169942567862398</DLT_CT_ID>
+		<text>Thanks for  registering  with  {#var#} .Login using registered  email or mobile number - PSCON</text>
+	</Template>
+</SMSTemplate>

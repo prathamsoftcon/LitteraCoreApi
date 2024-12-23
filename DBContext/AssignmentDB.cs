@@ -1,0 +1,345 @@
+﻿using LitteraCore.Models;
+using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
+using System.Data;
+
+namespace LitteraCore.DBContext
+{
+    public class AssignmentDB
+    {
+        private readonly IConfiguration _configuration;
+        public AssignmentDB(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+        public List<Assignment> Get_Assignment_Data(string assignmentid = null)
+        {
+
+            List<Assignment> assingdata = new List<Assignment>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_get_assignment_list_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            if (assignmentid != null)
+            {
+                cmd.Parameters.AddWithValue("@assignmentid", assignmentid);
+            }
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Assignment ass = new Assignment();
+                ass.AssignmentID = Convert.ToString(row["AssignmentID"]);
+                ass.Instructions = Convert.ToString(row["Instructions"]);
+                ass.Tag = Convert.ToString(row["Tag"]);
+                ass.AssesmentQuestions = Convert.ToString(row["AssesmentQuestions"]);
+                ass.FacultyID_Json = Convert.ToString(row["FacultyID_Json"]);
+                ass.AttachmentsID_Json = Convert.ToString(row["AttachmentsID_Json"]);
+                //ass.AssignmentType = Convert.ToString(row["AssignmentType"]);
+                ass.GradeApplicable = Convert.ToInt32(row["GradeApplicable"]);
+                ass.AssignmentName = Convert.ToString(row["AssignmentName"]);
+                ass.isOpenended = Convert.ToInt32(row["DeadlineType"]);
+                //ass.createdon = Convert.ToDateTime(row["createdon"]);
+                ass.createdby = Convert.ToString(row["createdby"]);
+                ass.status = Convert.ToInt32(row["tdds_status"]);
+                //ass.session = Convert.ToString(row["session"]);
+                ass.ttttt_session_id = Convert.ToString(row["SessionID"]);
+                if (row["MaxMarks"].ToString() != "")
+                {
+                    ass.MaxMarks = Convert.ToInt32(row["MaxMarks"]);
+                }
+                else
+                {
+                    ass.MaxMarks = 0;
+                }
+
+                ass.uploadpath = Convert.ToString("");
+                // ass.training = Convert.ToString(row["training"]);
+
+                ass.facultyname = Convert.ToString(row["faculty"]);
+                ass.AssignmentTypeName = Convert.ToString(row["AssignmentType"]);
+                ass.TrainingCode = Convert.ToString(row["TrainingCode"]);
+                ass.Trainingid = Convert.ToString(row["ttttt_trainingid"]);
+
+                ass.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]);
+                ass.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+                ass.ttttt_session_duration = Convert.ToInt32(row["ttttt_session_duration"]);
+                ass.tdds_doc_no = Convert.ToString(row["tdds_doc_no"]);
+                ass.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]);
+              
+               // ass.taau_status= Convert.ToString(row["taau_status"]);
+                assingdata.Add(ass);
+            }
+
+
+
+
+
+            return assingdata;
+        }
+
+        public List<AssignmentValuation> Get_Valuation(string assignmentid, string participantid = null)
+        {
+
+            List<AssignmentValuation> assingvaluation = new List<AssignmentValuation>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_valuation", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@AssignmentID", assignmentid);
+            if (participantid != null)
+            {
+                cmd.Parameters.AddWithValue("@participantid", participantid);
+            }
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                AssignmentValuation ass = new AssignmentValuation();
+                ass.taav_id = Convert.ToString(row["taav_id"]);
+                ass.taav_assignmentid = Convert.ToString(row["taav_assignmentid"]);
+                ass.taav_valuation_json = JsonConvert.DeserializeObject<List<valuation_json>>(Convert.ToString(row["taav_valuation_json"]));
+                ass.taav_createdby = Convert.ToString(row["taav_createdby"]);
+                ass.taav_createdon = Convert.ToDateTime(row["taav_createdon"]);
+
+                assingvaluation.Add(ass);
+            }
+
+
+
+
+
+            return assingvaluation;
+        }
+
+        public List<proc_ass_get_assignment_comment> Get_assignment_Comments(string assignmentid, string participantid)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_comment_for_participant", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@taac_AssignmentID", assignmentid);
+            if (participantid != null)
+            {
+                cmd.Parameters.AddWithValue("@Participantid", participantid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@Participantid", DBNull.Value);
+            }
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            List<proc_ass_get_assignment_comment> LI = new List<proc_ass_get_assignment_comment>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var ss = JsonConvert.DeserializeObject<assignmentparticipant[]>(row["participant"].ToString());
+                // List<assignmentparticipant> arr =(List<assignmentparticipant>)(row["participant"].ToString());
+
+                proc_ass_get_assignment_comment cm = new proc_ass_get_assignment_comment();
+                cm.assignment = (string)row["assignmentid"].ToString();
+                cm.participant = ss;
+                LI.Add(cm);
+            }
+
+
+
+            return LI;
+        }
+
+        public List<proc_ass_get_assignment_upload> Get_assignment_Uploads(string assignmentid, string participantid)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_upload", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@taau_AssignmentID", assignmentid);
+            if (participantid != null)
+            {
+                cmd.Parameters.AddWithValue("@Participantid", participantid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@Participantid", DBNull.Value);
+            }
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            List<proc_ass_get_assignment_upload> LI = new List<proc_ass_get_assignment_upload>();
+            foreach (DataRow row in dt.Rows)
+            {
+                var ss = JsonConvert.DeserializeObject<assignmentparticipant[]>(row["participant"].ToString());
+                // List<assignmentparticipant> arr =(List<assignmentparticipant>)(row["participant"].ToString());
+
+                proc_ass_get_assignment_upload cm = new proc_ass_get_assignment_upload();
+                cm.assignment = (string)row["assignmentid"].ToString();
+                cm.participant = ss;
+                LI.Add(cm);
+            }
+
+
+
+            return LI;
+        }
+
+
+        public bool Update_Assignment_Upload_Comment(string uploadid, AssignmentUploadComments a)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_update_assignment_upload_comment", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@taau_uploadid", uploadid);
+            string p1 = JsonConvert.SerializeObject(a);
+            cmd.Parameters.AddWithValue("@comment_json", p1);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+
+        public bool Insert_Comment(AssignmentComment a)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_insert_assignment_comment", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@taac_commentid", a.taac_commentid);
+            cmd.Parameters.AddWithValue("@taac_AssignmentID", a.taac_AssignmentID);
+            cmd.Parameters.AddWithValue("@taac_Participantid", a.taac_Participantid);
+            cmd.Parameters.AddWithValue("@taac_commentedby", a.taac_commentedby);
+            cmd.Parameters.AddWithValue("@taac_comment", a.taac_comment);
+            cmd.Parameters.AddWithValue("@taac_createdon", a.taac_createdon);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        public bool Upload_Document(AssignmentUpload a)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_inupd_assignment_upload", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@taau_uploadid", a.taau_uploadid);
+            cmd.Parameters.AddWithValue("@taau_uploadpath", a.taau_uploadpath);
+            cmd.Parameters.AddWithValue("@taau_AssignmentID", a.taau_AssignmentID);
+            cmd.Parameters.AddWithValue("@taau_Participantid", a.taau_Participantid);
+            cmd.Parameters.AddWithValue("@taau_uploadedby", a.taau_uploadedby);
+            cmd.Parameters.AddWithValue("@taau_title", a.taau_title);
+            //cmd.Parameters.AddWithValue("@taau_remark", a.taau_remark);
+            cmd.Parameters.AddWithValue("@taau_type", a.taau_type);
+            cmd.Parameters.AddWithValue("@taau_createdon", a.taau_createdon);
+            string p1 = JsonConvert.SerializeObject(a.taau_comment_json);
+            cmd.Parameters.AddWithValue("@comment_json", p1);
+            cmd.Parameters.AddWithValue("@taau_status", a.taau_status);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        public List<AssignmentUpload> Get_Participant_Assignment_Uploads(string participantid,string assignmentid = null)
+        {
+
+            List<AssignmentUpload> assingdata = new List<AssignmentUpload>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_participant_assignment_uploads", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@Participantid", participantid);
+            if (assignmentid != null)
+            {
+                cmd.Parameters.AddWithValue("@taau_AssignmentID", assignmentid);
+            }
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                AssignmentUpload ass = new AssignmentUpload();
+                ass.taau_uploadid = Convert.ToString(row["taau_uploadid"]);
+                ass.taau_uploadpath = Convert.ToString(row["taau_uploadpath"]);
+                ass.taau_AssignmentID = Convert.ToString(row["taau_AssignmentID"]);
+                ass.taau_AssignmentID = Convert.ToString(row["taau_AssignmentID"]);
+                //ass.taau_uploadedby = Convert.ToString(row["taau_uploadedby"]);
+                ass.taau_title = Convert.ToString(row["taau_title"]);
+                //ass.AssignmentType = Convert.ToString(row["AssignmentType"]);
+                //ass.taau_remark = Convert.ToString(row["taau_remark"]);
+                ass.taau_type = Convert.ToString(row["taau_type"]);
+                ass.taau_status = Convert.ToInt32(row["taau_status"]);
+               
+                assingdata.Add(ass);
+            }
+
+
+
+
+
+            return assingdata;
+        }
+
+    }
+}
