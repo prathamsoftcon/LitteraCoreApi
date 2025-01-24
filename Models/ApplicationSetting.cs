@@ -80,4 +80,73 @@ namespace LitteraCore.Models
         public string secret { get; set; }
 
     }
+
+    public class REACT_APP_CONFIGURATION
+    {
+        public string REACT_APP_API_URL { get; set; }
+        public string REACT_APP_API_KEY { get; set; }
+        public string REACT_APP_ID { get; set; }
+        public string LITTERA_CDN_BASE_URL { get; set; }
+        public string LITTERA_CONTENT_PATH { get; set; }
+        public string LITTERA_ASSIGNMENT_PATH { get; set; }
+        public string LITTERA_CDN_PROFILE_PICK_PATH { get; set; }
+        public string LITTERA_CDN_FUNCTION_IMG_PATH { get; set; }
+
+        public string LITTERA_CDN_ASSET_FLAG_PATH { get; set; }
+        public string REACT_APP_SURVEY_API_PATH { get; set; }
+        public string REACT_APP_SURVEY_API_KEY { get; set; }
+
+        public string REACT_APP_WHITEBOARD_URL { get; set; }
+        public string REACT_APP_API_URL_Google { get; set; }
+        public string REACT_APP_EVAL_API_PATH { get; set; }
+        public string REACT_APP_EVAL_API_KEY { get; set; }
+
+        public string REACT_APP_IDLE_TIMEOUT { get; set; }
+        public string REACT_URL_SHORTNER_PATH { get; set; }
+        public string REACT_URL_SHORTNER_KEY { get; set; }
+        public string REACT_CONFERENCE_API_PATH { get; set; }
+
+        public string REACT_CONFERENCE_API_KEY { get; set; }
+        public string GOOGLE_ANALYTICS_MEGER_ID { get; set; }
+
+        public string FEEDBACK_RATING_TYPE { get; set; }
+
+        public string _comment_FEEDBACK_RATING_TYPE { get; set; }
+
+        public string REACT_CDN_PDF_URL { get; set; }
+        public string REACT_CDN_PDF_URL_KEY { get; set; }
+
+
+
+
+    }
+    public class maildetails
+    {
+        public string recipientEmail { get; set; }
+        public string subject { get; set; }
+        public string message { get; set; }
+      
+    }
+    public class Audit_Trail
+    {
+        public string tyat_userid { get; set; }
+        public string tyat_page_name { get; set; }
+        public string? tyat_event_name { get; set; }
+        public string? tyat_recordid { get; set; }
+        public DateTime? tyat_createdon { get; set; }
+        public string? tyat_ip { get; set; }
+
+    }
+    public class Error_Log
+    {
+        public string tyel_userid { get; set; }
+        public string tyel_page_name { get; set; }
+        public string? tyel_event_name { get; set; }
+        public string tyel_error { get; set; }
+        public string? tyel_recordid { get; set; }
+        public DateTime? tyel_createdon { get; set; }
+        public string? tyel_ip { get; set; }
+
+    }
+
 }

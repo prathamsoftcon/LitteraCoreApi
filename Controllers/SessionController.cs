@@ -2,7 +2,9 @@
 using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using static Azure.Core.HttpHeader;
 using static LitteraCore.Common.CommonEnum;
 using static System.Net.Mime.MediaTypeNames;
@@ -36,7 +38,7 @@ namespace LitteraCore.Controllers
         [Route("api/TrgSessions")]
         public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null)
         {
-          
+           
             SessionBL cbl = new SessionBL(_configuration);
             List<Session> s=new List<Session>();
             s=cbl.Get_Session_Data_By_Trg(trainingid);
@@ -47,7 +49,7 @@ namespace LitteraCore.Controllers
             string startdate = trgdetail.StartDate?.ToString("yyyy/MM/dd");
             string enddate = trgdetail.T_EndDate?.ToString("yyyy/MM/dd");
 
-
+          
 
             MeetingDB mbl = new MeetingDB(_configuration);
             List<Meeting> m = new List<Meeting>();
@@ -202,7 +204,7 @@ namespace LitteraCore.Controllers
                 foreach (Session sess in s)
                 {
                     List<SessionCompletionStatus> sessionstatus = new List<SessionCompletionStatus>();
-                    sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).ToList();
+                    sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper() && o.iscompleted == 1).ToList();
                     if (sessionstatus.Count > 0)
                     {
                         if (Convert.ToString(sessionstatus.FirstOrDefault().percentcomplete) != "")
@@ -249,14 +251,14 @@ namespace LitteraCore.Controllers
                     }
                     sess.ActionInfos = sessionActiondisplay.ToArray();
                   
-
-
-
+                   
                 }
 
+
+
             }
-    
-          
+
+
             //*************
 
             if (pagetype != 0)
@@ -358,10 +360,47 @@ namespace LitteraCore.Controllers
             List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl=new SessionBL(_configuration);
+
+        
+
             foreach (Session sessn in s) {
-                sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata);
+             
+                string completion_typeid = "1";
+                if(sessn.completiontype != null)
+                {
+                    if(sessn.completiontype.id != null)
+                    {
+                        completion_typeid = sessn.completiontype.id.ToString();
+                    }
+                }
+                if(usertype != null)
+                {
+                    sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
+                    if (sessn.ActionInfos.Where(o => o.key == "7").FirstOrDefault().value == true)
+                    {
+                        sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
+                    }
+                    //Extra condition in case of bhoj to handle feedback not required for session =1
+                    if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10)
+                    {
+                        sessn.is_feedback_Required = 0;
+                    }
+                }
+                else
+                {
+                    sessn.is_Session_Restricted = false;
+                }
+              
+
+                //Extra condition in case of bhoj to hide littera room from self test session
+              
+
+
+
             }
             //**********
+
+
 
 
             return Ok(s);   
@@ -450,10 +489,30 @@ namespace LitteraCore.Controllers
         [Route("api/CHECK_SESSION_FEEBDACK")]
         public IActionResult CHECK_SESSION_FEEBDACK(string userid, string trainingid, string sessionid)
         {
+            bool isFeedbackExist = false;
             SessionBL SDB = new SessionBL(_configuration);
-            bool issaved = SDB.Check_Content_Feedback_Exists(userid,trainingid,sessionid);
+            SessionDB db=new SessionDB(_configuration);
+            List<Session> completiondata = db.Get_Trg_Progress_Data(trainingid, userid);
+            completiondata = completiondata.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).ToList();
+            if (completiondata.Count > 0)
+            {
+                if (completiondata.FirstOrDefault().noofcompletion == 1)
+                {
+                    isFeedbackExist = true;
+                }
+                else
+                {
+                    isFeedbackExist = SDB.Check_Content_Feedback_Exists(userid, trainingid, sessionid);
+                }
+            }
+            else
+            {
+                 isFeedbackExist = SDB.Check_Content_Feedback_Exists(userid, trainingid, sessionid);
+            }
 
-            return Ok(issaved);
+           
+
+            return Ok(isFeedbackExist);
         }
 
         [HttpGet]
@@ -496,94 +555,157 @@ namespace LitteraCore.Controllers
                     SL = SL.Where(o => o.ttttt_type != (int)Common.CommonEnum.SESSION_TYPE.Breaks).ToList();
                     // SL = SL.Where(o => o.ttttt_session_no != 0).ToList();
                     //****************Condition to relax check on complementory session
-                    if (opensessiondetail.ttttt_complimentory == 1)
+                    if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.SrNo)
                     {
-                        isrestricted = false;
-                    }
-                    else
-                    {
-                        if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.SrNo)
+                        if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && o.noofcompletion != 1).Count() <= 0)
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && o.noofcompletion != 1).Count() <= 0)
+                            isrestricted = false;
+                        }
+                    }
+                    else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Date)
+                    {
+                        if (SL.Where(o => Convert.ToDateTime(o.ttttt_session_dt) < Convert.ToDateTime(opensessiondetail.ttttt_session_dt) && o.noofcompletion != 1).Count() <= 0)
+                        {
+                            isrestricted = false;
+                        }
+                    }
+                    else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Day)
+                    {
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
+                        {
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            {
+                                //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                {
+                                    isrestricted = false;
+                                }
+                            }
+
+                        }
+                        else if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Practical)
+                        {
+                            string completiontypeid = "1";
+                            if(opensessiondetail.completiontype != null)
+                            {
+                                completiontypeid = opensessiondetail.completiontype.id.ToString();
+                            }
+                            if (opensessiondetail.ttttt_complimentory == 1)
+                            {
+
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
+                                {
+                                    isrestricted = false;
+                                }
+                            }
+                            else
+                            {
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Practical && completiontypeid.ToString() != "2").Count() <= 0)
+                                {
+
+                                    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
+                                    {
+                                        isrestricted = false;
+                                    }
+                                }
+                               
+                            }
+                            //    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Practical && o.completiontype.id.ToString() != "2").Count() <= 0)
+                            //{
+                            //    //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
+                            //    //if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                            //    //{
+                            //    //    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            //    //    {
+                            //    //        if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && o.noofcompletion != 1).Count() <= 0)
+                            //    //        {
+                            //    //            isrestricted = false;
+                            //    //        }
+
+                            //    //        // isrestricted = false;
+                            //    //    }
+                            //    //}
+                            //    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
+                            //    {
+                            //        isrestricted = false;
+                            //    }
+                            //}
+                        }
+                        else
+                        {
+                            if (opensessiondetail.ttttt_complimentory == 1)
+                            {
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
+                                {
+                                    isrestricted = false;
+                                }
+                            }
+                            else
+                            {
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                                {
+                                    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
+                                    {
+                                        isrestricted = false;
+                                    }
+                                }
+                            }
+
+                        }
+
+                    }
+                    else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Week)
+                    {
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
+                        {
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            {
+                                //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                {
+                                    isrestricted = false;
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
                             {
                                 isrestricted = false;
                             }
                         }
-                        else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Date)
+                    }
+                    else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Module)
+                    {
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
                         {
-                            if (SL.Where(o => Convert.ToDateTime(o.ttttt_session_dt) < Convert.ToDateTime(opensessiondetail.ttttt_session_dt) && o.noofcompletion != 1).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            {
+                                //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                {
+                                    isrestricted = false;
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
                             {
                                 isrestricted = false;
                             }
                         }
-                        else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Day)
-                        {
-                            if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
-                                    {
-                                        isrestricted = false;
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    isrestricted = false;
-                                }
-                            }
-
-                        }
-                        else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Week)
-                        {
-                            if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
-                                    {
-                                        isrestricted = false;
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    isrestricted = false;
-                                }
-                            }
-                        }
-                        else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Module)
-                        {
-                            if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                    if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
-                                    {
-                                        isrestricted = false;
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
-                                {
-                                    isrestricted = false;
-                                }
-                            }
-                        }
                     }
+                    //if (opensessiondetail.ttttt_complimentory == 1)
+                    //{
+                    //    isrestricted = false;
+                    //}
+                    //else
+                    //{
+
+                    //}
 
 
 
@@ -1047,7 +1169,15 @@ namespace LitteraCore.Controllers
             SessionBL sbl = new SessionBL(_configuration);
             foreach (Session sessn in s)
             {
-                sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata);
+                string completion_typeid = "1";
+                if (sessn.completiontype != null)
+                {
+                    if (sessn.completiontype.id != null)
+                    {
+                        completion_typeid = sessn.completiontype.id.ToString();
+                    }
+                }
+                sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
             }
 
 
@@ -1060,21 +1190,457 @@ namespace LitteraCore.Controllers
                 {
                     if(sessn.completionpercentage == 0)
                     {
-                        if (activeSession == null)
+                        if (sessn.ActionInfos.Where(o=>o.key=="5").FirstOrDefault().value==true)
                         {
-                            activeSession = sessn;
+                            if (activeSession == null)
+                            {
+                                activeSession = sessn;
+                            }
                         }
+                       
                     }
                  
                 }
-             
+
             }
 
-
+            //string completion_typeid = "1";
+            //if (activeSession.completiontype != null)
+            //{
+            //    if (activeSession.completiontype.id != null)
+            //    {
+            //        completion_typeid = activeSession.completiontype.id.ToString();
+            //    }
+            //}
+            if (activeSession != null)
+            {
+                if (activeSession.ActionInfos.Where(o => o.key == "7").FirstOrDefault().value == true)
+                {
+                    activeSession.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
+                }
+            }
+           
 
             //***************
 
             return Ok(activeSession);
         }
+
+
+
+        [HttpGet]
+        [Route("api/CHECK_PREVIOUS_SESSION_FOR_COMPLETION")]
+        public IActionResult CHECK_PREVIOUS_SESSION_FOR_COMPLETION(string trainingid,string sessionid,int pagetype = 0, string usertype = null, string userid = null)
+        {
+
+            SessionBL cbl = new SessionBL(_configuration);
+            List<Session> s = new List<Session>();
+            s = cbl.Get_Session_Data_By_Trg(trainingid);
+            //*********Get Training Setting Detail
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            string startdate = trgdetail.StartDate?.ToString("yyyy/MM/dd");
+            string enddate = trgdetail.T_EndDate?.ToString("yyyy/MM/dd");
+
+
+
+            MeetingDB mbl = new MeetingDB(_configuration);
+            List<Meeting> m = new List<Meeting>();
+            m = mbl.Get_Trg_Meetings(trainingid);
+
+            foreach (Session sl in s)
+            {
+                List<Meeting> lm = new List<Meeting>();
+                lm = m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sl.ttttt_session_id.ToString().ToUpper()).ToList();
+                sl.meeting = lm.ToArray();
+            }
+
+            CommonEnum.SESSION_LIST_ACTIONS[] enumActionArray = (CommonEnum.SESSION_LIST_ACTIONS[])Enum.GetValues(typeof(CommonEnum.SESSION_LIST_ACTIONS));
+            int[] intActionArray = Array.ConvertAll(enumActionArray, v => (int)v);
+            //**************
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    if (trgdetail.trg_Setting.Session.SessionEntry != null)
+                    {
+                        List<DisplayInfo> di = new List<DisplayInfo>();
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                        }
+
+                        foreach (Session sess in s)
+                        {
+                            sess.displayInfos = di.ToArray();
+                            sess.DisplayOrder = trgdetail.trg_Setting.Session.SessionOrder;
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                if (trgdetail.isSelfPaced == 1)
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                    foreach (Session sess in s)
+                    {
+                        sess.displayInfos = di.ToArray();
+                        sess.DisplayOrder = "1,4,2,5,3";
+                    }
+                }
+                else
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                    foreach (Session sess in s)
+                    {
+                        sess.displayInfos = di.ToArray();
+                        sess.DisplayOrder = "1,2,4,3,5";
+                    }
+                }
+            }
+
+            //**************Attach Action Info
+            int iscdLogin = 0;
+            int participantstatus = 0;
+            string testparticipantid = "";
+            int ismeetingavailable = 0;
+
+            if (usertype != null)
+            {
+                List<Test> TESTS = new List<Test>();
+                if (Convert.ToInt16(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                {
+                    ParticipantDB PDB = new ParticipantDB(_configuration);
+                    List<Participant> pl = new List<Participant>();
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+                    pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
+                    if (pl.Count() > 0)
+                    {
+                        participantstatus = pl.FirstOrDefault().is_approve;
+                    }
+                    else
+                    {
+                        participantstatus = 0;
+                    }
+
+                    EvalDB tbl = new EvalDB(_configuration);
+                    TESTS = tbl.Get_test_List(usertype, userid);
+
+
+
+                }
+
+                if (trgdetail.CourseDirector.ToString().ToUpper() == userid.ToString().ToUpper() || trgdetail.AssociateDirector.ToString().ToUpper() == userid.ToString().ToUpper())
+                {
+                    iscdLogin = 1;
+                }
+
+
+                SessionDB SDB = new SessionDB(_configuration);
+                List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
+                if (userid.ToString() != "")
+                {
+                    status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                }
+
+
+
+
+
+                foreach (Session sess in s)
+                {
+                    List<SessionCompletionStatus> sessionstatus = new List<SessionCompletionStatus>();
+                    sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper() && o.iscompleted==1).ToList();
+                    if (sessionstatus.Count > 0)
+                    {
+                        if (Convert.ToString(sessionstatus.FirstOrDefault().percentcomplete) != "")
+                        {
+                            sess.completionpercentage = Convert.ToDecimal(sessionstatus.FirstOrDefault().percentcomplete);
+                        }
+                        else
+                        {
+                            sess.completionpercentage = 0;
+                        }
+
+                    }
+                    else
+                    {
+                        sess.completionpercentage = 0;
+                    }
+
+                    if (m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                    {
+                        ismeetingavailable = 1;
+                    }
+                    else
+                    {
+                        ismeetingavailable = 0;
+                    }
+
+
+                    if (TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                    {
+                        testparticipantid = TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).FirstOrDefault().participantstatus;
+                    }
+                    else
+                    {
+                        testparticipantid = "";
+                    }
+                    List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
+                    foreach (int value in intActionArray)
+                    {
+                        DisplayInfo DI = new DisplayInfo();
+                        DI.key = value.ToString();
+                        DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
+                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable, iscdLogin, participantstatus, testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+                        sessionActiondisplay.Add(DI);
+                    }
+                    sess.ActionInfos = sessionActiondisplay.ToArray();
+
+
+
+
+                }
+
+            }
+
+
+            //*************
+
+            if (pagetype != 0)
+            {
+                string[] strarr = CommonEnum.Page_Allowed_Session_Type(pagetype).Split(",".ToCharArray());
+                int[] arr = Array.ConvertAll(strarr, int.Parse);
+                s = s.Where(o => arr.Contains(o.ttttt_type)).ToList();
+
+            }
+
+            //***********Get Trg Setting
+            Trg_Setting TS = new Trg_Setting();
+            session_setting sessionSetting = new session_setting();
+            TS.Session = sessionSetting;
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    if (trgdetail.trg_Setting.Session.SessionEntry != null)
+                    {
+                        List<DisplayInfo> di = new List<DisplayInfo>();
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                        }
+                        TS.Session.SessionOrder = trgdetail.trg_Setting.Session.SessionOrder;
+
+
+                    }
+                }
+            }
+            else
+            {
+                if (trgdetail.isSelfPaced == 1)
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                    TS.Session.SessionOrder = "1,4,2,5,3";
+                }
+                else
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                    TS.Session.SessionOrder = "1,2,4,3,5";
+
+                }
+            }
+
+            s = s.Where(o => o.ttttt_status != "9").ToList();
+            s = CommonEnum.OrderSessionData(TS.Session.SessionOrder, s);
+
+
+
+            //****************Get Session Restriction data
+            SessionDB sdb = new SessionDB(_configuration);
+            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid);
+            SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
+            SessionBL sbl = new SessionBL(_configuration);
+            foreach (Session sessn in s)
+            {
+                string completion_typeid = "1";
+                if (sessn.completiontype != null)
+                {
+                    if (sessn.completiontype.id != null)
+                    {
+                        completion_typeid = sessn.completiontype.id.ToString();
+                    }
+                }
+                sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
+
+
+                //Extra condition in case of bhoj to hide littera room from self test session
+                if (sessn.ActionInfos.Where(o => o.key == "7").FirstOrDefault().value == true)
+                {
+                    sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
+                }
+                //Extra condition in case of bhoj to handle feedback not required for session =1
+                if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid=="2")
+                {
+                    sessn.is_feedback_Required = 0;
+                }
+            }
+            //**********
+
+
+            //*********Logic for previous session check
+            string previousSessionId = "";
+            int currentIndex = s.FindIndex(s => s.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper());
+            if (currentIndex > 0)
+            {
+                // Get the previous session's ID (index - 1)
+                previousSessionId = s[currentIndex - 1].ttttt_session_id;
+                
+            }
+            int isFeedbackOpen = 0;
+            Session PreviousSession = null;
+            if (previousSessionId != "")
+            {
+
+                PreviousSession = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == previousSessionId.ToString().ToUpper()).FirstOrDefault();
+                if (PreviousSession.is_Session_Restricted == false)
+                {
+                    if (PreviousSession.completionpercentage < 100)
+                    {
+                        //check is visited=true
+                        List<user_session_status> statusdata = new List<user_session_status>();
+                        SessionBL SDB = new SessionBL(_configuration);
+                        statusdata = SDB.Get_Participant_session_status(userid, trainingid, previousSessionId);
+
+
+                        if (statusdata.Where(o=>o.status=="2").Count()>0)
+                        {
+                            isFeedbackOpen = 1;
+                        }
+                    }
+                }
+            }
+           
+           
+
+
+
+            return Ok(new { isFeedbackOpen = isFeedbackOpen, PreviousSession= PreviousSession });
+        }
+
+
+
+        [HttpPost]
+        [Route("api/Update_Session_visit_Status")]
+        public IActionResult Update_Session_visit_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status)
+        {
+            SessionBL SDB = new SessionBL(_configuration);
+            bool issaved = SDB.Update_Session_Visit_Status(Participantid, trainingid, Sessionid, timeonsession, branchid, status);
+
+            return Ok(issaved);
+        }
+        [HttpGet]
+        [Route("api/Check_Exception")]
+        public IActionResult Check_Exception()
+        {
+            throw new Exception("This is a custom exception message.");
+            return Ok(true);
+        }
+
     }
 }

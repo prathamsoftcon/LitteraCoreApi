@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System.Data;
 using LitteraCore.BLContext;
 using LitteraCore.Common.EmailService;
+using LitteraCore.Common;
 
 namespace LitteraCore.Controllers
 {
@@ -138,12 +139,80 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Send_Mail")]
-        public async Task<Boolean> Send_Mail(string recipientEmail, string subject, string message)
+        public async Task<Boolean> Send_Mail(maildetails m)
         {
             SmtpEmailService s = new SmtpEmailService(_configuration);
-              await s.SendEmailAsync(recipientEmail, subject, message);
+              await s.SendEmailAsync(m.recipientEmail, m.subject, m.message);
             return true;
 
+        }
+        [HttpPost]
+        [Route("api/Save_Audit_Trail")]
+        public async Task<Boolean> Save_Audit_Trail(Audit_Trail m)
+        {
+            m.tyat_ip = GetClientIp();
+            bool issaved = false;
+            ApplicationConfigBL b = new ApplicationConfigBL(_configuration);
+            issaved=b.Save_Audit_Trail(m);
+            return true;
+
+        }
+        [HttpPost]
+        [Route("api/Save_Error_Log")]
+        public async Task<Boolean> Save_Error_Log(Error_Log m)
+        {
+            m.tyel_ip = GetClientIp();
+            bool issaved = false;
+            ApplicationConfigBL b = new ApplicationConfigBL(_configuration);
+            issaved = b.Save_Error_Log(m);
+            return true;
+
+        }
+
+        [HttpPost]
+        [Route("api/Get_Audit_Trail")]
+        public IActionResult Get_Audit_Trail(PaginationParam param, string? userid=null, string? fromdate = null, string? todate = null)
+        {
+            ApplicationConfigBL a = new ApplicationConfigBL(_configuration);
+            PagedList<Audit_Trail> pd = a.Get_Audit_Trail(param, userid, fromdate, todate);
+            return Ok(pd);
+
+        }
+        [HttpPost]
+        [Route("api/Get_Error_Log")]
+        public IActionResult Get_Error_Log(PaginationParam param, string? userid = null, string? fromdate = null, string? todate = null)
+        {
+            ApplicationConfigBL a = new ApplicationConfigBL(_configuration);
+            PagedList<Error_Log> pd = a.Get_Error_log(param, userid, fromdate, todate);
+            return Ok(pd);
+
+        }
+
+        //[HttpGet("client-ip")]
+        //public IActionResult GetClientIp()
+        //{
+        //    string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        //    // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+        //    if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+        //    {
+        //        clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
+        //    }
+
+        //    return Ok(new { ClientIp = clientIp });
+        //}
+        [HttpGet("client-ip")]
+        public string GetClientIp()
+        {
+            string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+            if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
+            }
+
+            return clientIp;
         }
 
     }
