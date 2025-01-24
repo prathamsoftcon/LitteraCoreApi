@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
+using System.Globalization;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace LitteraCore.Controllers
@@ -206,6 +207,18 @@ namespace LitteraCore.Controllers
             var result = Paging.GetPagedData(param, filteredItems);
             return Ok(result);
         }
+
+        [Route("api/get_test_participant_id")]
+        [HttpGet]
+        public IActionResult get_test_participant_id(string testquestionid, string userid)
+        {
+            //At present this data is hardcode in modal need to change by config file
+            CompetencyConfiguration c = new CompetencyConfiguration();
+            EvalDB ebl = new EvalDB(_configuration);
+            string id = ebl.Get_test_Participantid(testquestionid, userid);
+            return Ok(id);
+        }
+
 
     }
 

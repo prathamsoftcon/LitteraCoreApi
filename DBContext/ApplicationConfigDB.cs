@@ -59,5 +59,195 @@ namespace LitteraCore.DBContext
             return dt;
         }
 
+
+        public bool Save_Trial_Log(Audit_Trail at)
+        {
+          
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_ins_tbl_yuser_audit_trail", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tyat_userid", at.tyat_userid);
+            cmd.Parameters.AddWithValue("@tyat_page_name", at.tyat_page_name);
+            cmd.Parameters.AddWithValue("@tyat_event_name", at.tyat_event_name);
+            cmd.Parameters.AddWithValue("@tyat_recordid", at.tyat_recordid);
+            cmd.Parameters.AddWithValue("tyat_ip", at.tyat_ip);
+            
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            cmd.ExecuteNonQuery();
+            con.Close();
+     
+            return true;
+        }
+        
+
+        public bool Save_Error_Log(Error_Log at)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_ins_tbl_yuser_error_log", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tyel_userid", at.tyel_userid);
+            cmd.Parameters.AddWithValue("@tyel_page_name", at.tyel_page_name);
+            cmd.Parameters.AddWithValue("@tyel_event_name", at.tyel_event_name);
+            cmd.Parameters.AddWithValue("@tyel_error", at.tyel_error);
+            cmd.Parameters.AddWithValue("@tyel_recordid", at.tyel_recordid);
+            cmd.Parameters.AddWithValue("tyel_ip", at.tyel_ip);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
+        public PagedList<Audit_Trail> Get_Audit_Trail(PaginationParam param,string userid=null,string fromdate=null,string todate=null)
+        {
+
+            List<Audit_Trail> f = new List<Audit_Trail>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_get_tbl_yuser_audit_trail", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            if (userid != null)
+            {
+                cmd.Parameters.AddWithValue("@tyat_userid", userid);
+            }
+           if(fromdate != null)
+            {
+                cmd.Parameters.AddWithValue("@fromdate", fromdate);
+            }
+           if (todate != null)
+            {
+                cmd.Parameters.AddWithValue("@todate", todate);
+            }
+          
+           
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow dr in dt.Rows)
+            {
+                f.Add(
+                    new Audit_Trail
+                    {
+                         tyat_userid= Convert.ToString(dr["tyat_userid"]),
+                         tyat_page_name= Convert.ToString(dr["tyat_page_name"]),
+                         tyat_event_name= Convert.ToString(dr["tyat_event_name"]),
+                         tyat_recordid= Convert.ToString(dr["tyat_recordid"]),
+                         tyat_createdon = Convert.ToDateTime(dr["tyat_createdon"]),
+                         tyat_ip= Convert.ToString(dr["tyat_ip"])
+
+                    });
+            }
+
+            if (param == null)
+            {
+                return PagedList<Audit_Trail>.ToPagedList(f.ToList(),
+                   param.PageNumber,
+                   f.Count());
+            }
+            else
+            {
+                if (param.PageSize > 0)
+                {
+                    return PagedList<Audit_Trail>.ToPagedList(f.ToList(),
+                param.PageNumber,
+                param.PageSize);
+                }
+                else
+                {
+                    return PagedList<Audit_Trail>.ToPagedList(f.ToList(),
+                param.PageNumber,
+               f.Count());
+                }
+
+            }
+
+
+        }
+
+        public PagedList<Error_Log> Get_Error_Log(PaginationParam param, string userid=null, string fromdate=null, string todate=null)
+        {
+
+            List<Error_Log> f = new List<Error_Log>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_get_tbl_yuser_error_log", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            if (userid != null)
+            {
+                cmd.Parameters.AddWithValue("@tyel_userid", userid);
+            }
+            if (fromdate != null)
+            {
+                cmd.Parameters.AddWithValue("@fromdate", fromdate);
+            }
+            if (todate != null)
+            {
+                cmd.Parameters.AddWithValue("@todate", todate);
+            }
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow dr in dt.Rows)
+            {
+                f.Add(
+                    new Error_Log
+                    { 
+                        tyel_userid = Convert.ToString(dr["tyel_userid"]),
+                        tyel_page_name = Convert.ToString(dr["tyel_page_name"]),
+                        tyel_event_name = Convert.ToString(dr["tyel_event_name"]),
+                        tyel_recordid = Convert.ToString(dr["tyel_recordid"]),
+                        tyel_createdon = Convert.ToDateTime(dr["tyel_createdon"]),
+                        tyel_error= Convert.ToString(dr["tyel_error"]),
+                         tyel_ip = Convert.ToString(dr["tyel_ip"])
+
+                    });
+            }
+
+            if (param == null)
+            {
+                return PagedList<Error_Log>.ToPagedList(f.ToList(),
+                   param.PageNumber,
+                   f.Count());
+            }
+            else
+            {
+                if (param.PageSize > 0)
+                {
+                    return PagedList<Error_Log>.ToPagedList(f.ToList(),
+                param.PageNumber,
+                param.PageSize);
+                }
+                else
+                {
+                    return PagedList<Error_Log>.ToPagedList(f.ToList(),
+                param.PageNumber,
+               f.Count());
+                }
+
+            }
+
+
+        }
+
     }
 }

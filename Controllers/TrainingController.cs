@@ -176,5 +176,17 @@ namespace LitteraCore.Controllers
             EH = TBD.Get_Trg_Sponsor(trainingid);
             return Ok(EH);
         }
+
+        [HttpGet]
+        [Route("api/TRG_PARTICIPANT_DETAILS")]
+        public IActionResult TRG_PARTICIPANT_DETAILS(string trainingid,string participantid=null)
+        {
+           
+            List<Participant> PL = new List<Participant>();
+            ParticipantDB PDB = new ParticipantDB(_configuration);
+            //List of training all participant
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid);
+            return Ok(PL);
+        }
     }
 }

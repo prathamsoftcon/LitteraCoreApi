@@ -95,4 +95,38 @@
     {
         public string printdata { get; set; }
     }
+    public class BranchType
+    {
+        public string branchtypeid { get; set; }
+
+        public string branchtype_name { get; set; }
+
+        public string branchtype_hname { get; set; }
+    }
+    public class Branches
+    {
+        public string branchtypeId { get; set; }
+        public string branchid { get; set; }
+
+        public string branch_name { get; set; }
+
+        public string branch_hname { get; set; }
+    }
+    public class UserBranch
+    {
+        public BranchType[] branchtype { get; set; }
+
+        public Branches[] branches { get; set; }
+    }
+
+    public class update_pass
+    {
+        public string userid { get; set; }
+
+        public string? password { get; set; }
+    }
+    public class userlist
+    {
+        public List<update_pass> users { get; set; }
+    }
 }

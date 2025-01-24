@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
 using System.Xml;
+using static LitteraCore.Models.Firebase;
 
 namespace LitteraCore.DBContext
 {
@@ -808,6 +809,144 @@ namespace LitteraCore.DBContext
       
             return true;
         }
+
+
+
+        public UserBranch Get_User_Branches(string userid)
+        {
+            UserBranch userBranch = new UserBranch();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_user_branch_roles", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@UserID", userid);
+           
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+
+
+
+            List<BranchType> bt = new List<BranchType>();
+            bt = BranchTypes();
+            List<Agency> branches= new List<Agency>();
+            branches= Get_All_Agency_Name("00001,00002,00003,00004,00005");
+
+
+
+
+            var distinctValues = dt.AsEnumerable()
+                              .Select(row => row.Field<string>("tyubr_branch_type"))
+                              .Distinct()
+                              .ToList();
+
+            List<BranchType> user_branch_type = new List<BranchType>();
+            foreach (var value in distinctValues)
+            {
+                string branchname = "";
+                string hbranchname = "";
+                if (bt.Where(o => o.branchtypeid == value.ToString()).Count() > 0)
+                {
+                    branchname = bt.Where(o => o.branchtypeid == value.ToString()).FirstOrDefault().branchtype_name;
+                    hbranchname = bt.Where(o => o.branchtypeid == value.ToString()).FirstOrDefault().branchtype_hname;
+                }
+                user_branch_type.Add(new BranchType { branchtypeid = value, branchtype_name = branchname, branchtype_hname = hbranchname });
+            }
+
+
+
+
+            List<Branches> user_branches = new List<Branches>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                string branchname = "";
+                string hbranchname = "";
+                if(branches.Where(o=>o.agencyid.ToString().ToUpper()== dr["tyubr_branch_id"].ToString().ToUpper()).Count() > 0)
+                {
+                    branchname = branches.Where(o => o.agencyid.ToString().ToUpper() == dr["tyubr_branch_id"].ToString().ToUpper()).FirstOrDefault().agencyname;
+                    hbranchname = branches.Where(o => o.agencyid.ToString().ToUpper() == dr["tyubr_branch_id"].ToString().ToUpper()).FirstOrDefault().hagencyname;
+                }
+
+                Branches ub = new Branches();
+                ub.branchtypeId = Convert.ToString(dr["tyubr_branch_type"]);
+                ub.branchid = Convert.ToString(dr["tyubr_branch_id"]);
+                ub.branch_name = branchname;
+                ub.branch_hname = hbranchname;
+
+                user_branches.Add(ub);
+               
+            }
+
+            userBranch.branchtype = user_branch_type.ToArray();
+            userBranch.branches = user_branches.ToArray();
+
+            return userBranch;
+        }
+
+
+        
+        public List<BranchType> BranchTypes()
+        {
+            List<BranchType> userBranch = new List<BranchType>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.GetAgencyType", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+         
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+
+
+
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                BranchType bt=new BranchType();
+                bt.branchtypeid = Convert.ToString(dr["AgencyTypeID"]);
+                bt.branchtype_name = Convert.ToString(dr["AgencyTypeName"]);
+                bt.branchtype_hname = Convert.ToString(dr["HAgencyTypeName"]);
+                userBranch.Add(bt);
+                
+            }
+
+            return userBranch;
+        }
+
+        public root Get_Firebase_Token_Details(NotificationUsers users)
+        {
+            root user;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_firebase_token", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            string p1 = JsonConvert.SerializeObject(users);
+            cmd.Parameters.AddWithValue("@agencyid", p1);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            user = JsonConvert.DeserializeObject<root>(dt.Rows[0][0].ToString());
+
+            return user;
+        }
+
+
+
 
     }
 }

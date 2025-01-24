@@ -168,7 +168,7 @@ namespace LitteraCore.DBContext
 
 
                 DataTable dtfaulties = new DataTable();
-                dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "'";
+                dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tttttf_status <> 9";
                 dtfaulties = dt.DefaultView.ToTable();
                 List<SessionFaculties> lsf = new List<SessionFaculties>();
                 foreach (DataRow drf1 in dtfaulties.Rows)
@@ -833,8 +833,15 @@ namespace LitteraCore.DBContext
                 //vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
                 //vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
                 //vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
-
-                vw.facultyname = Convert.ToString(row["facultyname"]);
+                if(Convert.ToString(row["tttttf_status"]) != "9")
+                {
+                    vw.facultyname = Convert.ToString(row["facultyname"]);
+                }
+                else
+                {
+                    vw.facultyname = "";
+                }
+               
                 //vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
                 //if (Convert.ToString(row["facultyimgpath"]) != "")
                 //{
@@ -1925,7 +1932,33 @@ namespace LitteraCore.DBContext
 
             return isdisplay;
         }
-       
+
+        public bool Update_Session_Visit_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand();
+
+            cmd = new SqlCommand("Trainingplan.proc_update_participant_session_visit_status", con);
+            cmd.Parameters.AddWithValue("@ttpss_participant_id", Participantid);
+            cmd.Parameters.AddWithValue("@ttpss_session_id", Sessionid);
+            cmd.Parameters.AddWithValue("@ttpss_onscreen_time", timeonsession);
+            //cmd.Parameters.AddWithValue("@ttpss_status", status);
+            cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            cmd.Parameters.AddWithValue("@BranchId", branchid);
+
+
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.ExecuteNonQuery();
+
+            return true;
+        }
+
 
     }
 

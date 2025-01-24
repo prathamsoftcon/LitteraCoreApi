@@ -115,5 +115,17 @@ namespace LitteraCore.Controllers
 
 
         }
+
+        [HttpGet]
+        [Route("api/Get_user_branches")]
+        public IActionResult Get_user_branches(string userid)
+        {
+            UserBranch s = new UserBranch();
+            AgencyBL cdb = new AgencyBL(_configuration);
+            s = cdb.Get_User_Branche(userid);
+            return Ok(s);
+
+
+        }
     }
 }

@@ -4,7 +4,11 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
-
+using System;
+using System.Security.Cryptography;
+using System.Text;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Components.Web;
 namespace LitteraCore.DBContext
 {
     public class AuthDB
@@ -157,6 +161,123 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@UserID", userid);
             cmd.Parameters.AddWithValue("@LogOff", logoff);
             cmd.Parameters.AddWithValue("@ip", ip);
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
+
+        public static string GetMD5Hash(string input)
+        {
+            using (MD5 md5 = MD5.Create())  // Creates an MD5 instance
+            {
+                byte[] inputBytes = Encoding.UTF8.GetBytes(input); // Converts the input string to a byte array
+                byte[] hashBytes = md5.ComputeHash(inputBytes); // Computes the MD5 hash
+
+                // Converts the hash byte array to a hexadecimal string
+                StringBuilder sb = new StringBuilder();
+                foreach (byte b in hashBytes)
+                {
+                    sb.Append(b.ToString("x2")); // "x2" ensures 2 hexadecimal characters for each byte
+                }
+                return sb.ToString(); // Returns the hexadecimal hash string
+            }
+        }
+
+        public DataTable Get_User_Agency_Data(userlist ul)
+        {
+            try
+            {
+                List<User> user = new List<User>();
+                DataTable dt = new DataTable();
+                SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+                con.Open();
+                SqlCommand cmd = new SqlCommand("yuser.proc_get_user_agency_details_importdata", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = con;
+                cmd.CommandTimeout = 5000;
+                string p1 = JsonConvert.SerializeObject(ul);
+                cmd.Parameters.AddWithValue("@JsonParameter", p1);
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+                con.Close();
+            
+                return dt;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+        }
+
+        public bool Update_bulk_password(userlist ul)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            con.Open();
+            SqlCommand cmd = new SqlCommand("YUser.update_bulk_password", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            string p1 = JsonConvert.SerializeObject(ul);
+            cmd.Parameters.AddWithValue("@jsonInput", p1);
+            // cmd.Parameters.AddWithValue("@OldPassword", username);
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
+        public bool is_password_changed(string userid)
+        {
+
+            UserInfo u = new UserInfo();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("YUser.proc_yuser_check_password_changed", con);
+            cmd.Parameters.AddWithValue("@userid", userid);
+         
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            bool ischanged =false;
+            if(dt.Rows.Count > 0)
+            {
+                if (Convert.ToString(dt.Rows[0]["ispasswordchanged"]) == "1")
+                {
+                    ischanged = true;
+                }
+               
+            }
+
+            return ischanged;
+
+
+      
+
+        }
+
+        public bool Password_Updated(string userid)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            con.Open();
+            SqlCommand cmd = new SqlCommand("YUser.proc_yuser_update_password_changed", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@userid", userid);
+           
             cmd.ExecuteNonQuery();
             con.Close();
 

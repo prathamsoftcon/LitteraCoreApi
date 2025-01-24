@@ -150,6 +150,13 @@ namespace LitteraCore.BLContext
             s = adb.Get_SALUTATION();
             return s;
         }
+        public UserBranch Get_User_Branche(string userid)
+        {
+            UserBranch s = new UserBranch();
+            AgencyDB adb = new AgencyDB(_configuration);
+            s = adb.Get_User_Branches(userid);
+            return s;
+        }
 
     }
 }

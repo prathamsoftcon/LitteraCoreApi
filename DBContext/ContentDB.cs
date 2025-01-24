@@ -2,6 +2,7 @@
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using System.IO;
 
 namespace LitteraCore.DBContext
 {
@@ -114,6 +115,36 @@ namespace LitteraCore.DBContext
 
                     vw.GlobalFilePath =  Convert.ToString(row["GlobalFilePath"]);
                 }
+                //if (Convert.ToString(row["GlobalthumbnailPath"]) != "")
+                //{
+
+                //    vw.GlobalthumbnailPath = Convert.ToString(row["GlobalthumbnailPath"]);
+                //}
+                //else
+                //{
+                //    if (Convert.ToString(row["GlobalContentyTypeID"]).ToString().ToUpper() == "6ECEC2CD-2780-4DB5-B03C-CA37D3CC8B29")
+                //    {
+
+                //        if (Convert.ToString(row["GlobalWysiwagText"]).ToString().ToUpper().Contains(".PDF"))
+                //        {
+                //            string url = Convert.ToString(row["GlobalWysiwagText"]).Replace("\\", "/");
+                //            string pdfurl = url.Substring(0, url.LastIndexOf("/"));
+                //            vw.GlobalthumbnailPath = _configuration["CDN_API_PATH"] + "/" + pdfurl+"/Media/Thumbnail.jpg";
+                //        }
+                //        else
+                //        {
+                //            string url = Convert.ToString(row["GlobalWysiwagText"]);
+                //            string imgpath = url.Substring(0, url.LastIndexOf("/"))+"/Media/Thumbnail.jpg";
+                //            vw.GlobalthumbnailPath = imgpath;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        vw.GlobalthumbnailPath = "";
+                //    }
+
+                //}
+
                 if (Convert.ToString(row["GlobalthumbnailPath"]) != "")
                 {
 
@@ -123,6 +154,7 @@ namespace LitteraCore.DBContext
                 {
                     vw.GlobalthumbnailPath = "";
                 }
+
 
                 vw.GlobalFileName = Convert.ToString(row["GlobalFileName"]);
                 vw.SessionAttachmentType = Convert.ToString(row["SessionAttachmentType"]);

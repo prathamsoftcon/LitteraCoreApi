@@ -123,7 +123,7 @@ namespace LitteraCore.Controllers
 
                 var filter = sl.Where(o => o.trainingid.ToString() == item.TrainingId.ToString());
                 item.sessions = filter.ToList();
-                item.no_of_sessions = filter.Select(x => x.ttttt_session_id).Distinct().Count();
+                item.no_of_sessions = filter.Where(o=>o.ttttt_status == "0").Select(x => x.ttttt_session_id).Distinct().Count();
 
                 var filterfaculties = filter.ToList().Where(o => o.ttttt_facultyid != null);
                 // item.faculties = filter.ToList().Where(o => o.ttttt_facultyid !=null);
@@ -227,7 +227,8 @@ namespace LitteraCore.Controllers
 
                 var filter = sl.Where(o => o.trainingid.ToString() == item.TrainingId.ToString());
                 item.sessions = filter.ToList();
-                item.no_of_sessions = filter.Select(x => x.ttttt_session_id).Distinct().Count();
+                item.no_of_sessions = filter.Where(o => o.ttttt_status == "0").Select(x => x.ttttt_session_id).Distinct().Count();
+
 
                 var filterfaculties = filter.ToList().Where(o => o.ttttt_facultyid != null);
                 // item.faculties = filter.ToList().Where(o => o.ttttt_facultyid !=null);

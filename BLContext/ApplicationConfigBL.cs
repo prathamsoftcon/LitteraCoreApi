@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Newtonsoft.Json;
@@ -97,6 +98,41 @@ namespace LitteraCore.BLContext
 
 
         //}
+
+        public bool Save_Audit_Trail(Audit_Trail a)
+        {
+            ApplicationConfigDB ADB = new ApplicationConfigDB(_configuration);
+            ADB.Save_Trial_Log(a);
+            return true;
+        }
+        public bool Save_Error_Log(Error_Log a)
+        {
+            ApplicationConfigDB ADB = new ApplicationConfigDB(_configuration);
+            ADB.Save_Error_Log(a);
+            return true;
+        }
+
+        public PagedList<Audit_Trail> Get_Audit_Trail(PaginationParam param, string userid, string fromdate, string todate)
+        {
+
+           ApplicationConfigDB adb=new ApplicationConfigDB(_configuration);
+
+            PagedList<Audit_Trail> pd = adb.Get_Audit_Trail(param, userid, fromdate, todate);
+
+            return pd;
+
+        }
+        public PagedList<Error_Log> Get_Error_log(PaginationParam param, string userid, string fromdate, string todate)
+        {
+
+            ApplicationConfigDB adb = new ApplicationConfigDB(_configuration);
+
+            PagedList<Error_Log> pd = adb.Get_Error_Log(param, userid, fromdate, todate);
+
+            return pd;
+
+        }
+
 
     }
 }

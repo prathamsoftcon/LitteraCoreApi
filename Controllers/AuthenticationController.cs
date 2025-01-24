@@ -11,10 +11,14 @@ using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using System.Data;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
+using System.Text.Json;
 using static LitteraCore.Common.CommonEnum;
 using static System.Net.WebRequestMethods;
 
@@ -208,11 +212,19 @@ namespace LitteraCore.Controllers
                     {
                         await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
                     }
-                    //if (lU.emailid != null)
-                    //{
-                    //    //await _mailService.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                    //    await _mailService.SendEmailAsync("prince@prathamsoft.com", "OTP Details", msg);
-                    //}
+                    if (lU.emailid != null)
+                    {
+                        try
+                        {
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                      
+                    }
 
                     return Ok(new {otp= otp, userid= lU.userid});
 
@@ -319,8 +331,23 @@ namespace LitteraCore.Controllers
         [Route("api/UpdatePassword")]
         public IActionResult UpdatePassword(Update_Password u)
         {
+            //Code to check old password
+            AppAuthService auth = new AppAuthService(_configuration);
+            List<User> lU = new List<User>();
             AuthDB adb = new AuthDB(_configuration);
-            u.password = YEncryptDecryptData.YEncryptDecryptData.Encrypt(u.password, true);
+            lU = adb.GET_LOGIN_DETAIL(u.username);
+            if (lU.Count > 0)
+            {
+                string decryptedpass = YEncryptDecryptData.YEncryptDecryptData.Decrypt(lU.FirstOrDefault().password, true);
+                if (decryptedpass==u.password)
+                {
+
+                   return BadRequest("Old and new password should be different.");
+                }
+            }
+
+
+                u.password = YEncryptDecryptData.YEncryptDecryptData.Encrypt(u.password, true);
             adb.Change_Password(u.userid, u.password); 
             return Ok(true);
 
@@ -426,6 +453,110 @@ namespace LitteraCore.Controllers
 
             return userid+"*"+ contenid;
         }
+
+
+        [HttpGet]
+        [Route("api/GET_REACT_APP_CONFIGURATION")]
+        public IActionResult GET_REACT_APP_CONFIGURATION()
+        {
+           REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
+
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Config.json"));
+            RAC = JsonConvert.DeserializeObject<REACT_APP_CONFIGURATION>(jsontxt);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null // This preserves the original property names
+            };
+
+            // Return the object using System.Text.Json with custom settings
+            return new JsonResult(RAC, options); 
+        }
+
+        [HttpPost]
+        [Route("api/FirebaseToken")]
+        public IActionResult FirebaseToken(string agencyid, string token)
+        {
+            LoginDB ldb = new LoginDB(_configuration);
+            bool isUpdated = ldb.Insert_Firebase_Token(agencyid, token);
+            // Return the object using System.Text.Json with custom settings
+            return  Ok(isUpdated);
+        }
+
+        [HttpPost]
+        [Route("api/BulkUpdatePassword")]
+        public IActionResult BulkUpdatePassword(userlist ul)
+        {
+            AuthDB adb=new AuthDB(_configuration);
+            DataTable dtusers = adb.Get_User_Agency_Data(ul);
+
+            foreach (update_pass u in ul.users)
+            {
+                string userid = u.userid;
+                dtusers.DefaultView.RowFilter = "tyuam_userid='"+u.userid+"'";
+                DataTable dt = dtusers.DefaultView.ToTable();
+                if (dt.Rows.Count > 0)
+                {
+                    try
+                    {
+                        if (Convert.ToString(dt.Rows[0]["ag_dob"]) != "")
+                        {
+                            string password = Convert.ToDateTime(dt.Rows[0]["ag_dob"]).ToString("yyyy/MM/dd").Replace("/", "").Replace("-", "");
+                            string hp = AuthDB.GetMD5Hash(password);
+                            string finaldata = YEncryptDecryptData.YEncryptDecryptData.Encrypt(hp, true);
+                            u.password = finaldata;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                   
+                  
+                }
+               
+
+            }
+            AuthDB abd = new AuthDB(_configuration);
+
+            bool issaved = abd.Update_bulk_password(ul);
+
+
+            return Ok(issaved);
+        }
+
+        [HttpGet]
+        [Route("api/Is_Password_Changed")]
+        public IActionResult Is_Password_Changed(string userid)
+        {
+            try
+            {
+                AppAuthService auth = new AppAuthService(_configuration);
+                AuthDB ADB = new AuthDB(_configuration);
+                bool ischanged = ADB.is_password_changed(userid);
+                return Ok(ischanged);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
+
+
+        }
+
+
+
+        [HttpPost]
+        [Route("api/password_updated")]
+        public IActionResult password_updated(string userid)
+        {
+            AuthDB ADB = new AuthDB(_configuration);
+            bool ischanged = ADB.Password_Updated(userid);
+            return Ok(ischanged);
+        }
+
+
     }
 }
 

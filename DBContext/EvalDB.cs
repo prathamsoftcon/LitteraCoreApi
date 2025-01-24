@@ -195,7 +195,39 @@ namespace LitteraCore.DBContext
             return T;
         }
 
+        public string Get_test_Participantid(string testquestionid, string userid)
+        {
 
+            List<Test> assingvaluation = new List<Test>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("eval.GetTestPrarticipantID", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@TestQuestionId", testquestionid);
+            cmd.Parameters.AddWithValue("@participantID", userid);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            string testparticipantid = "";
+            if(dt.Rows.Count > 0)
+            {
+                testparticipantid = Convert.ToString(dt.Rows[0]["TestPartcipantID"]);
+            }
+
+
+
+
+
+            return testparticipantid;
+        }
 
     }
 

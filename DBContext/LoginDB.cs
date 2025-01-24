@@ -127,5 +127,26 @@ namespace LitteraCore.DBContext
 
             return up;
         }
+
+        public bool Insert_Firebase_Token(string agencyid, string token)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_upd_firebase_token", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@agencyid", agencyid);
+            cmd.Parameters.AddWithValue("@token", token);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            User u = new User();
+
+            return true;
+        }
     }
 }
