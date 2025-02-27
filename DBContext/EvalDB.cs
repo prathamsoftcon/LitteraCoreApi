@@ -115,7 +115,7 @@ namespace LitteraCore.DBContext
             return assingvaluation;
         }
 
-        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3)
+        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3,string branchid=null)
         {
 
 
@@ -149,7 +149,7 @@ namespace LitteraCore.DBContext
                 sl = sdb.Get_Session_Data_By_Trg(trainingid);
 
                 ParticipantDB PDB = new ParticipantDB(_configuration);
-                participants = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+                participants = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
             }
 
 

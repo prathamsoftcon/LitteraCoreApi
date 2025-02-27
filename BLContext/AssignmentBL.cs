@@ -1,6 +1,7 @@
 ﻿using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Abstractions;
 using System.Data;
 
 namespace LitteraCore.BLContext
@@ -25,9 +26,13 @@ namespace LitteraCore.BLContext
             List<FilterUserTrg> userwise_assignments = new List<FilterUserTrg>();
             TrainingDB usertrg = new TrainingDB(_configuration);
             List<FilterUserTrg> FL = new List<FilterUserTrg>();
-            FL = assignments.ConvertAll(x => new FilterUserTrg { trainingid = x.Trainingid.ToString() });
-            userwise_assignments = usertrg.Get_Users_Trg_Data(FL, usertype, userid, fromdate, todate);
-            assignments = assignments.Where(x => userwise_assignments.Any(y => y.trainingid.ToString() == x.Trainingid.ToString())).ToList();
+            if (usertype != null)
+            {
+                FL = assignments.ConvertAll(x => new FilterUserTrg { trainingid = x.Trainingid.ToString() });
+                userwise_assignments = usertrg.Get_Users_Trg_Data(FL, usertype, userid, fromdate, todate);
+                assignments = assignments.Where(x => userwise_assignments.Any(y => y.trainingid.ToString() == x.Trainingid.ToString())).ToList();
+            }
+           
 
             return assignments;
         }
@@ -39,7 +44,7 @@ namespace LitteraCore.BLContext
             assignments= ADB.Get_Assignment_Data(assignmentid);
             return assignments;
         }
-        public List<AssignmentValuation> Get_Valuation(string assignmenid, string participantid = null)
+        public List<AssignmentValuation> Get_Valuation(string assignmenid, string participantid = null,string branchid=null)
         {
 
 
@@ -53,7 +58,7 @@ namespace LitteraCore.BLContext
             List<Participant> PL = new List<Participant>();
             ParticipantDB PDB = new ParticipantDB(_configuration);
             //List of training all participant
-            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
 
             List<AssignmentValuation> AV = new List<AssignmentValuation>();
             AV = ADB.Get_Valuation(assignmenid);
@@ -145,7 +150,33 @@ namespace LitteraCore.BLContext
             List<AssignmentUpload> li = PDB.Get_Participant_Assignment_Uploads(participantid,assignmentid );
             return li;
         }
-        
+        public Assignment_Question_Valuation Get_assignment_Question_Validation(string assignmentid, string participantid)
+        {
+            AssignmentDB PDB = new AssignmentDB(_configuration);
+            Assignment_Question_Valuation li = PDB.Get_assignment_Question_Validation(assignmentid, participantid);
+            return li;
+        }
 
+        public bool Save_Assignmant_Valuation(Assignment_Question_Valuation a)
+        {
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            ADB.Save_Assignmant_Valuation(a);
+            return true;
+        }
+
+        public Assignment_Valuation_Summary Valuation_Summary(string assignmentid)
+        {
+            Assignment_Valuation_Summary vw=new Assignment_Valuation_Summary();
+            AssignmentDB PDB = new AssignmentDB(_configuration);
+            vw = PDB.Valuation_Summary(assignmentid);
+            return vw;
+        }
+
+        public List<Assignment_Question_Valuation> Get_assignment_All_Valuation(string assignmentid)
+        {
+            AssignmentDB PDB = new AssignmentDB(_configuration);
+            List<Assignment_Question_Valuation> li = PDB.Get_assignment_All_Valuation(assignmentid);
+            return li;
+        }
     }
 }

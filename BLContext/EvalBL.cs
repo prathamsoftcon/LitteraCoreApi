@@ -13,11 +13,11 @@ namespace LitteraCore.BLContext
         {
             _configuration = configuration;
         }
-        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3)
+        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3,string branchid=null)
         {
             EvalDB TBD = new EvalDB(_configuration);
             List<TEST_RESULT_DATA> T = new List<TEST_RESULT_DATA>();
-            T = TBD.GET_TRAINING_TEST_ANALYTIC_DATA(usertype, userid, fromdate, todate, trainingid, testtype);
+            T = TBD.GET_TRAINING_TEST_ANALYTIC_DATA(usertype, userid, fromdate, todate, trainingid, testtype,branchid);
             T = Get_Test_Marks_Obtained(T);
 
 

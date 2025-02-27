@@ -56,6 +56,8 @@
 
         public string taau_status { get; set; }
         public string taau_uploadid { get; set; }
+
+        public List<AssignmentQuestions> AssignmentQuestionsMarks { get; set; }
     }
     public class AssignmentType
     {
@@ -101,12 +103,17 @@
 
         public string participantname { get; set; }
 
+        public string participant_mobileno { get; set; }
+        public string participant_emailid { get; set; }
+
         public string path;
         public string participantphoto { get { return this.path; } set { path = get_path(value); } }
 
         public paticipant_assignment_comments[] comment { get; set; }
 
         public paticipant_assignment_Uploads[] uploadvalue { get; set; }
+
+        public int valuation_status { get; set; }
 
         public string get_path(string absouutepath)
         {
@@ -129,6 +136,8 @@
         public string assignment { get; set; }
 
         public assignmentparticipant[] participant { get; set; }
+
+        public int status { get; set; }
     }
     public class paticipant_assignment_comments
     {
@@ -256,5 +265,34 @@
         public string sessionid { get; set; }
 
         public List<AssignmentUploadComments> taau_comment_json { get; set; }
+    }
+
+    public class AssignmentQuestions
+    {
+        public string questionid { get; set; }
+        public string Description { get; set; }
+        public decimal max_marks { get; set; }
+        public decimal max_allocated { get; set; }
+
+    }
+    public class Assignment_Question_Valuation
+    {
+        public string taaqv_id { get; set; }
+        public string taaqv_assessmentid { get; set; }
+        public string taaqv_participantid { get; set; }
+        public int taaqv_status { get; set; }
+        public string createdby { get; set; }
+        public string createdon { get; set; }
+        public string createdby_name { get; set; }
+        public AssignmentQuestions[] taaqv_valuation_json { get; set; }
+
+    }
+    public class Assignment_Valuation_Summary
+    {
+        public int total_participant { get; set; }
+        public int assignment_submitted { get; set; }
+        public int valuation_completed { get; set; }
+      
+
     }
 }

@@ -120,6 +120,8 @@ namespace LitteraCore.Models
         public string APP_OTP_TITLE { get; set; }
         public string APP_DASHBOARD_TITLE { get; set; }
 
+        public string CERTIFICATE_LOGO { get; set; }
+
 
 
 
@@ -350,6 +352,11 @@ namespace LitteraCore.Models
                 else if (node.SelectSingleNode("key").InnerText == "TRENDING_TRG_TEXT")
                 {
                     cinfo.TRENDING_TRG_TEXT = node.SelectSingleNode("value").InnerText;
+
+                }
+                else if (node.SelectSingleNode("key").InnerText == "CERTIFICATE_LOGO")
+                {
+                    cinfo.CERTIFICATE_LOGO = node.SelectSingleNode("value").InnerText;
 
                 }
 

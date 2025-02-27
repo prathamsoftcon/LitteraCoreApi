@@ -37,6 +37,10 @@ namespace LitteraCore.Models
     {
         public string settingid { get; set; }
         public int OTP_LOGIN_REQUIRED { get; set; }
+
+        public string OTP_ON_MAIL { get; set; }
+
+        public string OTP_ON_SMS { get; set; }
         public string SMSAPI { get; set; }
 
         public SMSTEMPLATE smstemplate { get; set; }
@@ -148,5 +152,11 @@ namespace LitteraCore.Models
         public string? tyel_ip { get; set; }
 
     }
+    public class Branch_Configuration
+    {
+        public int branch_selection_required { get; set; }
+        public int max_level_allowed { get; set; }
+    }
+
 
 }

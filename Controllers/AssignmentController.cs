@@ -206,7 +206,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Comments")]
-        public IActionResult Get_Comments (string assignmentid,string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null)
+        public IActionResult Get_Comments (string assignmentid,string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null,string branchid=null)
         {
 
 
@@ -214,7 +214,7 @@ namespace LitteraCore.Controllers
             List<Participant> PL = new List<Participant>();
             ParticipantDB PDB = new ParticipantDB(_configuration);
             //List of training all participant
-            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid);
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
 
             AssignmentBL PBL = new AssignmentBL(_configuration);
             List<proc_ass_get_assignment_comment> assignments = new List<proc_ass_get_assignment_comment>();
@@ -282,12 +282,29 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Uploads")]
-        public IActionResult Get_Assignment_Uploads(string assignmentid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null,string searchname = null, string doc_type = null)
+        public IActionResult Get_Assignment_Uploads(string assignmentid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null,string searchname = null, string doc_type = null,int isdraft=1)
         {
             AssignmentBL PBL = new AssignmentBL(_configuration);
             List<proc_ass_get_assignment_upload> assignments = new List<proc_ass_get_assignment_upload>();
             //List of all assignmen Upload
             assignments = PBL.Get_Upload_Data(assignmentid, participantid);
+            if (isdraft == 0)
+            {
+                assignments = assignments.Where(o => o.status == 1).ToList();
+            }
+
+            List<Assignment_Question_Valuation> lav = new List<Assignment_Question_Valuation>();
+            lav = PBL.Get_assignment_All_Valuation(assignmentid);
+            foreach (proc_ass_get_assignment_upload u in assignments)
+            {
+                foreach(assignmentparticipant p in u.participant)
+                {
+                    if (lav.Where(o => o.taaqv_participantid.ToString().ToUpper() == p.participantid.ToString().ToUpper()).Count()>0)
+                    {
+                        p.valuation_status = lav.FirstOrDefault().taaqv_status;
+                    }
+                }
+            }
 
             //*******Filter Code
             //if(searchname != null)
@@ -327,7 +344,7 @@ namespace LitteraCore.Controllers
             //Filter data before
 
 
-           
+
             return Ok(assignments);
         }
 
@@ -359,5 +376,44 @@ namespace LitteraCore.Controllers
             return Ok(issave);
         }
 
+
+        [HttpGet]
+        [Route("api/AssignmentQuestion")]
+        public IActionResult AssignmentQuestion(string assignmentid)
+        {
+            AssignmentDB ADB=new AssignmentDB(_configuration);  
+            List<Assignment> assignments = new List<Assignment>();
+            assignments = ADB.Get_Assignment_Data(assignmentid);
+            List<AssignmentQuestions> ABL = assignments.FirstOrDefault().AssignmentQuestionsMarks;
+            return Ok(ABL);
+        }
+        [HttpGet]
+        [Route("api/Get_Assignment_Question_Validation")]
+        public IActionResult Get_Assignment_Question_Validation(string assignmentid,string participantid)
+        {
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            Assignment_Question_Valuation assignments = new Assignment_Question_Valuation();
+            assignments = ADB.Get_assignment_Question_Validation(assignmentid, participantid);
+            return Ok(assignments);
+        }
+
+        [HttpPost]
+        [Route("api/Save_Assignmant_Valuation")]
+        public IActionResult Save_Assignmant_Valuation([FromBody] Assignment_Question_Valuation a)
+        {
+            AssignmentBL ADB = new AssignmentBL(_configuration);
+            bool result = ADB.Save_Assignmant_Valuation(a);
+
+            return Ok(result);
+        }
+        [HttpGet]
+        [Route("api/Get_Valuation_Summary")]
+        public IActionResult Get_Valuation_Summary(string assignmentid)
+        {
+            Assignment_Valuation_Summary vw = new Assignment_Valuation_Summary();
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            vw = ADB.Valuation_Summary(assignmentid);
+            return Ok(vw);
+        }
     }
 }

@@ -259,7 +259,7 @@ namespace LitteraCore.BLContext
             
             Agency loginbranchdetail= new Agency();
             AgencyBL abl = new AgencyBL(_configuration);
-            loginbranchdetail = abl.Get_Agency(null, branchid,null, param,null).Items.FirstOrDefault();
+            loginbranchdetail = abl.Get_Agency("00001", branchid,null, param,null).Items.FirstOrDefault();
             organisationname = loginbranchdetail.agencyname;
             logo = APPURL +"/"+loginbranchdetail.ag_photo_path;
 

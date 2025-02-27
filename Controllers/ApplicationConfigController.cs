@@ -114,6 +114,14 @@ namespace LitteraCore.Controllers
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
                 return Ok(ml);
             }
+            else if (settingtype == 9)
+            {
+                Branch_Configuration ml = new Branch_Configuration();
+                DataTable dt = a.Get_Application_Setting(settingtype.ToString());
+                ml = JsonConvert.DeserializeObject<Branch_Configuration>(dt.Rows[0]["SettingValue"].ToString());
+            
+                return Ok(ml);
+            }
 
             return Ok(response);
         }
@@ -214,6 +222,33 @@ namespace LitteraCore.Controllers
 
             return clientIp;
         }
+
+
+        [Route("api/Get_Consent_Config")]
+        [HttpGet]
+        public IActionResult Get_Consent_Config()
+        {
+            bool isConsentRequired = false;
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            HttpResponseMessage response = new HttpResponseMessage();
+
+            Branch_Configuration ml = new Branch_Configuration();
+            ml = JsonConvert.DeserializeObject<Branch_Configuration>(a.Get_Application_Setting("9").Rows[0]["SettingValue"].ToString());
+            if (ml.max_level_allowed > 1)
+            {
+                isConsentRequired=true; 
+            }
+            else
+            {
+                isConsentRequired = false;
+            }
+            return Ok(isConsentRequired);
+
+      
+
+         
+        }
+
 
     }
 }

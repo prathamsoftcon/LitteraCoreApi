@@ -194,13 +194,22 @@ namespace LitteraCore.Controllers
             //List<User> lU = new List<User>();
             UserInfo lU = adb.GetUserInfo(username);
 
+          
+
+
             //Get the OTP from APi and return it back
-            if(lU.Mobileno==null && lU.emailid==null)
+            if (lU.Mobileno==null && lU.emailid==null)
             {
                 return Unauthorized();
             }
             else
             {
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
+                DataTable dt = a.Get_Application_Setting("6");
+                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                ml.settingid = dt.Rows[0]["SettingID"].ToString();
+
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
                 var otpid = await _otpManager.GenerateOtpID();
                 if (otp != null)
@@ -210,14 +219,22 @@ namespace LitteraCore.Controllers
                     string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
                     if (lU.Mobileno != null)
                     {
-                        await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
+                        if (ml.OTP_ON_SMS == "1")
+                        {
+                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
+                        }
+                      
                     }
                     if (lU.emailid != null)
                     {
                         try
                         {
-                            SmtpEmailService s = new SmtpEmailService(_configuration);
-                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                            if (ml.OTP_ON_MAIL == "1")
+                            {
+                                SmtpEmailService s = new SmtpEmailService(_configuration);
+                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                            }
+                           
                         }
                         catch (Exception ex)
                         {
@@ -444,11 +461,11 @@ namespace LitteraCore.Controllers
             return otp;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("api/SAVE_PARTICIPANT_CONTENT_STATUS")]
-        public async Task<string> SAVE_PARTICIPANT_CONTENT_STATUS(string userid,string contenid)
+        public async Task<string> SAVE_PARTICIPANT_CONTENT_STATUS(string userid,string contenid, [FromBody] dynamic jsonContent)
         {
-           
+            string jsonString = jsonContent.ToString();
 
 
             return userid+"*"+ contenid;
@@ -554,6 +571,118 @@ namespace LitteraCore.Controllers
             AuthDB ADB = new AuthDB(_configuration);
             bool ischanged = ADB.Password_Updated(userid);
             return Ok(ischanged);
+        }
+
+
+
+        [HttpGet]
+        [Route("api/Send_OTP")]
+        public async Task<IActionResult> Send_OTP(string username)
+        {
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+            AuthDB adb = new AuthDB(_configuration);
+            //List<User> lU = new List<User>();
+            UserInfo lU = adb.GetUserInfo(username);
+
+
+
+
+            //Get the OTP from APi and return it back
+            if (lU.Mobileno == null && lU.emailid == null)
+            {
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
+                DataTable dt = a.Get_Application_Setting("6");
+                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                ml.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                var otp = await _otpManager.GenerateOtpAsync(username.ToString());
+                var otpid = await _otpManager.GenerateOtpID();
+                SmsTemplate template = new SmsTemplate();
+                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                if (username.Contains("@") != false)
+                {
+                    if (ml.OTP_ON_SMS == "1")
+                    {
+                        await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
+                    }
+
+                }
+                else
+                {
+                    try
+                    {
+                        if (ml.OTP_ON_MAIL == "1")
+                        {
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                }
+
+                   return Ok(new { otp = otp, userid = "" });
+
+
+            }
+            else
+            {
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
+                DataTable dt = a.Get_Application_Setting("6");
+                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                ml.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                var otp = await _otpManager.GenerateOtpAsync(username.ToString());
+                var otpid = await _otpManager.GenerateOtpID();
+                if (otp != null)
+                {
+                    SmsTemplate template = new SmsTemplate();
+                    template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                    string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                    if (lU.Mobileno != null)
+                    {
+                        if (ml.OTP_ON_SMS == "1")
+                        {
+                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
+                        }
+
+                    }
+                    if (lU.emailid != null)
+                    {
+                        try
+                        {
+                            if (ml.OTP_ON_MAIL == "1")
+                            {
+                                SmtpEmailService s = new SmtpEmailService(_configuration);
+                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+
+                    }
+
+                    return Ok(new { otp = otp, userid = lU.userid });
+
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+            }
+
+
+            return Unauthorized();
         }
 
 

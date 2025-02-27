@@ -93,89 +93,192 @@ namespace LitteraCore.Models
 
 
 
-        public static string Get_Session_Icon(int sessiontype)
+        public static string Get_Session_Icon(int sessiontype, CompletionType completiontype)
         {
             string icon = "";
-            switch (sessiontype)
+            if(completiontype != null)
             {
-                case 1:
-                    icon = "<i class='fa fa-graduation-cap'></i>";
-                    break;
-                case 2:
-                    icon = "<i class='fa fa-coffee' style='color:orange'></i>";
-                    break;
-                case 3:
-                    icon = "<i class='fa fa-cab' style='color:green'></i>";
-                    break;
-                case 4:
-                    icon = "<i class='fa fa-wechat' style='color:blueviolet'></i>";
-                    break;
-                case 5:
-                    icon = "<i class='fa fa-file-powerpoint-o' style='color:red'></i>";
-                    break;
-                case 6:
-                    icon = "<i class='fa fa-file-text-o'></i>";
-                    break;
-                case 7:
+                if (completiontype.id == 2)
+                {
                     icon = "<i class='glyphicon glyphicon-check' style='color:burlywood'></i>";
-                    break;
-                case 8:
-                    icon = "<i class='fa fa-child'></i>";
-                    break;
-                case 9:
-                    icon = "<i class='fa fa-life-saver' style='color:blue'></i>";
-                    break;
-                case 10:
-                    icon = "<i class='fa fa-flask' style='color:blue'></i>";
-                    break;
-                case 11:
-                    icon = "<i class='fa fa-book' style='color:blue'></i>";
-                    break;
+                }
+                else
+                {
+                    switch (sessiontype)
+                    {
+                        case 1:
+                            icon = "<i class='fa fa-graduation-cap'></i>";
+                            break;
+                        case 2:
+                            icon = "<i class='fa fa-coffee' style='color:orange'></i>";
+                            break;
+                        case 3:
+                            icon = "<i class='fa fa-cab' style='color:green'></i>";
+                            break;
+                        case 4:
+                            icon = "<i class='fa fa-wechat' style='color:blueviolet'></i>";
+                            break;
+                        case 5:
+                            icon = "<i class='fa fa-file-powerpoint-o' style='color:red'></i>";
+                            break;
+                        case 6:
+                            icon = "<i class='fa fa-file-text-o'></i>";
+                            break;
+                        case 7:
+                            icon = "<i class='glyphicon glyphicon-check' style='color:burlywood'></i>";
+                            break;
+                        case 8:
+                            icon = "<i class='fa fa-child'></i>";
+                            break;
+                        case 9:
+                            icon = "<i class='fa fa-life-saver' style='color:blue'></i>";
+                            break;
+                        case 10:
+                            icon = "<i class='fa fa-flask' style='color:blue'></i>";
+                            break;
+                        case 11:
+                            icon = "<i class='fa fa-book' style='color:blue'></i>";
+                            break;
+                    }
+                }
             }
+            else
+            {
+                switch (sessiontype)
+                {
+                    case 1:
+                        icon = "<i class='fa fa-graduation-cap'></i>";
+                        break;
+                    case 2:
+                        icon = "<i class='fa fa-coffee' style='color:orange'></i>";
+                        break;
+                    case 3:
+                        icon = "<i class='fa fa-cab' style='color:green'></i>";
+                        break;
+                    case 4:
+                        icon = "<i class='fa fa-wechat' style='color:blueviolet'></i>";
+                        break;
+                    case 5:
+                        icon = "<i class='fa fa-file-powerpoint-o' style='color:red'></i>";
+                        break;
+                    case 6:
+                        icon = "<i class='fa fa-file-text-o'></i>";
+                        break;
+                    case 7:
+                        icon = "<i class='glyphicon glyphicon-check' style='color:burlywood'></i>";
+                        break;
+                    case 8:
+                        icon = "<i class='fa fa-child'></i>";
+                        break;
+                    case 9:
+                        icon = "<i class='fa fa-life-saver' style='color:blue'></i>";
+                        break;
+                    case 10:
+                        icon = "<i class='fa fa-flask' style='color:blue'></i>";
+                        break;
+                    case 11:
+                        icon = "<i class='fa fa-book' style='color:blue'></i>";
+                        break;
+                }
+            }
+         
+
+          
             return icon;
 
 
         }
 
-        public static string Get_Session_Type_Name(int sessiontype)
+        public static string Get_Session_Type_Name(int sessiontype, CompletionType completiontype)
         {
             string name = "";
-            switch (sessiontype)
+            if(completiontype != null)
             {
-                case 1:
-                    name = "Academic";
-                    break;
-                case 2:
-                    name = "Tea Break";
-                    break;
-                case 3:
-                    name = "Tour";
-                    break;
-                case 4:
-                    name = "Group Discussion";
-                    break;
-                case 5:
-                    name = "Presentation";
-                    break;
-                case 6:
-                    name = "Assignment";
-                    break;
-                case 7:
-                    name = "Test";
-                    break;
-                case 8:
-                    name = "Physical Training";
-                    break;
-                case 9:
-                    name = "Sports";
-                    break;
-                case 10:
-                    name = "Practical";
-                    break;
-                case 11:
-                    name = "Self Paced";
-                    break;
+                if (completiontype.id == 2)
+                {
+                    name = "Self Test";
+                }
+                else
+                {
+                    switch (sessiontype)
+                    {
+                        case 1:
+                            name = "Academic";
+                            break;
+                        case 2:
+                            name = "Tea Break";
+                            break;
+                        case 3:
+                            name = "Tour";
+                            break;
+                        case 4:
+                            name = "Group Discussion";
+                            break;
+                        case 5:
+                            name = "Presentation";
+                            break;
+                        case 6:
+                            name = "Assignment";
+                            break;
+                        case 7:
+                            name = "Test";
+                            break;
+                        case 8:
+                            name = "Physical Training";
+                            break;
+                        case 9:
+                            name = "Sports";
+                            break;
+                        case 10:
+                            name = "Practical";
+                            break;
+                        case 11:
+                            name = "Self Paced";
+                            break;
+                    }
+                }
             }
+            else
+            {
+                switch (sessiontype)
+                {
+                    case 1:
+                        name = "Academic";
+                        break;
+                    case 2:
+                        name = "Tea Break";
+                        break;
+                    case 3:
+                        name = "Tour";
+                        break;
+                    case 4:
+                        name = "Group Discussion";
+                        break;
+                    case 5:
+                        name = "Presentation";
+                        break;
+                    case 6:
+                        name = "Assignment";
+                        break;
+                    case 7:
+                        name = "Test";
+                        break;
+                    case 8:
+                        name = "Physical Training";
+                        break;
+                    case 9:
+                        name = "Sports";
+                        break;
+                    case 10:
+                        name = "Practical";
+                        break;
+                    case 11:
+                        name = "Self Paced";
+                        break;
+                }
+            }
+         
+       
             return name;
 
 

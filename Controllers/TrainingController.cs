@@ -76,11 +76,11 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/TrainingProgressReport")]
-        public IActionResult TrainingProgressReport(string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string sessionid = null, string participantid = null)
+        public IActionResult TrainingProgressReport(string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string sessionid = null, string participantid = null,string branchid=null)
         {
 
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, participantid);
+            List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, participantid, branchid);
 
 
 
@@ -179,13 +179,13 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TRG_PARTICIPANT_DETAILS")]
-        public IActionResult TRG_PARTICIPANT_DETAILS(string trainingid,string participantid=null)
+        public IActionResult TRG_PARTICIPANT_DETAILS(string trainingid,string participantid=null,string branchid=null)
         {
            
             List<Participant> PL = new List<Participant>();
             ParticipantDB PDB = new ParticipantDB(_configuration);
             //List of training all participant
-            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid);
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
             return Ok(PL);
         }
     }

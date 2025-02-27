@@ -15,7 +15,7 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public List<Participant> Get_TRG_PARTICIPANT_Data(string trainingid = null, string participantid = null)
+        public List<Participant> Get_TRG_PARTICIPANT_Data(string trainingid = null, string participantid = null, string branchid = null)
         {
 
             List<Participant> trgdata = new List<Participant>();
@@ -31,7 +31,7 @@ namespace LitteraCore.DBContext
 
             if (trainingid != null)
             {
-                SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_training_participants_vr1", con);
+                SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_training_participants_vr2", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 if (trainingid != null)
                 {
@@ -49,7 +49,7 @@ namespace LitteraCore.DBContext
                 {
                     cmd.Parameters.AddWithValue("@ParticipantId", DBNull.Value);
                 }
-
+                cmd.Parameters.AddWithValue("@branchid", branchid);
                 cmd.Connection = con;
                 cmd.CommandTimeout = 5000;
 
@@ -227,12 +227,12 @@ namespace LitteraCore.DBContext
 
                     vw.ttpai_is_specific = Convert.ToString(row["ttpai_is_specific"]);
                     // vw.UserName = Convert.ToString(row["UserName"]);
-                    
+
                     if (Convert.ToString(row["photopath"]) == "")
                     {
                         vw.photopath_full = Convert.ToString(row["photopath"]);
                     }
-                    
+
 
                     if (row["tyaam_val"].ToString() != "")
                     {
@@ -334,7 +334,7 @@ namespace LitteraCore.DBContext
                     vw.usercode = a.UserCode;
                     vw.tyaam_val = a.tyaam_val;
 
-                  
+
                     vw.photopath_full = a.ag_photo_path;
                     vw.additionalInfo = a.additionalInfo;
 

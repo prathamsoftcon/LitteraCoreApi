@@ -185,13 +185,21 @@ namespace LitteraCore.DBContext
                         {
                             vw.uploadpath = Convert.ToString(row["uploadpath"]);
                         }
-                        
-                        if (row["ag_photo_path"].ToString() != "")
+                        if (agencytypeid == "00001" || agencytypeid == "00002" || agencytypeid == "00003" || agencytypeid == "00004" || agencytypeid == "00005")
                         {
-
-
-                            vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
+                            vw.ag_photo_path = ClientData.Get_Client_Data().CERTIFICATE_LOGO.ToString();
                         }
+                        else
+                        {
+                            if (row["ag_photo_path"].ToString() != "")
+                            {
+
+
+                                vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
+                            }
+                        }
+
+                      
                       
                         vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
                         vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
@@ -877,8 +885,11 @@ namespace LitteraCore.DBContext
                 ub.branchid = Convert.ToString(dr["tyubr_branch_id"]);
                 ub.branch_name = branchname;
                 ub.branch_hname = hbranchname;
-
-                user_branches.Add(ub);
+                if(user_branches.Where(o=>o.branchid.ToString().ToUpper()== Convert.ToString(dr["tyubr_branch_id"]).ToUpper()).Count() <= 0)
+                {
+                    user_branches.Add(ub);
+                }
+              
                
             }
 

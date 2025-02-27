@@ -89,12 +89,12 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/TRAINING_TEST_ANALYTIC_DATA")]
-        public IActionResult TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, string sessionid = null, string participantid = null, int groupOn = 1, int testtype = 3, string testid = null)
+        public IActionResult TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, string sessionid = null, string participantid = null, int groupOn = 1, int testtype = 3, string testid = null,string branchid=null)
         {
             //groupOn=1 for training, groupOn=2 for session,groupOn=3 for Participant,groupOn=4 for test 
             EvalBL BL = new EvalBL(_configuration);
             List<TEST_RESULT_DATA> T = new List<TEST_RESULT_DATA>();
-            T = BL.GET_TRAINING_TEST_ANALYTIC_DATA(usertype, userid, fromdate, todate, trainingid, testtype);
+            T = BL.GET_TRAINING_TEST_ANALYTIC_DATA(usertype, userid, fromdate, todate, trainingid, testtype, branchid);
             if (trainingid != null)
             {
                 T = T.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();

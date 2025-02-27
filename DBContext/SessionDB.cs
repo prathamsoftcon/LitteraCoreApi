@@ -26,7 +26,7 @@ namespace LitteraCore.DBContext
             con.Open();
             SqlCommand cmd = new SqlCommand();
 
-            cmd = new SqlCommand("select * from  trainingplan.Vw_tp_trg_time_table where TrainingId='" + trainingid + "'", con);
+            cmd = new SqlCommand("select * from  trainingplan.Vw_tp_trg_time_table where TrainingId='" + trainingid + "' and ttttt_status=0", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -114,10 +114,13 @@ namespace LitteraCore.DBContext
                 if (Convert.ToString(row["ttttt_complimentory"]) != "")
                 {
                     vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
+
                 }
                 else
                 {
+                    //Condition added because assignment not can make complementory then we assume that assignment is always complementory
                     vw.ttttt_complimentory = 0;
+
                 }
 
                 vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
@@ -143,9 +146,18 @@ namespace LitteraCore.DBContext
                 {
                     vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
                 }
+                CompletionType sessionconpletiontype = null;
 
-                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type);
-                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type);
+
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
+                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type,sessionconpletiontype);
+                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
                 if (row["ttttt_module_no"].ToString() != "")
                 {
                     vw.module = Convert.ToInt32(row["ttttt_module_no"].ToString());
@@ -460,7 +472,7 @@ namespace LitteraCore.DBContext
             try
             {
                 List<SessionFeedback> Feedback_content = new List<SessionFeedback>();
-                Feedback_content = Feedback.Where(o => o.contentid != null).ToList();
+                Feedback_content = Feedback.Where(o => o.facultyid == null).ToList();
                 Save_Session_Content_Feedback(trainingid, sessionid, loginagencyid, Feedback_content.ToArray(), st);
                 List<SessionFeedback> Feedback_Faculty = new List<SessionFeedback>();
                 Feedback_Faculty = Feedback.Where(o => o.facultyid != null).ToList();
@@ -755,7 +767,7 @@ namespace LitteraCore.DBContext
             public List<CommonEnum.SESSION_TYPE> Values { get; } = new List<CommonEnum.SESSION_TYPE> { CommonEnum.SESSION_TYPE.Self_paced };
         }
 
-        public List<Session> Get_Trg_Progress_Data(string trainingid, string participantid)
+        public List<Session> Get_Trg_Progress_Data(string trainingid, string participantid,string branchid)
         {
            
             List<Session> sessiondata = new List<Session>();
@@ -772,7 +784,10 @@ namespace LitteraCore.DBContext
             {
                 cmd.Parameters.AddWithValue("@participantid", participantid);
             }
-
+            if (branchid != null) {
+                cmd.Parameters.AddWithValue("@branchid", branchid);
+            }
+           
 
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -791,7 +806,7 @@ namespace LitteraCore.DBContext
 
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> trgparticipants = new List<Participant>();
-            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid);
+            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid,null,branchid);
 
 
 
@@ -1018,9 +1033,17 @@ namespace LitteraCore.DBContext
                 {
                     vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
                 }
-
-                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type);
-                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type);
+                CompletionType sessionconpletiontype = null;
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
+                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
+               
+                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
                 sessiondata.Add(vw);
             }
 

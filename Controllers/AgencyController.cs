@@ -3,6 +3,7 @@ using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 
 namespace LitteraCore.Controllers
@@ -126,6 +127,35 @@ namespace LitteraCore.Controllers
             return Ok(s);
 
 
+        }
+
+
+        [HttpGet]
+        [Route("api/Branches")]
+        public IActionResult Branches(string agencytypeid, string parentid=null)
+        {
+            PaginationParam filter=new PaginationParam();
+            AgencyBL ABL = new AgencyBL(_configuration);
+            PagedResult<Agency> AL = new PagedResult<Agency>();
+            List<Agency> al = new List<Agency>();
+            AL = ABL.Get_Agency(agencytypeid,null,null, filter,null);
+            if(parentid != null)
+            {
+                foreach (Agency ag in AL.Items)
+                {
+                    if (parentid != null)
+                    {
+                        if (parentid.ToString().ToUpper() == ag.ParentId.ToString().ToUpper())
+                        {
+                            al.Add(ag);
+                        }
+                    }
+                    
+                }
+            }
+
+
+            return Ok(AL);
         }
     }
 }

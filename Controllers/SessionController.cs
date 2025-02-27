@@ -4,6 +4,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using static Azure.Core.HttpHeader;
 using static LitteraCore.Common.CommonEnum;
@@ -36,7 +37,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TrgSessions")]
-        public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null)
+        public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null,string branchid=null)
         {
            
             SessionBL cbl = new SessionBL(_configuration);
@@ -166,7 +167,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -183,19 +184,30 @@ namespace LitteraCore.Controllers
                    
 
                 }
-
-                if (trgdetail.CourseDirector.ToString().ToUpper() == userid.ToString().ToUpper() || trgdetail.AssociateDirector.ToString().ToUpper() == userid.ToString().ToUpper())
+                if(userid != null)
                 {
-                    iscdLogin = 1;
+                    if (trgdetail.CourseDirector.ToString().ToUpper() == userid.ToString().ToUpper() || trgdetail.AssociateDirector.ToString().ToUpper() == userid.ToString().ToUpper())
+                    {
+                        iscdLogin = 1;
+                    }
                 }
+                else
+                {
+                    iscdLogin = 0;
+                }
+              
 
 
                 SessionDB SDB = new SessionDB(_configuration);
                 List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
-                if (userid.ToString() != "")
+                if(userid != null)
                 {
-                    status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                    if (userid.ToString() != "")
+                    {
+                        status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                    }
                 }
+           
 
 
 
@@ -357,10 +369,24 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb=new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid,branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl=new SessionBL(_configuration);
 
+
+            //***Code to update competiontype 
+            foreach(Session ss in slp)
+            {
+                if (s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                {
+                    ss.completiontype = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToUpper()).FirstOrDefault().completiontype;
+                }
+            
+             }
+           
+
+
+            //**********
         
 
             foreach (Session sessn in s) {
@@ -487,12 +513,12 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_FEEBDACK")]
-        public IActionResult CHECK_SESSION_FEEBDACK(string userid, string trainingid, string sessionid)
+        public IActionResult CHECK_SESSION_FEEBDACK(string userid, string trainingid, string sessionid,string branchid=null)
         {
             bool isFeedbackExist = false;
             SessionBL SDB = new SessionBL(_configuration);
             SessionDB db=new SessionDB(_configuration);
-            List<Session> completiondata = db.Get_Trg_Progress_Data(trainingid, userid);
+            List<Session> completiondata = db.Get_Trg_Progress_Data(trainingid, userid, branchid);
             completiondata = completiondata.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).ToList();
             if (completiondata.Count > 0)
             {
@@ -536,7 +562,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_RESTRICTION")]
-        public IActionResult CHECK_SESSION_RESTRICTION(string usertype, string userid, string sessionid, string trainingid)
+        public IActionResult CHECK_SESSION_RESTRICTION(string usertype, string userid, string sessionid, string trainingid,string branchid=null)
         {
             var isrestricted = true;
             SessionDB sdb=new SessionDB(_configuration);
@@ -548,7 +574,24 @@ namespace LitteraCore.Controllers
                     //Code to get all session completion data
 
                    // SessionDB sdb = new SessionDB(_configuration);
-                    List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, userid);
+                    List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, userid,branchid);
+
+                    List<Session> allsession = sdb.Get_Session_Data_By_Trg(trainingid);
+                    //***Code to update competiontype 
+                    foreach (Session ss in sl)
+                    {
+                        if (allsession.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                        {
+                            ss.completiontype = allsession.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToUpper()).FirstOrDefault().completiontype;
+                        }
+
+                    }
+
+                  //**********
+
+
+
+
 
                     Session opensessiondetail = sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).FirstOrDefault();
                     List<Session> SL = sl;
@@ -573,10 +616,10 @@ namespace LitteraCore.Controllers
                     {
                         if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
                             {
                                 //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment) && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
                                 {
                                     isrestricted = false;
                                 }
@@ -839,7 +882,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GET_PARTICIPANT_NEXT_SESSION")]
-        public IActionResult GET_PARTICIPANT_NEXT_SESSION(string trainingid,string participantid)
+        public IActionResult GET_PARTICIPANT_NEXT_SESSION(string trainingid,string participantid,string branchid=null)
         {
             string userid = participantid;
             int pagetype = 0;
@@ -972,7 +1015,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null,branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1164,9 +1207,25 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid, branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl = new SessionBL(_configuration);
+
+
+            //***Code to update competiontype 
+            foreach (Session ss in slp)
+            {
+                if (s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                {
+                    ss.completiontype = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToUpper()).FirstOrDefault().completiontype;
+                }
+
+            }
+
+            //**********
+
+
+
             foreach (Session sessn in s)
             {
                 string completion_typeid = "1";
@@ -1178,6 +1237,12 @@ namespace LitteraCore.Controllers
                     }
                 }
                 sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
+
+                //Extra condition in case of bhoj to handle feedback not required for session =1
+                if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid == "2")
+                {
+                    sessn.is_feedback_Required = 0;
+                }
             }
 
 
@@ -1190,13 +1255,25 @@ namespace LitteraCore.Controllers
                 {
                     if(sessn.completionpercentage == 0)
                     {
-                        if (sessn.ActionInfos.Where(o=>o.key=="5").FirstOrDefault().value==true)
+                        if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
                         {
-                            if (activeSession == null)
+                            if(participantstatus == 1)
                             {
                                 activeSession = sessn;
                             }
+                            
                         }
+                        else
+                        {
+                            if (sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value == true)
+                            {
+                                if (activeSession == null)
+                                {
+                                    activeSession = sessn;
+                                }
+                            }
+                        }
+                     
                        
                     }
                  
@@ -1230,7 +1307,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_PREVIOUS_SESSION_FOR_COMPLETION")]
-        public IActionResult CHECK_PREVIOUS_SESSION_FOR_COMPLETION(string trainingid,string sessionid,int pagetype = 0, string usertype = null, string userid = null)
+        public IActionResult CHECK_PREVIOUS_SESSION_FOR_COMPLETION(string trainingid,string sessionid,int pagetype = 0, string usertype = null, string userid = null,string branchid=null)
         {
 
             SessionBL cbl = new SessionBL(_configuration);
@@ -1361,7 +1438,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1553,7 +1630,7 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid, branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl = new SessionBL(_configuration);
             foreach (Session sessn in s)
@@ -1641,6 +1718,36 @@ namespace LitteraCore.Controllers
             throw new Exception("This is a custom exception message.");
             return Ok(true);
         }
+
+        [Route("api/Get_Consent_msg")]
+        [HttpGet]
+        public IActionResult Get_Consent_msg(string trainingid,string participantid,string branchid)
+        {
+            string msg = "";
+
+            SessionDB sdb = new SessionDB(_configuration);
+            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, participantid, branchid);
+            int completed = slp.Where(o => o.noofcompletion == 1).Count();
+            int totalsession = slp.Count();
+            decimal percentages = (Convert.ToDecimal(completed) / Convert.ToDecimal(totalsession)) * 100;
+            if (percentages > 0)
+            {
+                msg = "Congratulations ! You have successfully completed "+ completed + " session of this course.Would you like to unlock all sessions? <br/>(बधाई हो! आपने इस कोर्स के "+completed +" सत्र को सफलतापूर्वक पूरा किया है। क्या आप सभी सत्रों को अनलॉक करना चाहेंगे?)";
+            }
+            else
+            {
+                msg = "Welcome to the course! You currently have limited access to sessions. Would you like to unlock all sessions? <br/>(कोर्स में आपका स्वागत है! आप सीमित सत्रों का ही अध्ययन कर सकते हैं। क्या आप सभी सत्रों को अनलॉक करना चाहेंगे?)";
+            }
+           
+
+            return Ok(msg);
+
+
+
+
+        }
+
+
 
     }
 }

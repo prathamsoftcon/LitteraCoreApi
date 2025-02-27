@@ -104,6 +104,25 @@ namespace LitteraCore.Models
         public Trg_Setting? trg_Setting { get; set; }
     }
 
+    public class FB_Share_Data
+    {
+        public string imagepath { get; set; }
+        public string alt_imagepath { get; set; }
+        public string type { get; set; }
+        public string title { get; set; }
+        public string description { get; set; }
+        public string url { get; set; }
+    }
+    public class Tour_Config_Data
+    {
+        public int is_overview_required { get; set; }
+        public int is_resume_course_required { get; set; }
+        public int is_start_course_required { get; set; }
+        public int is_instruction_course_required { get; set; }
+
+        public int is_completed_required { get; set; }
+    }
+
 
 
 
@@ -131,6 +150,8 @@ namespace LitteraCore.Models
         public int Questions_Self_Test { get; set; }
         public int time_per_ques_Self_Test { get; set; }
         public int mark_per_ques_Self_Test { get; set; }
+
+        public int feedback_on_session { get; set; } = 1;
     }
     public class SessionRestriction
     {

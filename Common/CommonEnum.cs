@@ -212,7 +212,8 @@ namespace LitteraCore.Common
             Approved_with_login = 1,
             Approved_Without_Login = 2,
             Suspended = 9,
-            Deleted = -1
+            Deleted = -1,
+            ConsentGiven=3
 
         }
         public enum Cast
