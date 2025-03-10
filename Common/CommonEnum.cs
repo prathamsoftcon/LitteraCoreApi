@@ -11,6 +11,25 @@ namespace LitteraCore.Common
         public static string Agencytype_Staff = "00008";
         public static string Discount_Ledgerid = "417119B3-18B6-43A1-8A52-064E99B6880E";
 
+        public enum UserType
+        {
+            Admin = 1,
+            Department = 2,
+            CD = 3,
+            Faculty = 4,
+            Participant = 5
+
+
+        }
+        public enum UserDefaultRole
+        {
+            ADMIN = 2052,
+            CD = 2053,
+            FACULTY = 2050,
+            PARTICIPANT = 2049,
+            ORGANISATION = 38
+
+        }
         public enum TEST_RESULT_OPTIONS
         {
             Correct = 1,
@@ -440,6 +459,81 @@ namespace LitteraCore.Common
             }
 
             return orderedList.ToList();
+        }
+
+        public static string Get_Default_USER_TAT_TYPE(int usertype, string agencytypeid)
+        {
+            string tattypeid = "";
+            switch (usertype)
+            {
+                case 1:
+                    if (agencytypeid == "00008")
+                    {
+                        tattypeid = "125";
+                    }
+
+                    break;
+                case 2:
+                    if (agencytypeid == "00064")
+                    {
+                        tattypeid = "118";
+                    }
+                    break;
+                case 3:
+                    if (agencytypeid == "00008")
+                    {
+                        tattypeid = "106";
+                    }
+                    break;
+                case 4:
+                    if (agencytypeid == "00054")
+                    {
+                        tattypeid = "112";
+                    }
+                    else if (agencytypeid == "00066")
+                    {
+                        tattypeid = "112";
+                    }
+                    else if (agencytypeid == "00067")
+                    {
+                        tattypeid = "112";
+                    }
+                    break;
+                case 5:
+                    if (agencytypeid == "00065")
+                    {
+                        tattypeid = "126";
+                    }
+                    else if (agencytypeid == "00051")
+                    {
+                        tattypeid = "110";
+                    }
+                    break;
+                case 0: // for other than 1 to 5 user type
+                    if (agencytypeid == "00053")
+                    {
+                        tattypeid = "114";
+                    }
+                    else if (agencytypeid == "00068")
+                    {
+                        tattypeid = "127";
+                    }
+
+                    break;
+                case 99: // for other than 1 to 5 user type
+                    if (agencytypeid == "00053")
+                    {
+                        tattypeid = "114";
+                    }
+                    else if (agencytypeid == "00068")
+                    {
+                        tattypeid = "127";
+                    }
+
+                    break;
+
+            }
+            return tattypeid;
         }
 
 

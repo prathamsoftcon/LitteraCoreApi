@@ -20,12 +20,15 @@ using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
 using static LitteraCore.Common.CommonEnum;
+using static LitteraCore.Models.Firebase;
 using static System.Net.WebRequestMethods;
 
 namespace LitteraCore.Controllers
 {
    
     [ApiController]
+
+    
     public class AuthenticationController : ControllerBase
     {
         private readonly OtpManager _otpManager;
@@ -94,7 +97,8 @@ namespace LitteraCore.Controllers
         [Route("api/GetToken")]
         public IActionResult GetToken(UserLogin u)
         {
-            try {
+            try
+            {
                 if (u.OTP != null)
                 {
                     string username = "";
@@ -116,7 +120,15 @@ namespace LitteraCore.Controllers
                     {
                         AppAuthService auth = new AppAuthService(_configuration);
                         var token = auth.Authenticate(username);
-                        Response.Cookies.Append("token", token.ToString());
+                        var cookieOptions = new CookieOptions
+                        {
+                            HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
+                            Secure = true,                // Only send the cookie over HTTPS
+                            SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
+                            Expires = DateTime.Now.AddHours(1) // Cookie expiry time
+                        };
+
+                        Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
                         return Ok(token);
                     }
                     else
@@ -149,15 +161,24 @@ namespace LitteraCore.Controllers
                     {
                         if (auth.VerifyPassword(lU.FirstOrDefault().password, u.salt, u.Password) == true)
                         {
-                            
+
                             var token = auth.Authenticate(username);
+                            var cookieOptions = new CookieOptions
+                            {
+                                HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
+                                Secure = true,                // Only send the cookie over HTTPS
+                                SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
+                                Expires = DateTime.Now.AddHours(1) // Cookie expiry time
+                            };
+
+                            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
                             return Ok(token);
                         }
                         else
                         {
                             //Code to update loginAttempt
                             AuthDB ADB = new AuthDB(_configuration);
-                            UserInfo U = ADB.GetUserInfo(username,lU.FirstOrDefault().loginattempt.ToString());
+                            UserInfo U = ADB.GetUserInfo(username, lU.FirstOrDefault().loginattempt.ToString());
                             return Unauthorized();
                         }
                     }
@@ -172,16 +193,17 @@ namespace LitteraCore.Controllers
 
                 return Unauthorized("");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-               
-            }    
-          
+
+            }
+
 
 
 
         }
+
 
 
         [HttpGet]
@@ -396,6 +418,7 @@ namespace LitteraCore.Controllers
                 AuthDB ADB = new AuthDB(_configuration);
                // UserInfo U = ADB.GetUserInfo(username);
                 var token = auth.Authenticate(username);
+                Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken));
                 return Ok(token);
             }
             catch (Exception ex)
@@ -685,6 +708,39 @@ namespace LitteraCore.Controllers
             return Unauthorized();
         }
 
+        [HttpGet]
+        [Route("api/Get_Token_Info")]
+        public async Task<IActionResult> Get_Token_Info(string token)
+        {
+            // Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+
+            var principal = auth.ValidateJwtToken(token); // Validate token and get claims
+
+            if (principal != null)
+            {
+                var username = principal.FindFirst(ClaimTypes.Name)?.Value; // Extract username claim
+                Console.WriteLine("Authenticated username: " + username);
+            }
+            var simplifiedClaims = principal.Claims.Select(c => new
+            {
+                Type = c.Type,
+                Value = c.Value
+            }).ToList();
+
+            // Using JsonSerializerOptions to prevent circular reference during serialization
+            var jsonOptions = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true  // Optional: Makes the output more readable
+            };
+
+            // Serialize the claims to JSON manually to handle circular references
+            var claimsJson = System.Text.Json.JsonSerializer.Serialize(principal.Claims.ToList(), jsonOptions);
+
+            // Return the serialized claims
+            return Ok(simplifiedClaims);
+        }
 
     }
 }

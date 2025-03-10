@@ -167,7 +167,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -369,7 +369,7 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb=new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid,branchid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid,branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl=new SessionBL(_configuration);
 
@@ -518,7 +518,7 @@ namespace LitteraCore.Controllers
             bool isFeedbackExist = false;
             SessionBL SDB = new SessionBL(_configuration);
             SessionDB db=new SessionDB(_configuration);
-            List<Session> completiondata = db.Get_Trg_Progress_Data(trainingid, userid, branchid);
+            List<Session> completiondata = db.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
             completiondata = completiondata.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).ToList();
             if (completiondata.Count > 0)
             {
@@ -574,7 +574,7 @@ namespace LitteraCore.Controllers
                     //Code to get all session completion data
 
                    // SessionDB sdb = new SessionDB(_configuration);
-                    List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, userid,branchid);
+                    List<Session> sl = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid,branchid);
 
                     List<Session> allsession = sdb.Get_Session_Data_By_Trg(trainingid);
                     //***Code to update competiontype 
@@ -1015,7 +1015,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null,branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid,branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1207,7 +1207,7 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid, branchid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl = new SessionBL(_configuration);
 
@@ -1438,7 +1438,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1630,7 +1630,7 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, userid, branchid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl = new SessionBL(_configuration);
             foreach (Session sessn in s)
@@ -1726,7 +1726,7 @@ namespace LitteraCore.Controllers
             string msg = "";
 
             SessionDB sdb = new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data(trainingid, participantid, branchid);
+            List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, participantid, branchid);
             int completed = slp.Where(o => o.noofcompletion == 1).Count();
             int totalsession = slp.Count();
             decimal percentages = (Convert.ToDecimal(completed) / Convert.ToDecimal(totalsession)) * 100;

@@ -18,7 +18,7 @@ namespace LitteraCore.DBContext
         }
         public List<Session> Get_Session_Data_By_Trg(string trainingid)
         {
-           
+
             List<Session> sessiondata = new List<Session>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
@@ -156,7 +156,7 @@ namespace LitteraCore.DBContext
                         sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
                     }
                 }
-                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type,sessionconpletiontype);
+                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
                 vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
                 if (row["ttttt_module_no"].ToString() != "")
                 {
@@ -305,7 +305,7 @@ namespace LitteraCore.DBContext
 
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); 
+            SqlConnection con = new SqlConnection(connectionString);
             con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_trg_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -361,7 +361,7 @@ namespace LitteraCore.DBContext
 
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); 
+            SqlConnection con = new SqlConnection(connectionString);
             con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_trg_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -543,10 +543,10 @@ namespace LitteraCore.DBContext
             da.Fill(dt);
             con.Close();
 
-            DataTable dtfacultyfeedback= Get_Faculty_Feedback(userid,trainingid,sessionid);
+            DataTable dtfacultyfeedback = Get_Faculty_Feedback(userid, trainingid, sessionid);
 
 
-            if (dt.Rows.Count > 0 || dtfacultyfeedback.Rows.Count>0)
+            if (dt.Rows.Count > 0 || dtfacultyfeedback.Rows.Count > 0)
             {
                 isexist = true;
             }
@@ -580,7 +580,7 @@ namespace LitteraCore.DBContext
             da.Fill(dt);
             con.Close();
 
-            
+
             return dt;
         }
 
@@ -654,7 +654,7 @@ namespace LitteraCore.DBContext
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@session_id", sessionid);
-           
+
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
@@ -767,9 +767,9 @@ namespace LitteraCore.DBContext
             public List<CommonEnum.SESSION_TYPE> Values { get; } = new List<CommonEnum.SESSION_TYPE> { CommonEnum.SESSION_TYPE.Self_paced };
         }
 
-        public List<Session> Get_Trg_Progress_Data(string trainingid, string participantid,string branchid)
+        public List<Session> Get_Trg_Progress_Data(string trainingid, string participantid, string branchid)
         {
-           
+
             List<Session> sessiondata = new List<Session>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
@@ -784,10 +784,11 @@ namespace LitteraCore.DBContext
             {
                 cmd.Parameters.AddWithValue("@participantid", participantid);
             }
-            if (branchid != null) {
+            if (branchid != null)
+            {
                 cmd.Parameters.AddWithValue("@branchid", branchid);
             }
-           
+
 
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -806,7 +807,7 @@ namespace LitteraCore.DBContext
 
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> trgparticipants = new List<Participant>();
-            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid,null,branchid);
+            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, null, branchid);
 
 
 
@@ -848,7 +849,7 @@ namespace LitteraCore.DBContext
                 //vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
                 //vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
                 //vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
-                if(Convert.ToString(row["tttttf_status"]) != "9")
+                if (Convert.ToString(row["tttttf_status"]) != "9")
                 {
                     vw.facultyname = Convert.ToString(row["facultyname"]);
                 }
@@ -856,7 +857,7 @@ namespace LitteraCore.DBContext
                 {
                     vw.facultyname = "";
                 }
-               
+
                 //vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
                 //if (Convert.ToString(row["facultyimgpath"]) != "")
                 //{
@@ -919,16 +920,16 @@ namespace LitteraCore.DBContext
         public SessionRestriction GET_SESSION_RESTRICTION_INFO(string trainingid)
         {
 
-        
-            SessionRestriction restrinction =new SessionRestriction();
+
+            SessionRestriction restrinction = new SessionRestriction();
 
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
             trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
             if (trgdetail.trg_Setting != null)
             {
-              
-                restrinction= trgdetail.trg_Setting.Session.SessionRestriction;
+
+                restrinction = trgdetail.trg_Setting.Session.SessionRestriction;
 
             }
             else
@@ -938,7 +939,7 @@ namespace LitteraCore.DBContext
                 string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
                 TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
                 restrinction.isrestricted = Convert.ToInt16(TS.SessionAccessibility.Restricted);
-                restrinction.restrictionon=TS.SessionAccessibility.RestrictOn;
+                restrinction.restrictionon = TS.SessionAccessibility.RestrictOn;
 
             }
 
@@ -946,13 +947,13 @@ namespace LitteraCore.DBContext
             //string Foldername = CommonEnum.GET_JSON_FOLDER();
             //string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
             //TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
-           return restrinction;
+            return restrinction;
         }
 
 
         public List<Session> Get_Session_Data(DateTime fromdate, DateTime todate, DateTime? Sessiondt = null)
         {
-          
+
             List<Session> sessiondata = new List<Session>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
@@ -990,7 +991,7 @@ namespace LitteraCore.DBContext
             {
                 Session vw = new Session();
                 vw.trainingid = Convert.ToString(row["trainingid"]);
-                vw.trainingcode= Convert.ToString(row["trainingcode"]);
+                vw.trainingcode = Convert.ToString(row["trainingcode"]);
                 vw.training_title = Convert.ToString(row["T_Name"]);
                 vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
                 vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
@@ -1042,7 +1043,7 @@ namespace LitteraCore.DBContext
                     }
                 }
                 vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
-               
+
                 vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
                 sessiondata.Add(vw);
             }
@@ -1059,87 +1060,44 @@ namespace LitteraCore.DBContext
         {
 
             List<SessionCompletionStatus> attendancedata = new List<SessionCompletionStatus>();
-            DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand();
 
-            cmd = new SqlCommand("Trainingplan.proc_tp_get_session_completion_status", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            if (trainingid != null)
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue("@TrainingId", trainingid);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@TrainingId", DBNull.Value);
-            }
-
-            if (LoginUserID != null)
-            {
-                cmd.Parameters.AddWithValue("@loginuserid", LoginUserID);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@loginuserid", DBNull.Value);
-            }
-            if (LoginUserType != null)
-            {
-                cmd.Parameters.AddWithValue("@loginusertype", LoginUserType);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@loginusertype", DBNull.Value);
-            }
-            cmd.Parameters.AddWithValue("@frmdt", fromdt);
-            cmd.Parameters.AddWithValue("@todt", todt);
-
-            cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
-
-
-
-
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            da.Fill(dt);
-            con.Close();
-
-            foreach (DataRow row in dt.Rows)
-            {
-                SessionCompletionStatus vw = new SessionCompletionStatus();
-                vw.tttttm_training_id = Convert.ToString(row["tttttm_training_id"]);
-                vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
-                if (Convert.ToString(row["iscompleted"]) != "")
+                con.Open();
+                SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_get_session_completion_status", con)
                 {
-                    vw.iscompleted = Convert.ToInt32(row["iscompleted"]);
-                }
-                else
-                {
-                    vw.iscompleted = 0;
-                }
-                if (Convert.ToString(row["totalparticipant"]) != "")
-                {
-                    vw.totalparticipant = Convert.ToInt32(row["totalparticipant"]);
-                }
-                else
-                {
-                    vw.totalparticipant = 0;
-                }
-                if (Convert.ToString(row["percentcomplete"]) != "")
-                {
-                    vw.percentcomplete = Convert.ToDecimal(row["percentcomplete"]);
-                }
-                else
-                {
-                    vw.percentcomplete = 0;
-                }
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 5000
+                };
 
+                // Add parameters with null check
+                cmd.Parameters.AddWithValue("@TrainingId", trainingid ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@loginuserid", LoginUserID ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@loginusertype", LoginUserType ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@frmdt", fromdt);
+                cmd.Parameters.AddWithValue("@todt", todt);
 
-                attendancedata.Add(vw);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        SessionCompletionStatus vw = new SessionCompletionStatus
+                        {
+                            tttttm_training_id = reader["tttttm_training_id"].ToString(),
+                            ttttt_session_id = reader["ttttt_session_id"].ToString(),
+                            iscompleted = reader["iscompleted"] != DBNull.Value ? Convert.ToInt32(reader["iscompleted"]) : 0,
+                            totalparticipant = reader["totalparticipant"] != DBNull.Value ? Convert.ToInt32(reader["totalparticipant"]) : 0,
+                            percentcomplete = reader["percentcomplete"] != DBNull.Value ? Convert.ToDecimal(reader["percentcomplete"]) : 0
+                        };
+
+                        attendancedata.Add(vw);
+                    }
+                }
             }
 
             return attendancedata;
+
         }
 
         public bool Save_Session(CreateSessionDTO session, SqlTransaction transaction = null)
@@ -1980,6 +1938,69 @@ namespace LitteraCore.DBContext
             cmd.ExecuteNonQuery();
 
             return true;
+        }
+
+
+
+        public List<Session> Get_Trg_Progress_Data_For_Next_Session(string trainingid, string participantid, string branchid)
+        {
+
+            List<Session> sessiondata = new List<Session>();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    CommandTimeout = 5000
+                };
+
+                // Add parameters with null check
+                cmd.Parameters.AddWithValue("@trainingid", trainingid);
+                cmd.Parameters.AddWithValue("@participantid", participantid ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@branchid", branchid ?? (object)DBNull.Value);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    List<Session> filteredSessions = new List<Session>();
+
+                    while (reader.Read())
+                    {
+                        // Filter rows where "ttttt_session_id" is not null
+                        if (reader["ttttt_session_id"] != DBNull.Value)
+                        {
+                            Session vw = new Session
+                            {
+                                trainingid = reader["trainingid"].ToString(),
+                                ttttt_session_id = reader["ttttt_session_id"].ToString(),
+                                ttttt_content_desc = reader["ttttt_content_desc"].ToString(),
+                                ttttt_session_dt = Convert.ToDateTime(reader["ttttt_session_dt"]).ToString("yyyy/MM/dd"),
+                                ttttt_session_time = reader["ttttt_session_time"].ToString(),
+                                ttttt_session_duration = reader["ttttt_session_duration"].ToString(),
+                                ttttt_session_day = Convert.ToInt32(reader["ttttt_session_day"]),
+                                ttttt_session_end_time = reader["ttttt_session_end_time"].ToString(),
+                                ttttt_session_no = Convert.ToInt32(reader["ttttt_session_no"]),
+                                ttttt_session_week = Convert.ToInt32(reader["ttttt_session_week"]),
+                                module = reader["ttttt_module_no"] != DBNull.Value ? Convert.ToInt32(reader["ttttt_module_no"]) : 0,
+                                ttttt_type = Convert.ToInt32(reader["ttttt_type"]),
+                                facultyname = reader["tttttf_status"].ToString() != "9" ? reader["facultyname"].ToString() : "",
+                                noofcompletion = Convert.ToInt32(reader["noofpersons"]),
+                                ttttt_complimentory = Convert.ToInt32(reader["ttttt_complimentory"])
+                            };
+
+                            filteredSessions.Add(vw);
+                        }
+                    }
+
+                    // Sorting the session data by session number
+                    sessiondata = filteredSessions.OrderBy(o => o.ttttt_session_no).ToList();
+                }
+            }
+
+            return sessiondata;
+
         }
 
 

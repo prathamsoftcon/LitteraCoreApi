@@ -48,6 +48,15 @@ namespace LitteraCore.Common.DMS
             return DL;
         }
 
+        public List<DMS> GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(string tdds_doc_id, int tdds_tat_type_id)
+        {
+            DMSDB DDB = new DMSDB(_configuration);
+            List<DMS> DL = new List<DMS>();
+            DL = DDB.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(tdds_doc_id, tdds_tat_type_id);
+            return DL;
+        }
+        
+
         //public bool Update_DMS_DATA(DMS D)
         //{
         //    SqlConnection con1 = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);

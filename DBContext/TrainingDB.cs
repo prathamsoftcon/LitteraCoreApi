@@ -81,15 +81,15 @@ namespace LitteraCore.DBContext
                 vw.objective = Convert.ToString(row["objective"]);
                 vw.prerequiste = Convert.ToString(row["prerequiste"]);
                 vw.img_path = Convert.ToString(row["img_path"]);
-             
+
                 if (vw.img_path != "")
                 {
 
-                    vw.img_path_absolute =  Convert.ToString(row["img_path"]);
+                    vw.img_path_absolute = Convert.ToString(row["img_path"]);
                 }
                 else
                 {
-                    vw.img_path_absolute = null; 
+                    vw.img_path_absolute = null;
                 }
 
 
@@ -145,13 +145,13 @@ namespace LitteraCore.DBContext
                 }
                 else
                 {
-                    vw.trg_Setting = null ;
+                    vw.trg_Setting = null;
                 }
 
                 trgdata.Add(vw);
             }
 
-                          
+
 
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
 
@@ -164,7 +164,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-           
+
             con.Open();
             SqlCommand cmd = new SqlCommand("select * from [TrainingPlan].[Ft_tp_get_trgid_for_usertype]('" + usertype + "','" + userid + "','" + fromdate.ToString("yyyy/MM/dd") + "','" + todate.ToString("yyyy/MM/dd") + "')", con);
             cmd.CommandType = CommandType.Text;
@@ -272,7 +272,7 @@ namespace LitteraCore.DBContext
             return training_time;
         }
 
-        public List<TrainingCategory> Get_training_Category(string categiryid=null)
+        public List<TrainingCategory> Get_training_Category(string categiryid = null)
         {
 
             DataTable dt = new DataTable();
@@ -370,144 +370,133 @@ namespace LitteraCore.DBContext
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
             List<Training> trgdata = new List<Training>();
-            DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand("select * from  trainingplan.VW_Training_calendar where  TrainingId='" + trainingid + "'", con);
-            cmd.CommandType = CommandType.Text;
-            cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
-
-
-
-
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            da.Fill(dt);
-            con.Close();
-            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Get Data" + System.DateTime.Now);
-            foreach (DataRow row in dt.Rows)
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                Training vw = new Training();
-                vw.TrainingId = (System.Guid)(row["TrainingId"]);
-                vw.TrainingNo = Convert.ToString(row["TrainingNo"]);
-                vw.Trainingcode = Convert.ToString(row["Trainingcode"]);
-                vw.CourseCode = Convert.ToString(row["CourseCode"]);
-                vw.T_Name = Convert.ToString(row["T_Name"]);
-                vw.T_Details = Convert.ToString(row["T_Details"]);
-                vw.SPONSOR_AG_ID = (System.Guid)(row["SPONSOR_AG_ID"]);
-                vw.DueFees = Convert.ToDecimal(row["DueFees"]);
-                vw.ReceivedFees = Convert.ToInt32(row["ReceivedFees"]);
-                vw.SponsorName = Convert.ToString(row["SponsorName"]);
-                vw.HSponsorName = Convert.ToString(row["HSponsorName"]);
-                vw.ParticipantLevel = Convert.ToString(row["ParticipantLevel"]);
-                vw.LevelId = Convert.ToInt32(row["LevelId"]);
-                vw.LevelDescription = Convert.ToString(row["LevelDescription"]);
-                vw.HLevelDescription = Convert.ToString(row["HLevelDescription"]);
-                vw.CourseDirector = (System.Guid)(row["CourseDirector"]);
-                vw.CourseDirectorName = Convert.ToString(row["CourseDirectorName"]);
-                vw.HCourseDirectorName = Convert.ToString(row["HCourseDirectorName"]);
-                vw.AssociateDirector = (System.Guid)(row["AssociateDirector"]);
-                vw.AssociateDirectorName = Convert.ToString(row["AssociateDirectorName"]);
-                vw.HAssociateDirectorName = Convert.ToString(row["HAssociateDirectorName"]);
-                vw.Duration = Convert.ToInt32(row["Duration"]);
-                vw.DurationType = Convert.ToString(row["DurationType"]);
-                vw.T_StartDate = Convert.ToDateTime(row["T_StartDate"]);
-                vw.T_EndDate = Convert.ToDateTime(row["T_EndDate"]);
-                vw.NoOfParticipants = Convert.ToInt32(row["NoOfParticipants"]);
-                vw.T_ClosingDate = Convert.ToDateTime(row["T_ClosingDate"]);
-                vw.NoOfParticipants_Registered = Convert.ToInt32(row["NoOfParticipants_Registered"]);
-                vw.TrainingCategoryId = (System.Guid)(row["TrainingCategoryId"]);
-                vw.TrainingCategoryName = Convert.ToString(row["TrainingCategoryName"]);
-                vw.HTrainingCategoryName = Convert.ToString(row["HTrainingCategoryName"]);
-                vw.TrainingStatus = Convert.ToString(row["TrainingStatus"]);
-                vw.StatusUpdateDate = Convert.ToDateTime(row["StatusUpdateDate"]);
-                vw.StatusReason = Convert.ToString(row["StatusReason"]);
-                vw.HallName = Convert.ToString(row["HallName"]);
-                vw.HHallName = Convert.ToString(row["HHallName"]);
-                vw.financialyear = Convert.ToString(row["financialyear"]);
-                vw.Training_SponsorType = Convert.ToInt32(row["Training_SponsorType"]);
-                vw.StartDate = Convert.ToDateTime(row["StartDate"]);
-                vw.CourseId = (System.Guid)(row["CourseId"]);
-                vw.benefitted = Convert.ToString(row["benefitted"]);
-                vw.objective = Convert.ToString(row["objective"]);
-                vw.prerequiste = Convert.ToString(row["prerequiste"]);
-                vw.img_path = Convert.ToString(row["img_path"]);
+                con.Open();
+                SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId = @TrainingId", con);
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandTimeout = 5000;
 
-                if (vw.img_path != "")
+                // Add the parameter to avoid SQL injection
+                cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-
-                    vw.img_path_absolute = Convert.ToString(row["img_path"]);
-                }
-                else
-                {
-                    vw.img_path_absolute = null;
-                }
-
-
-                if (row["tttf_id"] != DBNull.Value)
-                {
-                    vw.tttf_id = (System.Guid)(row["tttf_id"]);
-                }
-
-                vw.trg_type = Convert.ToByte(row["trg_type"]);
-                vw.trg_validity = Convert.ToString(row["trg_validity"]);
-                vw.tttt_name = Convert.ToString(row["tttt_name"]);
-                vw.tttt_hname = Convert.ToString(row["tttt_hname"]);
-                vw.exptype = Convert.ToInt32(row["exptype"]);
-                vw.resident_status = Convert.ToByte(row["resident_status"]);
-                vw.CourseName = Convert.ToString(row["CourseName"]);
-                vw.HCourseName = Convert.ToString(row["HCourseName"]);
-                vw.DepartmentReferenceNo = Convert.ToString(row["DepartmentReferenceNo"]);
-                vw.participation_type = Convert.ToInt32(row["participation_type"]);
-                vw.proposed_amt = Convert.ToDecimal(row["proposed_amt"]);
-                vw.participant_type = Convert.ToInt32(row["participant_type"]);
-                if (row["ChcekListType"] != DBNull.Value)
-                {
-                    vw.ChcekListType = (System.Guid)(row["ChcekListType"]);
-
-                }
-                if (row["FeedbackType"] != DBNull.Value)
-                {
-                    vw.FeedbackType = (System.Guid)(row["FeedbackType"]);
-                }
-                //Calculate is self paced bit
-                vw.isSelfPaced = Common.CommonEnum.Get_Self_Paced_Trg(row["trg_type"].ToString());
-
-                vw.Participant_type_name = ((Common.CommonEnum.ParticipantType)row["participant_type"]).ToString();
-                vw.Participantion_type_name = ((Common.CommonEnum.ParticipationType)row["participation_type"]).ToString();
-
-                vw.participant_type_txt = Enum.GetName(typeof(Common.CommonEnum.ParticipantType), Convert.ToInt32(row["participant_type"]));
-                vw.status_txt = Enum.GetName(typeof(Common.CommonEnum.TrainingStatus), Convert.ToInt32(row["TrainingStatus"]));
-
-                if (Convert.ToString(row["trg_setting"]) != "")
-                {
-                    try
+                    while (reader.Read())
                     {
-                        Trg_Setting p = new Trg_Setting();
-                        p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(row["trg_setting"]));
-                        vw.trg_Setting = p;
+                        Training vw = new Training
+                        {
+                            TrainingId = (Guid)(reader["TrainingId"]),
+                            TrainingNo = Convert.ToString(reader["TrainingNo"]),
+                            Trainingcode = Convert.ToString(reader["Trainingcode"]),
+                            CourseCode = Convert.ToString(reader["CourseCode"]),
+                            T_Name = Convert.ToString(reader["T_Name"]),
+                            T_Details = Convert.ToString(reader["T_Details"]),
+                            SPONSOR_AG_ID = (Guid)(reader["SPONSOR_AG_ID"]),
+                            DueFees = Convert.ToDecimal(reader["DueFees"]),
+                            ReceivedFees = Convert.ToInt32(reader["ReceivedFees"]),
+                            SponsorName = Convert.ToString(reader["SponsorName"]),
+                            HSponsorName = Convert.ToString(reader["HSponsorName"]),
+                            ParticipantLevel = Convert.ToString(reader["ParticipantLevel"]),
+                            LevelId = Convert.ToInt32(reader["LevelId"]),
+                            LevelDescription = Convert.ToString(reader["LevelDescription"]),
+                            HLevelDescription = Convert.ToString(reader["HLevelDescription"]),
+                            CourseDirector = (Guid)(reader["CourseDirector"]),
+                            CourseDirectorName = Convert.ToString(reader["CourseDirectorName"]),
+                            HCourseDirectorName = Convert.ToString(reader["HCourseDirectorName"]),
+                            AssociateDirector = (Guid)(reader["AssociateDirector"]),
+                            AssociateDirectorName = Convert.ToString(reader["AssociateDirectorName"]),
+                            HAssociateDirectorName = Convert.ToString(reader["HAssociateDirectorName"]),
+                            Duration = Convert.ToInt32(reader["Duration"]),
+                            DurationType = Convert.ToString(reader["DurationType"]),
+                            T_StartDate = Convert.ToDateTime(reader["T_StartDate"]),
+                            T_EndDate = Convert.ToDateTime(reader["T_EndDate"]),
+                            NoOfParticipants = Convert.ToInt32(reader["NoOfParticipants"]),
+                            T_ClosingDate = Convert.ToDateTime(reader["T_ClosingDate"]),
+                            NoOfParticipants_Registered = Convert.ToInt32(reader["NoOfParticipants_Registered"]),
+                            TrainingCategoryId = (Guid)(reader["TrainingCategoryId"]),
+                            TrainingCategoryName = Convert.ToString(reader["TrainingCategoryName"]),
+                            HTrainingCategoryName = Convert.ToString(reader["HTrainingCategoryName"]),
+                            TrainingStatus = Convert.ToString(reader["TrainingStatus"]),
+                            StatusUpdateDate = Convert.ToDateTime(reader["StatusUpdateDate"]),
+                            StatusReason = Convert.ToString(reader["StatusReason"]),
+                            HallName = Convert.ToString(reader["HallName"]),
+                            HHallName = Convert.ToString(reader["HHallName"]),
+                            financialyear = Convert.ToString(reader["financialyear"]),
+                            Training_SponsorType = Convert.ToInt32(reader["Training_SponsorType"]),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            CourseId = (Guid)(reader["CourseId"]),
+                            benefitted = Convert.ToString(reader["benefitted"]),
+                            objective = Convert.ToString(reader["objective"]),
+                            prerequiste = Convert.ToString(reader["prerequiste"]),
+                            img_path = Convert.ToString(reader["img_path"]),
+                            img_path_absolute = string.IsNullOrEmpty(Convert.ToString(reader["img_path"])) ? null : Convert.ToString(reader["img_path"])
+                        };
+
+                        // Handle the optional fields
+                        if (reader["tttf_id"] != DBNull.Value)
+                        {
+                            vw.tttf_id = (Guid)(reader["tttf_id"]);
+                        }
+
+                        vw.trg_type = Convert.ToByte(reader["trg_type"]);
+                        vw.trg_validity = Convert.ToString(reader["trg_validity"]);
+                        vw.tttt_name = Convert.ToString(reader["tttt_name"]);
+                        vw.tttt_hname = Convert.ToString(reader["tttt_hname"]);
+                        vw.exptype = Convert.ToInt32(reader["exptype"]);
+                        vw.resident_status = Convert.ToByte(reader["resident_status"]);
+                        vw.CourseName = Convert.ToString(reader["CourseName"]);
+                        vw.HCourseName = Convert.ToString(reader["HCourseName"]);
+                        vw.DepartmentReferenceNo = Convert.ToString(reader["DepartmentReferenceNo"]);
+                        vw.participation_type = Convert.ToInt32(reader["participation_type"]);
+                        vw.proposed_amt = Convert.ToDecimal(reader["proposed_amt"]);
+                        vw.participant_type = Convert.ToInt32(reader["participant_type"]);
+
+                        if (reader["ChcekListType"] != DBNull.Value)
+                        {
+                            vw.ChcekListType = (Guid)(reader["ChcekListType"]);
+                        }
+
+                        if (reader["FeedbackType"] != DBNull.Value)
+                        {
+                            vw.FeedbackType = (Guid)(reader["FeedbackType"]);
+                        }
+
+                        // Calculate is self-paced bit
+                        vw.isSelfPaced = Common.CommonEnum.Get_Self_Paced_Trg(Convert.ToString(reader["trg_type"]));
+
+                        vw.Participant_type_name = Enum.GetName(typeof(Common.CommonEnum.ParticipantType), Convert.ToInt32(reader["participant_type"]));
+                        vw.Participantion_type_name = Enum.GetName(typeof(Common.CommonEnum.ParticipationType), Convert.ToInt32(reader["participation_type"]));
+
+                        vw.participant_type_txt = Enum.GetName(typeof(Common.CommonEnum.ParticipantType), Convert.ToInt32(reader["participant_type"]));
+                        vw.status_txt = Enum.GetName(typeof(Common.CommonEnum.TrainingStatus), Convert.ToInt32(reader["TrainingStatus"]));
+
+                        // Deserialize trg_setting if not empty
+                        if (reader["trg_setting"] != DBNull.Value)
+                        {
+                            try
+                            {
+                                Trg_Setting p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(reader["trg_setting"]));
+                                vw.trg_Setting = p;
+                            }
+                            catch
+                            {
+                                vw.trg_Setting = null;
+                            }
+                        }
+                        else
+                        {
+                            vw.trg_Setting = null;
+                        }
+
+                        trgdata.Add(vw);
                     }
-                    catch
-                    {
-                        vw.trg_Setting = null;
-
-                    }
-
                 }
-                else
-                {
-                    vw.trg_Setting = null;
-                }
-
-                trgdata.Add(vw);
             }
 
-
-
-            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
-
             return trgdata.FirstOrDefault();
+
         }
 
         public List<CERTIFICATE_SIGNATORY> Get_Certificate_signatory(string trainingid)

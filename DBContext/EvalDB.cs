@@ -15,104 +15,90 @@ namespace LitteraCore.DBContext
         {
 
             List<Test> assingvaluation = new List<Test>();
-            DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand("eval.GetTestListWithUserType", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@userid", userid);
-            cmd.Parameters.AddWithValue("@usertype", usertype);
-
-            cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
-
-
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            da.Fill(dt);
-            con.Close();
-
-            TrainingDB tdb = new TrainingDB(_configuration);
-            List<TrainingCategory> categories = new List<TrainingCategory>();
-            categories = tdb.Get_training_Category();
-
-            foreach (DataRow row in dt.Rows)
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                Test T = new Test();
-                T.testquestionid = Convert.ToString(row["testquestionid"]);
-                T.testid = Convert.ToString(row["testid"]);
-                T.testname = Convert.ToString(row["testname"]);
-                T.assesmenttime = Convert.ToString(row["assesmenttime"]);
-                T.skilltag = Convert.ToString(row["skilltag"]);
-                T.isactive = Convert.ToInt32(row["isactive"]);
-                T.trainingid = Convert.ToString(row["trainingid"]);
-                T.trainingcode = Convert.ToString(row["trainingcode"]);
-                T.trg_type = Convert.ToString(row["trg_type"]);
-                T.createdon = Convert.ToDateTime(row["createdon"]);
-                T.createdbyagencyid = Convert.ToString(row["createdbyagencyid"]);
+                con.Open();
+                SqlCommand cmd = new SqlCommand("eval.GetTestListWithUserType", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@userid", userid);
+                cmd.Parameters.AddWithValue("@usertype", usertype);
 
-                T.training_sponsortype = Convert.ToString(row["training_sponsortype"]);
-                T.noofquestion = Convert.ToInt32(row["noofquestion"]);
-                T.sessionid = Convert.ToString(row["Training.sessionid"]);
-                T.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
-                T.ttttt_session_dt = Convert.ToString(row["ttttt_session_dt"]);
-                T.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+                cmd.CommandTimeout = 5000;
 
-                T.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
-                T.ttpss_participant_id = Convert.ToString(row["ttpss_participant_id"]);
-                T.ttpss_session_id = Convert.ToString(row["ttpss_session_id"]);
-                T.ttpss_onscreen_time = Convert.ToString(row["ttpss_onscreen_time"]);
-
-                if (row["tdds_status"].ToString() != "")
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    T.tdds_status = Convert.ToInt16(row["tdds_status"]);
+                    TrainingDB tdb = new TrainingDB(_configuration);
+                    List<TrainingCategory> categories = tdb.Get_training_Category();
+
+                    while (reader.Read())
+                    {
+                        Test T = new Test();
+                        T.testquestionid = reader["testquestionid"].ToString();
+                        T.testid = reader["testid"].ToString();
+                        T.testname = reader["testname"].ToString();
+                        T.assesmenttime = reader["assesmenttime"].ToString();
+                        T.skilltag = reader["skilltag"].ToString();
+                        T.isactive = Convert.ToInt32(reader["isactive"]);
+                        T.trainingid = reader["trainingid"].ToString();
+                        T.trainingcode = reader["trainingcode"].ToString();
+                        T.trg_type = reader["trg_type"].ToString();
+                        T.createdon = Convert.ToDateTime(reader["createdon"]);
+                        T.createdbyagencyid = reader["createdbyagencyid"].ToString();
+
+                        T.training_sponsortype = reader["training_sponsortype"].ToString();
+                        T.noofquestion = Convert.ToInt32(reader["noofquestion"]);
+                        T.sessionid = reader["Training.sessionid"].ToString();
+                        T.ttttt_content_desc = reader["ttttt_content_desc"].ToString();
+                        T.ttttt_session_dt = reader["ttttt_session_dt"].ToString();
+                        T.ttttt_session_time = reader["ttttt_session_time"].ToString();
+
+                        T.ttttt_session_duration = reader["ttttt_session_duration"].ToString();
+                        T.ttpss_participant_id = reader["ttpss_participant_id"].ToString();
+                        T.ttpss_session_id = reader["ttpss_session_id"].ToString();
+                        T.ttpss_onscreen_time = reader["ttpss_onscreen_time"].ToString();
+
+                        // Safely handle nullable integer columns
+                        if (!string.IsNullOrEmpty(reader["tdds_status"].ToString()))
+                        {
+                            T.tdds_status = Convert.ToInt16(reader["tdds_status"]);
+                        }
+
+                        T.ttpss_status = reader["ttpss_status"].ToString();
+                        T.type = reader["type"].ToString();
+                        T.ttpss_created_on = reader["ttpss_created_on"].ToString();
+                        T.participantstatus = reader["participantstatus"].ToString();
+                        T.participantenrollstatus = reader["participantenrollstatus"].ToString();
+
+                        if (Common.CommonEnum.Get_Self_Paced_Trg(reader["trg_type"].ToString()) == 1)
+                        {
+                            T.issessioncompleted = reader["ttpss_status"].ToString() == "1" ? 1 : 0;
+                        }
+                        else
+                        {
+                            T.issessioncompleted = DateTime.Now > Convert.ToDateTime(reader["ttttt_session_dt"].ToString()) ? 1 : 0;
+                        }
+
+                        T.maxMarks = Convert.ToDecimal(reader["NoOfQuestion"]) * Convert.ToDecimal(reader["mark_per_question"]);
+                        T.mark_per_question = Convert.ToDecimal(reader["mark_per_question"]);
+
+                        // Handle potential null category matching
+                        var category = categories.FirstOrDefault(o => o.TrainingCategoryId.ToString().ToUpper() == reader["TrainingCategoryID"].ToString().ToUpper());
+                        T.Training_category_name = category != null ? category.TrainingCategoryName : string.Empty;
+
+                        T.Test_time = reader["start_time"].ToString();
+                        T.ttttt_status = reader["ttttt_status"].ToString();
+
+                        T.TrainingCategoryId = reader["TrainingCategoryId"].ToString();
+                        T.QuestionDifficultyID = reader["QuestionDifficultyID"].ToString();
+
+                        assingvaluation.Add(T);
+                    }
                 }
-
-                T.ttpss_status = Convert.ToString(row["ttpss_status"]);
-                T.type = Convert.ToString(row["type"]);
-                T.ttpss_created_on = Convert.ToString(row["ttpss_created_on"]);
-                T.participantstatus = Convert.ToString(row["participantstatus"]);
-                T.participantenrollstatus = Convert.ToString(row["participantenrollstatus"]);
-                if (Common.CommonEnum.Get_Self_Paced_Trg(row["trg_type"].ToString()) == 1)
-                {
-                    if (Convert.ToString(row["ttpss_status"]) == "1")
-                    {
-                        T.issessioncompleted = 1;
-                    }
-                    else
-                    {
-                        T.issessioncompleted = 0;
-                    }
-                }
-                else
-                {
-                    if (System.DateTime.Now > Convert.ToDateTime(Convert.ToString(row["ttttt_session_dt"])))
-                    {
-                        T.issessioncompleted = 1;
-                    }
-                    else
-                    {
-                        T.issessioncompleted = 0;
-                    }
-                }
-
-                T.maxMarks = Convert.ToDecimal(row["NoOfQuestion"]) * Convert.ToDecimal(row["mark_per_question"]);
-                T.mark_per_question = Convert.ToDecimal(row["mark_per_question"]);
-                T.Training_category_name = categories.Where(o => o.TrainingCategoryId.ToString().ToUpper() == row["TrainingCategoryID"].ToString().ToUpper()).ToList().FirstOrDefault().TrainingCategoryName;
-                T.Test_time= Convert.ToString(row["start_time"]);
-                T.ttttt_status= Convert.ToString(row["ttttt_status"]);
-
-
-                T.TrainingCategoryId = Convert.ToString(row["TrainingCategoryId"]);
-                T.QuestionDifficultyID = Convert.ToString(row["QuestionDifficultyID"]);
-                assingvaluation.Add(T);
             }
 
-
-
-
-
             return assingvaluation;
+
         }
 
         public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3,string branchid=null)

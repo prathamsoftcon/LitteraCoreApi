@@ -79,11 +79,11 @@ namespace LitteraCore.DBContext
                 ass.ttttt_session_duration = Convert.ToInt32(row["ttttt_session_duration"]);
                 ass.tdds_doc_no = Convert.ToString(row["tdds_doc_no"]);
                 ass.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]);
-                if(Convert.ToString(row["question_max_marks"]) != "")
+                if (Convert.ToString(row["question_max_marks"]) != "")
                 {
                     ass.AssignmentQuestionsMarks = JsonConvert.DeserializeObject<List<AssignmentQuestions>>(Convert.ToString(row["question_max_marks"]));
                 }
-             
+
                 // ass.taau_status= Convert.ToString(row["taau_status"]);
                 assingdata.Add(ass);
             }
@@ -304,7 +304,7 @@ namespace LitteraCore.DBContext
             return true;
         }
 
-        public List<AssignmentUpload> Get_Participant_Assignment_Uploads(string participantid,string assignmentid = null)
+        public List<AssignmentUpload> Get_Participant_Assignment_Uploads(string participantid, string assignmentid = null)
         {
 
             List<AssignmentUpload> assingdata = new List<AssignmentUpload>();
@@ -340,7 +340,7 @@ namespace LitteraCore.DBContext
                 //ass.taau_remark = Convert.ToString(row["taau_remark"]);
                 ass.taau_type = Convert.ToString(row["taau_type"]);
                 ass.taau_status = Convert.ToInt32(row["taau_status"]);
-               
+
                 assingdata.Add(ass);
             }
 
@@ -355,7 +355,7 @@ namespace LitteraCore.DBContext
         {
             AgencyDB adb = new AgencyDB(_configuration);
             List<Agency> a = new List<Agency>();
-          
+
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
@@ -366,7 +366,7 @@ namespace LitteraCore.DBContext
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@taaqv_assessmentid", assignmentid);
-            if(participantid != null)
+            if (participantid != null)
             {
                 cmd.Parameters.AddWithValue("@taaqv_participantid", participantid);
             }
@@ -374,7 +374,7 @@ namespace LitteraCore.DBContext
             {
                 cmd.Parameters.AddWithValue("@taaqv_participantid", DBNull.Value);
             }
-           
+
 
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -384,25 +384,26 @@ namespace LitteraCore.DBContext
             List<AssignmentQuestions> LI = new List<AssignmentQuestions>();
             foreach (DataRow row in dt.Rows)
             {
-                if(row["taaqv_valuation_json"].ToString() != "")
+                if (row["taaqv_valuation_json"].ToString() != "")
                 {
                     av.taaqv_id = Convert.ToString(row["taaqv_id"]);
                     av.taaqv_assessmentid = Convert.ToString(row["taaqv_assessmentid"]);
                     av.taaqv_participantid = Convert.ToString(row["taaqv_participantid"]);
-                    av.createdon= Convert.ToString(row["createdon"]);
+                    av.createdon = Convert.ToString(row["createdon"]);
                     av.createdby = Convert.ToString(row["createdby"]);
                     a = adb.Get_Agency(null, Convert.ToString(row["createdby"]), 1, 10, null, null, null, null);
-                    if (a.Count > 0) {
+                    if (a.Count > 0)
+                    {
                         av.createdby_name = a.FirstOrDefault().agencyname;
                     }
-                 
+
 
                     LI = JsonConvert.DeserializeObject<List<AssignmentQuestions>>(row["taaqv_valuation_json"].ToString());
                     av.taaqv_valuation_json = LI.ToArray();
                 }
-               
-               
-           }
+
+
+            }
 
 
 
@@ -460,7 +461,7 @@ namespace LitteraCore.DBContext
             foreach (DataRow row in dt.Rows)
             {
                 vs.total_participant = Convert.ToInt32(row["total_participant"]);
-                vs.assignment_submitted= Convert.ToInt32(row["assignment_submitted"]);
+                vs.assignment_submitted = Convert.ToInt32(row["assignment_submitted"]);
                 vs.valuation_completed = Convert.ToInt32(row["valuation_completed"]);
 
             }
@@ -491,8 +492,8 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
-            List<Assignment_Question_Valuation> lav= new List<Assignment_Question_Valuation>();
-          
+            List<Assignment_Question_Valuation> lav = new List<Assignment_Question_Valuation>();
+
 
             List<AssignmentQuestions> LI = new List<AssignmentQuestions>();
             foreach (DataRow row in dt.Rows)

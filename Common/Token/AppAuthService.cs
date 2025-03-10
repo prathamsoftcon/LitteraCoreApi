@@ -79,27 +79,11 @@ namespace LitteraCore.Common.Token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            
+          
             return new UserToken { AuthToken = tokenHandler.WriteToken(token), userdetails= U };
         }
 
-        //public static string GetLoginIPAddress(this HttpContext context)
-        //{
-        //    string sIPAddress = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-
-        //    if (string.IsNullOrEmpty(sIPAddress))
-        //    {
-        //        sIPAddress = context.Connection.RemoteIpAddress?.ToString();
-        //    }
-        //    else
-        //    {
-        //        // X-Forwarded-For header may contain multiple IP addresses separated by ","
-        //        // We'll take the first one, which is the client's IP address
-        //        sIPAddress = sIPAddress.Split(',')[0].Trim();
-        //    }
-
-        //    return sIPAddress;
-        //}
+     
 
         public async Task<UserInfo> GetUserRole(string UserId)
         {
@@ -162,6 +146,36 @@ namespace LitteraCore.Common.Token
                 var hash = BitConverter.ToString(hashbytes).Replace("-", "").ToLower();
                 return hash;
           }
+        }
+
+
+
+        public ClaimsPrincipal ValidateJwtToken(string token)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"])); // Wrap byte[] in SymmetricSecurityKey
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
+            {
+                // Validate the token and extract claims
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true, // Ensure the token is not expired
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = securityKey, // Use SymmetricSecurityKey here
+                                                    // ValidIssuer = "your_issuer",
+                                                    // ValidAudience = "your_audience"
+                }, out SecurityToken validatedToken);
+
+                return principal;  // Returns the validated claims
+            }
+            catch (Exception ex)
+            {
+                // Handle invalid token (e.g., expired or tampered)
+                throw new SecurityTokenException("Invalid token", ex);
+            }
         }
 
 

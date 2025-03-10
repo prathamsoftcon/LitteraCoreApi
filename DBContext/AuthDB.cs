@@ -18,7 +18,7 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public UserInfo GetUserInfo(string username,string loginattempt=null)
+        public UserInfo GetUserInfo(string username, string loginattempt = null)
         {
 
             UserInfo u = new UserInfo();
@@ -41,8 +41,8 @@ namespace LitteraCore.DBContext
             con.Close();
             dt.DefaultView.RowFilter = "active='1'";
             dt = dt.DefaultView.ToTable();
-            
-            List<UserInfo_usertype> usertype=new List<UserInfo_usertype>();
+
+            List<UserInfo_usertype> usertype = new List<UserInfo_usertype>();
             //procedure required to get user typewise role
             List<UserInfo_usertype_roles> usertypewiserole = new List<UserInfo_usertype_roles>();
             if (dt.Rows.Count > 0)
@@ -50,21 +50,21 @@ namespace LitteraCore.DBContext
 
                 foreach (DataRow dr in dt.Rows)
                 {
-                    usertype.Add(new UserInfo_usertype { usertypeid = Convert.ToString(dr["usertype"]),usertypename=Enum.GetName(typeof(CommonEnum.usertype),Convert.ToInt16(dr["usertype"])) });
+                    usertype.Add(new UserInfo_usertype { usertypeid = Convert.ToString(dr["usertype"]), usertypename = Enum.GetName(typeof(CommonEnum.usertype), Convert.ToInt16(dr["usertype"])) });
                     u.userid = Convert.ToString(dr["UserID"]);
                     u.agencyid = Convert.ToString(dr["EMPLOYEEID"]);
                     u.emailid = Convert.ToString(dr["EmailId"]);
                     u.Mobileno = Convert.ToString(dr["MobileNo"]);
                     u.Username = Convert.ToString(dr["f_name"]);
                     u.branchid = "DFF7C661-5B84-4A7E-8250-31C420DD9FCD";
-                    if(Convert.ToString(dr["uploadpath"]) != "")
+                    if (Convert.ToString(dr["uploadpath"]) != "")
                     {
                         u.photopath = Convert.ToString(dr["uploadpath"]);
                     }
-                   
+
                 }
                 u.usertype = usertype.ToArray();
-                u.userrole= usertypewiserole.ToArray();
+                u.userrole = usertypewiserole.ToArray();
             }
 
 
@@ -102,14 +102,15 @@ namespace LitteraCore.DBContext
                 }
                 return user;
             }
-            catch(Exception ex) {
-            throw new Exception(ex.Message);
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
-            
+
         }
 
 
-        public bool Change_Password(string userid,string password)
+        public bool Change_Password(string userid, string password)
         {
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
@@ -120,12 +121,12 @@ namespace LitteraCore.DBContext
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@UserId", userid);
-           // cmd.Parameters.AddWithValue("@OldPassword", username);
+            // cmd.Parameters.AddWithValue("@OldPassword", username);
             cmd.Parameters.AddWithValue("@NewPassword", password);
             cmd.Parameters.AddWithValue("@ty", "1");
             cmd.ExecuteNonQuery();
             con.Close();
-           
+
             return true;
         }
 
@@ -148,7 +149,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public bool Make_Login_Entry(string userid, string logoff,string ip)
+        public bool Make_Login_Entry(string userid, string logoff, string ip)
         {
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
@@ -202,7 +203,7 @@ namespace LitteraCore.DBContext
                 SqlDataAdapter da = new SqlDataAdapter(cmd);
                 da.Fill(dt);
                 con.Close();
-            
+
                 return dt;
             }
             catch (Exception ex)
@@ -241,7 +242,7 @@ namespace LitteraCore.DBContext
             con.Open();
             SqlCommand cmd = new SqlCommand("YUser.proc_yuser_check_password_changed", con);
             cmd.Parameters.AddWithValue("@userid", userid);
-         
+
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -249,20 +250,20 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
-            bool ischanged =false;
-            if(dt.Rows.Count > 0)
+            bool ischanged = false;
+            if (dt.Rows.Count > 0)
             {
                 if (Convert.ToString(dt.Rows[0]["ispasswordchanged"]) == "1")
                 {
                     ischanged = true;
                 }
-               
+
             }
 
             return ischanged;
 
 
-      
+
 
         }
 
@@ -277,7 +278,7 @@ namespace LitteraCore.DBContext
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@userid", userid);
-           
+
             cmd.ExecuteNonQuery();
             con.Close();
 

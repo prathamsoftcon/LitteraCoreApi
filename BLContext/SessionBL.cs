@@ -32,7 +32,7 @@ namespace LitteraCore.BLContext
 
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
-            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            trgdetail = T;
 
             foreach (Session session in sessiondata)
             {

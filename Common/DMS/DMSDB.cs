@@ -784,6 +784,44 @@ namespace LitteraCore.Common.DMS
         }
 
 
-      
+        public List<DMS> GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(string tdds_doc_id, int tdds_tat_type_id)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            DataTable dt = new DataTable();
+            SqlCommand cmd = new SqlCommand();
+            if (tdds_doc_id != null)
+            {
+                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_doc_id in (" + tdds_doc_id + ") and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+            }
+            else
+            {
+                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where  tdds_tat_type_id in (" + tdds_tat_type_id.ToString() + ")", con);
+            }
+
+
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            List<DMS> DL = new List<DMS>();
+            foreach (DataRow row in dt.Rows)
+            {
+                DMS D = new DMS();
+                D.tat_type_id = Convert.ToInt32(row["tdds_tat_type_id"]);
+                D.docno = Convert.ToString(row["tdds_doc_no"]);
+                D.doc_id = Convert.ToString(row["tdds_doc_id"]);
+                D.doc_id = Convert.ToString(row["tdds_doc_id"]);
+                D.doc_status = Convert.ToInt32(row["tdds_status"]);
+                DL.Add(D);
+            }
+
+            return DL;
+
+
+        }
+
+
     }
 }

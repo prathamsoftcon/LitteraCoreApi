@@ -54,7 +54,7 @@ namespace LitteraCore.DBContext
             return AL;
         }
 
-        public List<Content> Get_Trg_Content(PaginationParam param,string trainingid = null, string sessionid = null)
+        public List<Content> Get_Trg_Content(PaginationParam param, string trainingid = null, string sessionid = null)
         {
 
             List<Content> AL = new List<Content>();
@@ -84,7 +84,7 @@ namespace LitteraCore.DBContext
             con.Close();
             dt.DefaultView.RowFilter = "ttsad_status <> -1";
             dt = dt.DefaultView.ToTable();
-      
+
             foreach (DataRow row in dt.Rows)
             {
                 Content vw = new Content();
@@ -113,7 +113,7 @@ namespace LitteraCore.DBContext
                 if (Convert.ToString(row["GlobalFilePath"]) != "")
                 {
 
-                    vw.GlobalFilePath =  Convert.ToString(row["GlobalFilePath"]);
+                    vw.GlobalFilePath = Convert.ToString(row["GlobalFilePath"]);
                 }
                 //if (Convert.ToString(row["GlobalthumbnailPath"]) != "")
                 //{
@@ -209,6 +209,6 @@ namespace LitteraCore.DBContext
 
         }
 
-       
+
     }
 }

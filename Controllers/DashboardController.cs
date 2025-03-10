@@ -53,6 +53,10 @@ namespace LitteraCore.Controllers
         [Route("api/Dashboard_Data")]
         public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias)
         {
+
+            var Authtoken = Request.Cookies["Auth_token"];
+
+
             TrainingDB WDB = new TrainingDB(_configuration);
 
             List<Training> lwtc = new List<Training>();
@@ -81,7 +85,13 @@ namespace LitteraCore.Controllers
                 ParticipantDB PDB = new ParticipantDB(_configuration);
                 DMSBL DBL = new DMSBL(_configuration);
                 List<ParticipantAdditionlInfo> PAI = PDB.Get_Participant_Additional_info(null, userid);
-                List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
+                List<DMS> DS = new List<DMS>();
+                if(ttpaiIds != "")
+                {
+                    DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                }
+               
 
                 foreach (Training vw in lwtc)
                 {
@@ -166,7 +176,14 @@ namespace LitteraCore.Controllers
                 ParticipantDB PDB = new ParticipantDB(_configuration);
                 DMSBL DBL = new DMSBL(_configuration);
                 List<ParticipantAdditionlInfo> PAI = PDB.Get_Participant_Additional_info(null, userid);
-                List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                //List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
+                List<DMS> DS = new List<DMS>();
+                if(ttpaiIds != "")
+                {
+                    DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                }
+             
 
                 foreach (Training vw in lwtc)
                 {
@@ -251,37 +268,65 @@ namespace LitteraCore.Controllers
         [Route("api/Upcoming_Events")]
         public IActionResult Upcoming_Events(DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
+            param.PageNumber = 1;
+            param.PageSize = 100;
+            DateTime dtcurrent = DateTime.Now;
+
             TrainingDB WDB = new TrainingDB(_configuration);
 
             List<Training> lwtc = new List<Training>();
-            List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
 
-            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
-           
+            List<Training> lwtc_all = new List<Training>();
 
+            List<Training> lwtc_final = new List<Training>();
+
+
+            var (start, end) = GetCurrentFinancialYearDates();
+          
+
+            lwtc = WDB.Get_VW_Training_calendar(start, end);
+            lwtc_all = lwtc;
+
+            lwtc = lwtc.Where(o => o.T_EndDate >= dtcurrent).ToList();
+
+            if (lwtc.Where(o=>o.TrainingStatus == "1" || o.TrainingStatus == "5").Count() >= 5)
+            {
+                lwtc_final = lwtc.Where(o => o.TrainingStatus == "1" || o.TrainingStatus == "5").ToList();
+            }
+            else
+            {
+                lwtc_final = lwtc.Where(o => o.TrainingStatus == "1" || o.TrainingStatus == "5").ToList();
+
+
+                lwtc_final.AddRange(lwtc_all.Where(o => o.T_EndDate < dtcurrent
+                                          && o.TrainingStatus != "2"
+                                          && o.TrainingStatus != "3"
+                                          && o.TrainingStatus != "0").ToList());
+                lwtc_final= lwtc_final.Take(5).ToList();
+            }
            
             //**********Implement Search
-            var searchService = new SearchService();
-            var filteredItems = lwtc;
-            if (searchCriterias != null)
-            {
-                filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
-            }
+            //var searchService = new SearchService();
+            //var filteredItems = lwtc;
+            //if (searchCriterias != null)
+            //{
+            //    filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
+            //}
 
-            lwtc = filteredItems;
+            //lwtc = filteredItems;
 
-            lwtc = lwtc.Where(o => o.TrainingStatus != "0").ToList();
+            //lwtc = lwtc.Where(o => o.TrainingStatus != "0").ToList();
 
             //*********
 
             //in case of participant not need to show proposed and cancelled training
-            lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
+            //lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
 
             //*************
 
 
-            var pagedList = Paging.GetPagedList(param, lwtc);
-            var result = Paging.GetPagedData(param, lwtc);
+            var pagedList = Paging.GetPagedList(param, lwtc_final);
+            var result = Paging.GetPagedData(param, lwtc_final);
 
             return Ok(result);
         }
@@ -318,7 +363,12 @@ namespace LitteraCore.Controllers
                 ParticipantDB PDB = new ParticipantDB(_configuration);
                 DMSBL DBL = new DMSBL(_configuration);
                 List<ParticipantAdditionlInfo> PAI = PDB.Get_Participant_Additional_info(null, userid);
-                List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
+
+                List<DMS> DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+
+
+                //List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
 
                 foreach (Training vw in lwtc)
                 {
@@ -447,6 +497,35 @@ namespace LitteraCore.Controllers
 
             return Ok(sb.ToString());
         }
+
+        public static (DateTime startDate, DateTime endDate) GetCurrentFinancialYearDates()
+        {
+            // Get the current date
+            DateTime currentDate = DateTime.Now;
+
+            // Get the current year
+            int currentYear = currentDate.Year;
+
+            // Initialize the start and end date for the financial year
+            DateTime startDate;
+            DateTime endDate;
+
+            // If current month is before April, then financial year starts from previous year
+            if (currentDate.Month < 4)
+            {
+                startDate = new DateTime(currentYear - 1, 4, 1);
+                endDate = new DateTime(currentYear, 3, 31);
+            }
+            else
+            {
+                startDate = new DateTime(currentYear, 4, 1);
+                endDate = new DateTime(currentYear + 1, 3, 31);
+            }
+
+            // Return the start and end dates as a tuple
+            return (startDate, endDate);
+        }
+
 
     }
 }

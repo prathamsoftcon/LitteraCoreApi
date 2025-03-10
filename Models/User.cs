@@ -129,4 +129,49 @@
     {
         public List<update_pass> users { get; set; }
     }
+
+    public class LoginUser
+    {
+        public string username { get; set; }
+        public string password { get; set; }
+
+        public string password_enc { get; set; }
+        //public string usertype { get; set; }
+
+
+
+        public string f_name { get; set; }
+
+        public string m_name { get; set; }
+        public string l_name { get; set; }
+
+        public string mobileno { get; set; }
+        public string emailid { get; set; }
+        public string userid { get; set; }
+
+
+
+
+        public string branchid { get; set; }
+
+        public string LoginID { get; set; }
+        public string usertype { get; set; }
+
+        public string roleid { get; set; }
+
+        public UserAgency agency { get; set; }
+        public string createdby { get; set; }
+        public user_branches branches { get; set; }
+    }
+    public class user_branches
+    {
+        public string branchtype { get; set; }
+        public user_branches_detail[] branches { get; set; }
+
+    }
+    public class user_branches_detail
+    {
+        public string branchid { get; set; }
+        public string branchname { get; set; }
+    }
 }

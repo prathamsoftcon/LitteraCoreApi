@@ -28,7 +28,7 @@ namespace LitteraCore.DBContext
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
-           
+
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
@@ -38,8 +38,8 @@ namespace LitteraCore.DBContext
                     new Agency
                     {
                         agencyid = Convert.ToString(dr["Designationid"]),
-                        agencyname= Convert.ToString(dr["DesignationName"]),
-                        hagencyname= Convert.ToString(dr["HDesignationName"]),
+                        agencyname = Convert.ToString(dr["DesignationName"]),
+                        hagencyname = Convert.ToString(dr["HDesignationName"]),
 
                     });
             }
@@ -64,9 +64,9 @@ namespace LitteraCore.DBContext
                 param.PageNumber,
                f.Count());
                 }
-                 
+
             }
-           
+
 
         }
 
@@ -83,8 +83,8 @@ namespace LitteraCore.DBContext
             List<SALUTATION> s = new List<SALUTATION>();
             s = Get_SALUTATION();
             //*****************
-            List<Agency> organisations = new List<Agency>();
-            organisations = Get_ORGANISATION_LIST_DATA();
+            //List<Agency> organisations = new List<Agency>();
+            //organisations = Get_ORGANISATION_LIST_DATA();
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
@@ -181,7 +181,7 @@ namespace LitteraCore.DBContext
                         //{
                         //    vw.uploadpath = UP.Get_Default_Upload_Path() + Convert.ToString(row["uploadpath"]);
                         //}
-                        if(row["uploadpath"].ToString() != "")
+                        if (row["uploadpath"].ToString() != "")
                         {
                             vw.uploadpath = Convert.ToString(row["uploadpath"]);
                         }
@@ -199,8 +199,8 @@ namespace LitteraCore.DBContext
                             }
                         }
 
-                      
-                      
+
+
                         vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
                         vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
                         vw.ag_l_name = Convert.ToString(row["ag_l_name"]);
@@ -332,36 +332,45 @@ namespace LitteraCore.DBContext
             }
 
             con.Close();
-          
+
             return AL;
         }
 
 
         public List<SALUTATION> Get_SALUTATION()
         {
-
-            List<SALUTATION> AL = new List<SALUTATION>();
-            DataTable dt = new DataTable();
+             List<SALUTATION> AL = new List<SALUTATION>();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand("yuser.proc_tp_get_salutation", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
 
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            da.Fill(dt);
-            con.Close();
-
-            foreach (DataRow row in dt.Rows)
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                SALUTATION vw = new SALUTATION();
-                vw.ts_id = Convert.ToInt16(row["ts_id"]);
-                vw.ts_name = Convert.ToString(row["ts_name"]);
-                vw.ts_hname = Convert.ToString(row["ts_hname"]);
-                AL.Add(vw);
+                // Open the connection
+                con.Open();
+
+                // Create the SqlCommand for the stored procedure
+                using (SqlCommand cmd = new SqlCommand("yuser.proc_tp_get_salutation", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 5000;
+
+                    // Use SqlDataReader to read the data
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        // Read rows from the SqlDataReader
+                        while (reader.Read())
+                        {
+                            SALUTATION vw = new SALUTATION
+                            {
+                                ts_id = Convert.ToInt16(reader["ts_id"]),
+                                ts_name = Convert.ToString(reader["ts_name"]),
+                                ts_hname = Convert.ToString(reader["ts_hname"])
+                            };
+                            AL.Add(vw);
+                        }
+                    }
+                }
             }
+
             return AL;
         }
 
@@ -393,9 +402,6 @@ namespace LitteraCore.DBContext
 
             List<SALUTATION> s = new List<SALUTATION>();
             s = Get_SALUTATION();
-
-
-
 
 
             //******
@@ -440,7 +446,7 @@ namespace LitteraCore.DBContext
                 vw.upload_photo_name = Convert.ToString(row["ag_photo_path"]);
                 // vw.userid= Convert.ToString(row["userid"]);
 
-             
+
                 if (row["uploadpath"].ToString() != "")
                 {
                     vw.uploadpath = Convert.ToString(row["uploadpath"]);
@@ -451,9 +457,9 @@ namespace LitteraCore.DBContext
                 {
 
 
-                    vw.ag_photo_path =  Convert.ToString(row["ag_photo_path"]);
+                    vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
                 }
-               
+
 
                 vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
                 vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
@@ -712,7 +718,7 @@ namespace LitteraCore.DBContext
                         id = Convert.ToString(dr["agencytype"]),
                         name = Convert.ToString(dr["agencyname"]),
                         hname = Convert.ToString(dr["HAgencyName"])
-                       
+
 
                     });
             }
@@ -814,7 +820,7 @@ namespace LitteraCore.DBContext
 
             cmd.ExecuteNonQuery();
             con.Close();
-      
+
             return true;
         }
 
@@ -832,7 +838,7 @@ namespace LitteraCore.DBContext
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@UserID", userid);
-           
+
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
@@ -842,8 +848,8 @@ namespace LitteraCore.DBContext
 
             List<BranchType> bt = new List<BranchType>();
             bt = BranchTypes();
-            List<Agency> branches= new List<Agency>();
-            branches= Get_All_Agency_Name("00001,00002,00003,00004,00005");
+            List<Agency> branches = new List<Agency>();
+            branches = Get_All_Agency_Name("00001,00002,00003,00004,00005");
 
 
 
@@ -874,7 +880,7 @@ namespace LitteraCore.DBContext
             {
                 string branchname = "";
                 string hbranchname = "";
-                if(branches.Where(o=>o.agencyid.ToString().ToUpper()== dr["tyubr_branch_id"].ToString().ToUpper()).Count() > 0)
+                if (branches.Where(o => o.agencyid.ToString().ToUpper() == dr["tyubr_branch_id"].ToString().ToUpper()).Count() > 0)
                 {
                     branchname = branches.Where(o => o.agencyid.ToString().ToUpper() == dr["tyubr_branch_id"].ToString().ToUpper()).FirstOrDefault().agencyname;
                     hbranchname = branches.Where(o => o.agencyid.ToString().ToUpper() == dr["tyubr_branch_id"].ToString().ToUpper()).FirstOrDefault().hagencyname;
@@ -885,12 +891,12 @@ namespace LitteraCore.DBContext
                 ub.branchid = Convert.ToString(dr["tyubr_branch_id"]);
                 ub.branch_name = branchname;
                 ub.branch_hname = hbranchname;
-                if(user_branches.Where(o=>o.branchid.ToString().ToUpper()== Convert.ToString(dr["tyubr_branch_id"]).ToUpper()).Count() <= 0)
+                if (user_branches.Where(o => o.branchid.ToString().ToUpper() == Convert.ToString(dr["tyubr_branch_id"]).ToUpper()).Count() <= 0)
                 {
                     user_branches.Add(ub);
                 }
-              
-               
+
+
             }
 
             userBranch.branchtype = user_branch_type.ToArray();
@@ -900,7 +906,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        
+
         public List<BranchType> BranchTypes()
         {
             List<BranchType> userBranch = new List<BranchType>();
@@ -912,7 +918,7 @@ namespace LitteraCore.DBContext
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
-         
+
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
@@ -924,12 +930,12 @@ namespace LitteraCore.DBContext
 
             foreach (DataRow dr in dt.Rows)
             {
-                BranchType bt=new BranchType();
+                BranchType bt = new BranchType();
                 bt.branchtypeid = Convert.ToString(dr["AgencyTypeID"]);
                 bt.branchtype_name = Convert.ToString(dr["AgencyTypeName"]);
                 bt.branchtype_hname = Convert.ToString(dr["HAgencyTypeName"]);
                 userBranch.Add(bt);
-                
+
             }
 
             return userBranch;
