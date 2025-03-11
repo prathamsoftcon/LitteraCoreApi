@@ -37,6 +37,8 @@
         public int minreadingtime { get { return 2; } set { minreadingtime = 2; } }
 
         public contentuserpermission[] contentuserpermission { get; set; }
+
+        public string content_icon { get; set; }
     }
     public class contentType
     {

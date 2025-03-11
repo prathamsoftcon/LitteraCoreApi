@@ -115,6 +115,22 @@ namespace LitteraCore.DBContext
 
                     vw.GlobalFilePath = Convert.ToString(row["GlobalFilePath"]);
                 }
+                if (Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".PDF") == true || Convert.ToString(row["globalWysiwagText"]).ToUpper().Contains(".PDF") == true)
+                {
+                    vw.content_icon = "<i class='fa fa-file-pdf-o'></i>";
+                }
+                else if (Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".MP4") == true || Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".WMV") == true || Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".FLV") == true)
+                {
+                    vw.content_icon = "<i class='fa fa-video-camera'></i>";
+                }
+                else if (Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".JPG") == true || Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".JPEG") == true || Convert.ToString(row["GlobalFilePath"]).ToUpper().Contains(".PNG") == true)
+                {
+                    vw.content_icon = "<i class='fa fa-file-image-o'></i>";
+                }
+                else
+                {
+                    vw.content_icon = "<i class='fa fa-file-o'></i>";
+                }
                 //if (Convert.ToString(row["GlobalthumbnailPath"]) != "")
                 //{
 
