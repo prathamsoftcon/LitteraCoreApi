@@ -1,4 +1,5 @@
-﻿using LitteraCore.Common;
+﻿using LitteraCore.BLContext;
+using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -222,6 +223,33 @@ namespace LitteraCore.DBContext
             }
 
             return FL;
+
+        }
+
+        public bool save_participant_learning_time(learningtime lt)
+        {
+
+            List<Content> AL = new List<Content>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_ins_participant_learning_time", con);
+            cmd.Parameters.AddWithValue("@tplt_Id", lt.tplt_Id);
+            cmd.Parameters.AddWithValue("@tplt_ttsam_id", lt.tplt_ttsam_id);
+            cmd.Parameters.AddWithValue("@tplt_ttpai_id", lt.tplt_ttpai_id);
+            cmd.Parameters.AddWithValue("@tplt_learning_time", lt.tplt_learning_time);
+            cmd.Parameters.AddWithValue("@tplt_createdon", lt.tplt_createdon);
+            cmd.Parameters.AddWithValue("@tplt_createdby", lt.tplt_createdby);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+           
+            return true;
 
         }
 

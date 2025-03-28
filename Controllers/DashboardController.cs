@@ -142,10 +142,165 @@ namespace LitteraCore.Controllers
 
 
 
+                //****************Code to calculate Action info
+                if(usertype != "5")
+                {
+                    CommonEnum.DASHBOARD_TRG_ACTIONS[] actinoArray = (CommonEnum.DASHBOARD_TRG_ACTIONS[])Enum.GetValues(typeof(CommonEnum.DASHBOARD_TRG_ACTIONS));
+                    int[] intactionArray = Array.ConvertAll(actinoArray, v => (int)v);
+
+                    List<DisplayInfo> trgActiondisplay = new List<DisplayInfo>();
+                    foreach (int value in intactionArray)
+                    {
+                        DisplayInfo DI = new DisplayInfo();
+                        DI.key = value.ToString();
+                        DI.name = Enum.GetName(typeof(CommonEnum.DASHBOARD_TRG_ACTIONS), value);
+                        if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.AddParticipant)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.AssignmentList)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Attendance)
+                        {
+
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.FACULTY)
+                            {
+                                DI.value = true;
+
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.ContentLibrary)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Feedback)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Forum)
+                        {
+                            DI.value = false;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Litteraroom)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.MeetingList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.SessionList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.TestList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.TrainingCalendar)
+                        {
+                            DI.value = false;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Trg_Expenses)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.UpdateStatus)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Course_Overview)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = true;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Transaction_Details)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = true;
+                            }
+
+                        }
+                        trgActiondisplay.Add(DI);
+                    }
+
+
+                    item.ActionInfos = trgActiondisplay.ToArray();
+
+                }
+
+
+
+
+
+
+
+
+
+
+
+
 
             }
 
-            var pagedList = Paging.GetPagedList(param, lwtc);
+
+        var pagedList = Paging.GetPagedList(param, lwtc);
             var result = Paging.GetPagedData(param, lwtc);
 
             return Ok(result);
@@ -252,6 +407,148 @@ namespace LitteraCore.Controllers
                 var filterfaculties = filter.ToList().Where(o => o.ttttt_facultyid != null);
                 // item.faculties = filter.ToList().Where(o => o.ttttt_facultyid !=null);
 
+                //****************Code to calculate Action info
+                if (usertype != "5")
+                {
+                    CommonEnum.DASHBOARD_TRG_ACTIONS[] actinoArray = (CommonEnum.DASHBOARD_TRG_ACTIONS[])Enum.GetValues(typeof(CommonEnum.DASHBOARD_TRG_ACTIONS));
+                    int[] intactionArray = Array.ConvertAll(actinoArray, v => (int)v);
+
+                    List<DisplayInfo> trgActiondisplay = new List<DisplayInfo>();
+                    foreach (int value in intactionArray)
+                    {
+                        DisplayInfo DI = new DisplayInfo();
+                        DI.key = value.ToString();
+                        DI.name = Enum.GetName(typeof(CommonEnum.DASHBOARD_TRG_ACTIONS), value);
+                        if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.AddParticipant)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.AssignmentList)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Attendance)
+                        {
+
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.FACULTY)
+                            {
+                                DI.value = true;
+
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.ContentLibrary)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Feedback)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Forum)
+                        {
+                            DI.value = false;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Litteraroom)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.MeetingList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.SessionList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.TestList)
+                        {
+                            DI.value = true;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.TrainingCalendar)
+                        {
+                            DI.value = false;
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Trg_Expenses)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.UpdateStatus)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Course_Overview)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = true;
+                            }
+
+                        }
+                        else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Transaction_Details)
+                        {
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = true;
+                            }
+
+                        }
+                        trgActiondisplay.Add(DI);
+                    }
+
+
+                    item.ActionInfos = trgActiondisplay.ToArray();
+
+                }
 
 
 
@@ -323,6 +620,25 @@ namespace LitteraCore.Controllers
             //lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
 
             //*************
+
+            foreach(Training t in lwtc_final)
+            {
+                if (t.TrainingStatus == "4")
+                {
+                    t.is_reg_open = false;
+                }
+                else
+                {
+                    if (t.T_EndDate >= System.DateTime.Now)
+                    {
+                        t.is_reg_open = true;
+                    }
+                    else
+                    {
+                        t.is_reg_open = false;
+                    }
+                }
+            }
 
 
             var pagedList = Paging.GetPagedList(param, lwtc_final);

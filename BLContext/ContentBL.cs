@@ -85,7 +85,14 @@ namespace LitteraCore.BLContext
 
         }
 
-     
-       
+        public bool save_participant_learning_time(learningtime lt)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+         
+            bool issaved = CDB.save_participant_learning_time(lt);
+            return issaved;
+        }
+
+
     }
 }

@@ -10,21 +10,26 @@
         }
         public async Task Invoke(HttpContext context)
         {
-            string apiKey = context.Request.Headers[ApiKeyName].FirstOrDefault();
-
-            var appSettings = context.RequestServices.GetRequiredService<IConfiguration>();
-
-            var validapiKey = appSettings.GetValue<string>(ApiKeyName);
-
-
-
-
-            if (string.IsNullOrEmpty(apiKey) || !IsValidApiKey(apiKey, validapiKey))
+            var endpoint = context.GetEndpoint().ToString();
+            if (!endpoint.Contains("Get_Activity_Token_Info"))
             {
-                context.Response.StatusCode = 401; // Unauthorized
-                await context.Response.WriteAsync("Invalid API key.");
-                return;
+                string apiKey = context.Request.Headers[ApiKeyName].FirstOrDefault();
+
+                var appSettings = context.RequestServices.GetRequiredService<IConfiguration>();
+
+                var validapiKey = appSettings.GetValue<string>(ApiKeyName);
+
+
+
+
+                if (string.IsNullOrEmpty(apiKey) || !IsValidApiKey(apiKey, validapiKey))
+                {
+                    context.Response.StatusCode = 401; // Unauthorized
+                    await context.Response.WriteAsync("Invalid API key.");
+                    return;
+                }
             }
+            
 
             await _next.Invoke(context);
         }

@@ -11,15 +11,20 @@ namespace LitteraCore.Common
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (operation.Parameters == null)
-                operation.Parameters = new List<OpenApiParameter>();
-
-            operation.Parameters.Add(new OpenApiParameter
+            var endpoint = context.ApiDescription.ActionDescriptor.RouteValues["action"];
+            if (!endpoint.Contains("Get_Activity_Token_Info"))
             {
-                Name = "APIKey",
-                In = ParameterLocation.Header,
-                Required = true
-            });
+                if (operation.Parameters == null)
+                    operation.Parameters = new List<OpenApiParameter>();
+
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "APIKey",
+                    In = ParameterLocation.Header,
+                    Required = true
+                });
+            }
+          
 
         }
     }

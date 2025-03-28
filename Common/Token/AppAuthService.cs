@@ -14,6 +14,7 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Security.Cryptography;
 using Azure;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace LitteraCore.Common.Token
 {
@@ -39,7 +40,7 @@ namespace LitteraCore.Common.Token
 
             AuthDB ADB = new AuthDB(_configuration);
             UserInfo U=ADB.GetUserInfo(username);
-
+            
 
             //AuthDB ADB = new AuthDB(_configuration);
             //bool s = ADB.Make_Login_Entry(U.userid, "0", "IP");
@@ -176,6 +177,59 @@ namespace LitteraCore.Common.Token
                 // Handle invalid token (e.g., expired or tampered)
                 throw new SecurityTokenException("Invalid token", ex);
             }
+        }
+
+
+        public async Task<UserToken> Activity_Token(string userid,string ttpai_id,string ttsam_id,string baseUrl)
+        {
+            // var user = await _userrepository.ValidateUserExitAsync(userlogin.Mobileno, userlogin.Password);
+
+            //if (userlogin == null)
+            //    throw new Exception("Invalid Input received!");
+
+            //            user = await _context.Users.FindAsync(userlogin.Username);
+
+            // User name and password are valid. 
+            // Generate JSON Web Token
+
+            AuthDB ADB = new AuthDB(_configuration);
+        
+
+
+            //AuthDB ADB = new AuthDB(_configuration);
+            //bool s = ADB.Make_Login_Entry(U.userid, "0", "IP");
+
+            string claimname = null;
+            claimname = userid;
+            //var claims = await _parmissionservice.GetClaimsAsync((Guid)userlogin.userid);
+            var claims = "";
+            var tokenHandler = new JwtSecurityTokenHandler();
+            // var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
+            var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
+            var validapiKey = _configuration.GetSection("ApiKey").Value;
+
+
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                //Issuer = "",
+                //Audience ="",
+                Subject = new ClaimsIdentity(new List<Claim>
+                    {
+                          new Claim(ClaimTypes.Name, claimname),
+                          new Claim("userid",userid),
+                          new Claim("ttpai_id", ttpai_id),
+                          new Claim("ttsam_id",ttsam_id),
+                          new Claim("baseUrl",baseUrl),
+                          new Claim("Key",validapiKey.ToString())
+
+                    }),
+                Expires = DateTime.UtcNow.AddDays(30),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return new UserToken { AuthToken = tokenHandler.WriteToken(token)};
         }
 
 

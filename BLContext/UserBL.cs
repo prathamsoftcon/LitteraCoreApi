@@ -79,5 +79,14 @@ namespace LitteraCore.BLContext
             bool issave = udb.Save_User_Data(user);
             return true;
         }
+
+        public Agency Check_Mobile(string mobileno, string APPURL, string agencytype)
+        {
+
+            UserDB udb = new UserDB(_configuration);
+            Agency a = new Agency();
+            a = udb.Check_Mobile_EMAIL(mobileno, 2, APPURL, agencytype);
+            return a;
+        }
     }
 }

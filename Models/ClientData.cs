@@ -122,8 +122,11 @@ namespace LitteraCore.Models
 
         public string CERTIFICATE_LOGO { get; set; }
 
+        public string INSTRUCTION_URL { get; set; }
 
+        public Menus[] MENULIST { get; set; }
 
+        
 
         public static  ClientData Get_Client_Data()
         {
@@ -359,6 +362,20 @@ namespace LitteraCore.Models
                     cinfo.CERTIFICATE_LOGO = node.SelectSingleNode("value").InnerText;
 
                 }
+                else if (node.SelectSingleNode("key").InnerText == "INSTRUCTION_URL")
+                {
+                    cinfo.INSTRUCTION_URL = node.SelectSingleNode("value").InnerText;
+
+                }
+                else if (node.SelectSingleNode("key").InnerText == "MENULIST")
+                {
+                    if(node.SelectSingleNode("value").InnerText != "")
+                    {
+                        cinfo.MENULIST = JsonConvert.DeserializeObject<Menus[]>(node.SelectSingleNode("value").InnerText);
+                    }
+                   
+
+                }
 
 
 
@@ -377,7 +394,13 @@ namespace LitteraCore.Models
             return cinfo;
         }
     }
-
+    
+    public class Menus
+    {
+        public string menu_name { get; set;}
+        public string redirect_url { get; set; }
+        public bool redirect_self_window { get; set; }
+    }
  
 
 

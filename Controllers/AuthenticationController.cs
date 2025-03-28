@@ -742,6 +742,80 @@ namespace LitteraCore.Controllers
             return Ok(simplifiedClaims);
         }
 
+
+        [HttpGet]
+        [Route("api/Get_API_INFO")]
+        public async Task<IActionResult> Get_API_INFO(string userid)
+        {
+            string username = "";
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+
+            bool isValid = _otpManager.CheckOauthToken(username).Result;
+            if (isValid == true)
+            {
+
+            }
+            else
+            {
+                return Unauthorized();
+            }
+
+
+            return Ok(isValid);
+        }
+
+
+
+        [HttpGet]
+        [Route("api/GenerateActivityToken")]
+        public async Task<IActionResult> GenerateActivityToken(string userid,string ttpai_id,string ttsm_id,string apipath)
+        {
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+            var token = auth.Activity_Token(userid, ttpai_id, ttsm_id, apipath).Result.AuthToken;
+            var isValid = _otpManager.SetOauthToken(userid, token.ToString());
+
+
+            return Ok(token);
+        }
+        
+        [HttpGet]
+        
+        [Route("api/Get_Activity_Token_Info")]
+        public async Task<IActionResult> Get_Activity_Token_Info(string token)
+        {
+            // Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+
+            var principal = auth.ValidateJwtToken(token); // Validate token and get claims
+
+            if (principal != null)
+            {
+                var userid = principal.FindFirst(ClaimTypes.Name)?.Value; // Extract username claim
+                Console.WriteLine("Authenticated username: " + userid);
+            }
+            var simplifiedClaims = principal.Claims.Select(c => new
+            {
+                Type = c.Type,
+                Value = c.Value
+            }).ToList();
+
+            // Using JsonSerializerOptions to prevent circular reference during serialization
+            var jsonOptions = new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve,
+                WriteIndented = true  // Optional: Makes the output more readable
+            };
+
+            // Serialize the claims to JSON manually to handle circular references
+            var claimsJson = System.Text.Json.JsonSerializer.Serialize(principal.Claims.ToList(), jsonOptions);
+
+            // Return the serialized claims
+            return Ok(simplifiedClaims);
+        }
+
+
     }
 }
 

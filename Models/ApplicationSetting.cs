@@ -91,7 +91,21 @@ namespace LitteraCore.Models
         public string REACT_APP_API_KEY { get; set; }
         public string REACT_APP_ID { get; set; }
         public string LITTERA_CDN_BASE_URL { get; set; }
+
+        public string LITTERA_SUPPORT_PATH { get {
+
+                return "Training_Upload/Support";
+            
+            } }
         public string LITTERA_CONTENT_PATH { get; set; }
+        public string LITTERA_CONTENT_THUMBNAIL_PATH
+        {
+            get
+            {
+                // Return LITTERA_CONTENT_PATH with "/Thumbnails" appended.
+                return string.IsNullOrEmpty(LITTERA_CONTENT_PATH) ? string.Empty : LITTERA_CONTENT_PATH.Replace("Content", "") + "/Thumbnails/";
+            }
+        }
         public string LITTERA_ASSIGNMENT_PATH { get; set; }
         public string LITTERA_CDN_PROFILE_PICK_PATH { get; set; }
         public string LITTERA_CDN_FUNCTION_IMG_PATH { get; set; }
@@ -120,6 +134,7 @@ namespace LitteraCore.Models
         public string REACT_CDN_PDF_URL { get; set; }
         public string REACT_CDN_PDF_URL_KEY { get; set; }
 
+        public string REACT_APP_LOGOUT_PATH { get; set; }
 
 
 

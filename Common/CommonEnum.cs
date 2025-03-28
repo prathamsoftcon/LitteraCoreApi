@@ -10,7 +10,7 @@ namespace LitteraCore.Common
         public static string SuperAdmin_Agencyid = "6DA19908-EA60-4FBF-BBE0-60B07E4CC5D4";
         public static string Agencytype_Staff = "00008";
         public static string Discount_Ledgerid = "417119B3-18B6-43A1-8A52-064E99B6880E";
-
+        public static string Branchid = "dff7c661-5b84-4a7e-8250-31c420dd9fcd";
         public enum UserType
         {
             Admin = 1,
@@ -534,6 +534,28 @@ namespace LitteraCore.Common
 
             }
             return tattypeid;
+        }
+
+        public enum DASHBOARD_TRG_ACTIONS
+        {
+
+            SessionList = 1,
+            ContentLibrary = 2,
+            UpdateStatus = 3,
+            Attendance = 4,
+            Litteraroom = 5,
+            TestList = 6,
+            AssignmentList = 7,
+            AddParticipant = 8,
+            TrainingCalendar = 9,
+            MeetingList = 10,
+            Forum = 11,
+            Trg_Expenses = 12,
+            Feedback = 13,
+            Course_Overview = 14,
+            Transaction_Details = 15,
+
+
         }
 
 

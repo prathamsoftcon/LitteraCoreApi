@@ -962,6 +962,242 @@ namespace LitteraCore.DBContext
             return user;
         }
 
+        //public Agency Get_Particular_Agency_Detail(string agencyid)
+        //{
+
+
+        //    List<Agency> AL = new List<Agency>();
+        //    DataSet ds = new DataSet();
+        //    DataTable dt = new DataTable();
+        //    //***********Code to get salutaion data for salutation text
+
+        //    List<SALUTATION> s = new List<SALUTATION>();
+        //    s = Get_SALUTATION();
+        //    //*****************
+        //    //List<Agency> organisations = new List<Agency>();
+        //    //organisations = Get_ORGANISATION_LIST_DATA();
+
+        //    string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+        //    SqlConnection con = new SqlConnection(connectionString);
+        //    con.Open();
+
+
+        //    using (con)
+        //    {
+        //        SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_vr1", con);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.AddWithValue("@agencytype", agencytypeid);
+        //        if (agencyid != null)
+        //        {
+        //            cmd.Parameters.AddWithValue("@agencyid", agencyid);
+        //        }
+               
+        //        cmd.Connection = con;
+        //        cmd.CommandTimeout = 5000;
+        //        SqlDataReader row = cmd.ExecuteReader();
+
+
+        //        while (row.Read())
+        //        {
+        //            if (row["tyaam_status"].ToString() != "-1")
+        //            {
+        //                Agency vw = new Agency();
+        //                vw.totalcount = Convert.ToInt32(row["totalrecords"]);
+        //                vw.agencyid = Convert.ToString(row["AgencyId"]);
+        //                vw.tyaam_typeid = Convert.ToString(row["tyaam_typeid"]);
+        //                if (Convert.ToString(row["tyaam_status"]) != "")
+        //                {
+        //                    vw.tyaam_status = Convert.ToInt32(row["tyaam_status"]);
+        //                }
+        //                else
+        //                {
+        //                    vw.tyaam_status = 0;
+        //                }
+        //                if (Convert.ToString(row["tyaam_status"]) != "")
+        //                {
+        //                    vw.tyaam_status_text = (Enum.GetName(typeof(CommonEnum.Agencystatus), Convert.ToInt32(row["tyaam_status"])));
+        //                }
+
+        //                vw.agencyname = Convert.ToString(row["AgencyName"]);
+        //                vw.hagencyname = Convert.ToString(row["HAgencyName"]);
+        //                vw.AgencyTypeId = Convert.ToString(row["tyaam_typeid"]);
+        //                //vw.Fixed = Convert.ToString(row["Fixed"]);
+        //                vw.CreatedBy = Convert.ToString(row["CreatedBy"]);
+        //                vw.CreatedOn = Convert.ToDateTime(row["CreatedOn"]);
+        //                vw.ModifiedBy = Convert.ToString(row["ModifiedBy"]);
+        //                vw.UserCode = Convert.ToString(row["UserCode"]);
+        //                vw.ParentId = Convert.ToString(row["ParentId"]);
+        //                vw.Ag_locationtype = Convert.ToString(row["Ag_locationtype"]);
+        //                vw.Ag_location = Convert.ToString(row["Ag_location"]);
+        //                vw.Ag_Address = Convert.ToString(row["Ag_Address"]);
+        //                vw.Ag_Address1 = Convert.ToString(row["Ag_Address1"]);
+        //                vw.Ag_StateId = Convert.ToString(row["Ag_StateId"]);
+        //                vw.Ag_DistrictId = Convert.ToString(row["Ag_DistrictId"]);
+        //                vw.Ag_BlockId = Convert.ToString(row["Ag_BlockId"]);
+        //                vw.Ag_GramPanchayatId = Convert.ToString(row["Ag_GramPanchayatId"]);
+        //                vw.ag_divisionid = Convert.ToString(row["ag_divisionid"]);
+        //                vw.upload_photo_name = Convert.ToString(row["ag_photo_path"]);
+        //                // vw.userid= Convert.ToString(row["userid"]);
+
+        //                //UploadPath UP = new UploadPath();
+        //                //if (row["uploadpath"].ToString() != "")
+        //                //{
+        //                //    vw.uploadpath = UP.Get_Default_Upload_Path() + Convert.ToString(row["uploadpath"]);
+        //                //}
+        //                if (row["uploadpath"].ToString() != "")
+        //                {
+        //                    vw.uploadpath = Convert.ToString(row["uploadpath"]);
+        //                }
+        //                if (agencytypeid == "00001" || agencytypeid == "00002" || agencytypeid == "00003" || agencytypeid == "00004" || agencytypeid == "00005")
+        //                {
+        //                    vw.ag_photo_path = ClientData.Get_Client_Data().CERTIFICATE_LOGO.ToString();
+        //                }
+        //                else
+        //                {
+        //                    if (row["ag_photo_path"].ToString() != "")
+        //                    {
+
+
+        //                        vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
+        //                    }
+        //                }
+
+
+
+        //                vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
+        //                vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
+        //                vw.ag_l_name = Convert.ToString(row["ag_l_name"]);
+        //                vw.ag_hfirst_name = Convert.ToString(row["ag_hfirst_name"]);
+        //                vw.ag_hm_name = Convert.ToString(row["ag_hm_name"]);
+        //                vw.ag_hl_name = Convert.ToString(row["ag_hl_name"]);
+        //                vw.ag_address_city = Convert.ToString(row["ag_address_city"]);
+        //                vw.ag_address_state = Convert.ToString(row["ag_address_state"]);
+
+        //                vw.ag_pincode = Convert.ToString(row["ag_pincode"]);
+        //                vw.ag_phone = Convert.ToString(row["ag_phone"]);
+        //                vw.ag_alternative_phone = Convert.ToString(row["ag_alternative_phone"]);
+        //                vw.ag_mobileno = Convert.ToString(row["ag_mobileno"]);
+        //                vw.ag_alternative_mobileno = Convert.ToString(row["ag_alternative_mobileno"]);
+        //                vw.ag_email = Convert.ToString(row["ag_email"]);
+        //                vw.ag_alternative_email = Convert.ToString(row["ag_alternative_email"]);
+
+        //                vw.ag_gender = Convert.ToString(row["ag_gender"]);
+        //                if (row["ag_age"].ToString() != "")
+        //                {
+        //                    vw.ag_age = Convert.ToInt32(row["ag_age"]);
+        //                }
+
+        //                if (row["ag_dob"].ToString() != "")
+        //                {
+        //                    vw.ag_dob = Convert.ToDateTime(row["ag_dob"]).ToString("yyyy/MM/dd");
+        //                }
+
+        //                //vw.latitude = Convert.ToString(row["latitude"]);
+        //                //vw.longitude = Convert.ToString(row["longitude"]);
+
+        //                vw.ag_salutation = Convert.ToString(row["ag_salutation"]);
+        //                vw.ag_aadhar = Convert.ToString(row["ag_aadhar"]);
+        //                vw.ag_pan = Convert.ToString(row["ag_pan"]);
+        //                vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
+
+
+        //                vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
+        //                vw.ag_sign_path = Convert.ToString(row["ag_sign_path"]);
+        //                vw.tdds_tat_type_id = Convert.ToString(row["tdds_tat_type_id"]);
+        //                vw.remark = Convert.ToString(row["tdds_remark"]);
+
+        //                if (Convert.ToString(row["ag_salutation"]) != "")
+        //                {
+        //                    if (s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).Count() > 0)
+        //                    {
+        //                        vw.salutation_txt = s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).FirstOrDefault().ts_name;
+        //                    }
+
+        //                }
+
+
+
+        //                if (Convert.ToString(row["additional_val"]) != "")
+        //                {
+        //                    vw.tyaam_val = Convert.ToString(Convert.ToString(row["additional_val"]));
+
+        //                    try
+        //                    {
+        //                        if (agencytypeid != "00053")
+        //                        {
+        //                            XmlDocument doc = new XmlDocument();
+        //                            doc.LoadXml(Convert.ToString(row["additional_val"]).Replace("&lt;", "<").Replace("&gt;", ">"));
+        //                            XmlDocument doc1 = new XmlDocument();
+        //                            doc1.LoadXml(doc.ChildNodes[0].InnerXml);
+        //                            string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
+        //                            JsonText = JsonText.Substring(1, JsonText.Length - 2);
+
+        //                            vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+
+        //                            if (vw.additionalInfo != null)
+        //                            {
+        //                                if (vw.additionalInfo.ID_PROOF_TYPE != null)
+        //                                {
+        //                                    if (vw.additionalInfo.ID_PROOF_TYPE.ToString() != "")
+        //                                    {
+        //                                        vw.additionalInfo.ID_PROOF_TYPE_TXT = (Enum.GetName(typeof(CommonEnum.ID_PROOF_TYPE), Convert.ToInt32(vw.additionalInfo.ID_PROOF_TYPE)));
+        //                                    }
+        //                                }
+        //                                if (vw.additionalInfo.CAST != null)
+        //                                {
+        //                                    if (vw.additionalInfo.CAST.ToString() != "")
+        //                                    {
+        //                                        vw.additionalInfo.CAST_TXT = (Enum.GetName(typeof(CommonEnum.CASTCATEGORY), Convert.ToInt32(vw.additionalInfo.CAST)));
+        //                                    }
+        //                                }
+        //                            }
+        //                        }
+        //                        else
+        //                        {
+        //                            XmlDocument doc = new XmlDocument();
+        //                            doc.LoadXml(Convert.ToString(row["additional_val"]).ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+        //                            string JsonText1 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[0]);
+        //                            JsonText1 = JsonText1.Replace("{\"ADDINFO\":", "").Replace("}}", "}");
+        //                            vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText1);
+
+        //                            string JsonText2 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[1]);
+        //                            if (JsonText2 != "null")
+        //                            {
+        //                                JsonText2 = JsonText2.Replace("{\"CONTACTPERSON\":", "").Replace("}}", "}");
+        //                                //JsonText2 = "[{'Designation':'prince','Name':'ds','Phone':'4232','Email':'ddfg@gmail.com'},{'Designation':'Designtion','Name':'Name','Phone':'5574747474','Email':'mail@gmail.com'}]";
+        //                                JsonText2 = JsonText2.Replace("{\"PERSON\":", "").Replace("]}", "]");
+        //                                List<CONTACTPERSON> P = JsonConvert.DeserializeObject<List<CONTACTPERSON>>(JsonText2);
+        //                                vw.additionalInfo.contactPerson = P.ToArray();
+        //                            }
+
+        //                        }
+
+
+
+        //                    }
+        //                    catch
+        //                    {
+        //                        vw.additionalInfo = null;
+        //                    }
+
+        //                }
+        //                else
+        //                {
+        //                    vw.additionalInfo = new AgencyAdditionalInfo();
+        //                }
+
+
+
+
+        //                AL.Add(vw);
+        //            }
+        //        }
+        //    }
+
+        //    con.Close();
+
+        //    return AL;
+        //}
 
 
 

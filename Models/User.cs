@@ -33,7 +33,7 @@
         public string createdby { get; set; }
 
 
-
+        public user_branches branches { get; set; }
     }
 
     public class UserType

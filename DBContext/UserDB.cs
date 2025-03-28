@@ -5,6 +5,8 @@ using System.Data;
 using LitteraCore.Models;
 using Microsoft.Extensions.Configuration;
 using static Azure.Core.HttpHeader;
+using Newtonsoft.Json;
+using System.Xml;
 
 namespace LitteraCore.DBContext
 {
@@ -433,6 +435,263 @@ namespace LitteraCore.DBContext
 
         }
 
+
+        public Agency Check_Mobile_EMAIL(string mobileno, int type, string APPURL, string agencytypeid)
+        {
+            DataSet ds = new DataSet();
+            Agency a = new Agency();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_check_value_in_agency_master", con);
+            cmd.Parameters.AddWithValue("@value", mobileno);
+            cmd.Parameters.AddWithValue("@type", type);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(ds);
+
+            if (Convert.ToInt16(ds.Tables[0].Rows[0]["Isavailable"]) != 0)
+            {
+                DataTable dtfiltereddata = new DataTable();
+                ds.Tables[1].DefaultView.RowFilter = "tyaam_typeid='" + agencytypeid + "'";
+                dtfiltereddata = ds.Tables[1].DefaultView.ToTable();
+
+                //Calculate user details
+                DataTable dtUserDetails = new DataTable();
+                dtUserDetails = ds.Tables[1];
+                List<userDetails> ud = new List<userDetails>();
+
+                foreach (DataRow dr in dtUserDetails.Rows)
+                {
+                    userDetails u = new userDetails();
+                    u.tat_type_id = Convert.ToString(dr["tyaam_tat_typeid"]);
+                    u.usertype = Convert.ToString(dr["tyuam_user_type_id"]);
+                    u.tyaam_status = Convert.ToString(dr["tyaam_status"]);
+                    ud.Add(u);
+                }
+
+
+
+
+                if (dtfiltereddata.Rows.Count > 0)
+                {
+
+                    a.upload_photo_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_photo_path"]);
+                    a.userdetail = ud.ToArray();
+                    a.agencyid = Convert.ToString(dtfiltereddata.Rows[0]["AgencyId"]);
+                    a.agencyname = Convert.ToString(dtfiltereddata.Rows[0]["AgencyName"]);
+                    a.hagencyname = Convert.ToString(dtfiltereddata.Rows[0]["HAgencyName"]);
+                    a.UserCode = Convert.ToString(dtfiltereddata.Rows[0]["UserCode"]);
+                    a.Ag_Address = Convert.ToString(dtfiltereddata.Rows[0]["Ag_Address"]);
+                    a.Ag_Address1 = Convert.ToString(dtfiltereddata.Rows[0]["Ag_Address1"]);
+                    a.uploadpath = Convert.ToString(dtfiltereddata.Rows[0]["uploadpath"]);
+                    a.ag_photo_path =  Convert.ToString(dtfiltereddata.Rows[0]["ag_photo_path"]);
+                    //if (dtfiltereddata.Rows[0]["ag_photo_path"].ToString() != "")
+                    //{
+                    //    UploadPath Up = new UploadPath();
+                    //    a.ag_photo_path = APPURL + Up.Get_Default_Upload_Path() + Convert.ToString(dtfiltereddata.Rows[0]["ag_photo_path"]);
+                    //}
+
+                    a.ag_first_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_first_name"]);
+                    a.ag_m_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_m_name"]);
+                    a.ag_l_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_l_name"]);
+                    a.ag_hfirst_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_hfirst_name"]);
+                    a.ag_hm_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_hm_name"]);
+                    a.ag_hl_name = Convert.ToString(dtfiltereddata.Rows[0]["ag_hl_name"]);
+                    a.ag_address_city = Convert.ToString(dtfiltereddata.Rows[0]["ag_address_city"]);
+                    a.ag_address_state = Convert.ToString(dtfiltereddata.Rows[0]["ag_address_state"]);
+                    a.ag_pincode = Convert.ToString(dtfiltereddata.Rows[0]["ag_pincode"]);
+                    a.ag_phone = Convert.ToString(dtfiltereddata.Rows[0]["ag_phone"]);
+                    a.ag_alternative_phone = Convert.ToString(dtfiltereddata.Rows[0]["ag_alternative_phone"]);
+                    a.ag_mobileno = Convert.ToString(dtfiltereddata.Rows[0]["ag_mobileno"]);
+                    a.ag_alternative_mobileno = Convert.ToString(dtfiltereddata.Rows[0]["ag_alternative_mobileno"]);
+                    a.ag_email = Convert.ToString(dtfiltereddata.Rows[0]["ag_email"]);
+                    a.ag_alternative_email = Convert.ToString(dtfiltereddata.Rows[0]["ag_alternative_email"]);
+                    a.ag_gender = Convert.ToString(dtfiltereddata.Rows[0]["ag_gender"]);
+                    if (dtfiltereddata.Rows[0]["ag_age"].ToString() != "")
+                    {
+                        a.ag_age = Convert.ToInt16(dtfiltereddata.Rows[0]["ag_age"]);
+                    }
+                    if (dtfiltereddata.Rows[0]["ag_dob"].ToString() != "")
+                    {
+                        a.ag_dob = Convert.ToString(dtfiltereddata.Rows[0]["ag_dob"]);
+                    }
+                    else
+                    {
+                        a.ag_dob = null;
+                    }
+
+                    a.ag_salutation = Convert.ToString(dtfiltereddata.Rows[0]["ag_salutation"]);
+                    a.ag_aadhar = Convert.ToString(dtfiltereddata.Rows[0]["ag_aadhar"]);
+                    a.ag_gstin = Convert.ToString(dtfiltereddata.Rows[0]["ag_gstin"]);
+                    a.ag_pan = Convert.ToString(dtfiltereddata.Rows[0]["ag_pan"]);
+                    a.tyaam_typeid = Convert.ToString(dtfiltereddata.Rows[0]["tyaam_typeid"]);
+                    a.tyaam_val = Convert.ToString(dtfiltereddata.Rows[0]["tyaam_val"]);
+                    a.userid = Convert.ToString(dtfiltereddata.Rows[0]["userid"]);
+
+
+                    if (dtfiltereddata.Rows[0]["tyaam_val"].ToString() != "")
+                    {
+                        //First Convert XML to Json
+
+                        try
+                        {
+                            if (agencytypeid != "00053")
+                            {
+                                XmlDocument doc = new XmlDocument();
+                                doc.LoadXml(dtfiltereddata.Rows[0]["tyaam_val"].ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+
+                                XmlDocument doc1 = new XmlDocument();
+
+                                doc1.LoadXml(doc.ChildNodes[0].InnerXml);
+                                string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
+                                JsonText = JsonText.Substring(1, JsonText.Length - 2);
+                                a.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+
+                                a.additionalInfo.DOC_PATH =  a.additionalInfo.DOC_PATH;
+                            }
+                            else
+                            {
+                                XmlDocument doc = new XmlDocument();
+                                doc.LoadXml(dtfiltereddata.Rows[0]["tyaam_val"].ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+                                string JsonText1 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[0]);
+                                JsonText1 = JsonText1.Replace("{\"ADDINFO\":", "").Replace("}}", "}");
+                                a.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText1);
+
+                            }
+
+
+
+
+
+
+
+                        }
+                        catch
+                        {
+                            a.additionalInfo = null;
+                        }
+
+                    }
+                    else
+                    {
+                        a.additionalInfo = new AgencyAdditionalInfo();
+                    }
+
+
+
+
+
+                }
+                else
+                {
+                    if (ds.Tables[1].Rows.Count > 0)
+                    {
+                        a.upload_photo_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_photo_path"]);
+                        a.userdetail = ud.ToArray();
+                        a.agencyid = Convert.ToString(ds.Tables[1].Rows[0]["AgencyId"]);
+                        a.agencyname = Convert.ToString(ds.Tables[1].Rows[0]["AgencyName"]);
+                        a.hagencyname = Convert.ToString(ds.Tables[1].Rows[0]["HAgencyName"]);
+                        a.UserCode = Convert.ToString(ds.Tables[1].Rows[0]["UserCode"]);
+                        a.Ag_Address = Convert.ToString(ds.Tables[1].Rows[0]["Ag_Address"]);
+                        a.Ag_Address1 = Convert.ToString(ds.Tables[1].Rows[0]["Ag_Address1"]);
+                        a.uploadpath = Convert.ToString(ds.Tables[1].Rows[0]["uploadpath"]);
+                        a.upload_photo_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_photo_path"]);
+                        a.ag_photo_path = Convert.ToString(ds.Tables[1].Rows[0]["ag_photo_path"]);
+                        //if (ds.Tables[1].Rows[0]["ag_photo_path"].ToString() != "")
+                        //{
+                        //    UploadPath Up = new UploadPath();
+                        //    a.ag_photo_path = APPURL + Up.Get_Default_Upload_Path() + Convert.ToString(ds.Tables[1].Rows[0]["ag_photo_path"]);
+                        //}
+
+                        a.ag_first_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_first_name"]);
+                        a.ag_m_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_m_name"]);
+                        a.ag_l_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_l_name"]);
+                        a.ag_hfirst_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_hfirst_name"]);
+                        a.ag_hm_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_hm_name"]);
+                        a.ag_hl_name = Convert.ToString(ds.Tables[1].Rows[0]["ag_hl_name"]);
+                        a.ag_address_city = Convert.ToString(ds.Tables[1].Rows[0]["ag_address_city"]);
+                        a.ag_address_state = Convert.ToString(ds.Tables[1].Rows[0]["ag_address_state"]);
+                        a.ag_pincode = Convert.ToString(ds.Tables[1].Rows[0]["ag_pincode"]);
+                        a.ag_phone = Convert.ToString(ds.Tables[1].Rows[0]["ag_phone"]);
+                        a.ag_alternative_phone = Convert.ToString(ds.Tables[1].Rows[0]["ag_alternative_phone"]);
+                        a.ag_mobileno = Convert.ToString(ds.Tables[1].Rows[0]["ag_mobileno"]);
+                        a.ag_alternative_mobileno = Convert.ToString(ds.Tables[1].Rows[0]["ag_alternative_mobileno"]);
+                        a.ag_email = Convert.ToString(ds.Tables[1].Rows[0]["ag_email"]);
+                        a.ag_alternative_email = Convert.ToString(ds.Tables[1].Rows[0]["ag_alternative_email"]);
+                        a.ag_gender = Convert.ToString(ds.Tables[1].Rows[0]["ag_gender"]);
+                        if (ds.Tables[1].Rows[0]["ag_age"].ToString() != "")
+                        {
+                            a.ag_age = Convert.ToInt16(ds.Tables[1].Rows[0]["ag_age"]);
+                        }
+                        if (ds.Tables[1].Rows[0]["ag_dob"].ToString() != "")
+                        {
+                            a.ag_dob = Convert.ToString(ds.Tables[1].Rows[0]["ag_dob"]);
+                        }
+                        else
+                        {
+                            a.ag_dob = null;
+                        }
+
+                        a.ag_salutation = Convert.ToString(ds.Tables[1].Rows[0]["ag_salutation"]);
+                        a.ag_aadhar = Convert.ToString(ds.Tables[1].Rows[0]["ag_aadhar"]);
+                        a.ag_gstin = Convert.ToString(ds.Tables[1].Rows[0]["ag_gstin"]);
+                        a.ag_pan = Convert.ToString(ds.Tables[1].Rows[0]["ag_pan"]);
+                        a.tyaam_typeid = Convert.ToString(ds.Tables[1].Rows[0]["tyaam_typeid"]);
+                        a.tyaam_val = Convert.ToString(ds.Tables[1].Rows[0]["tyaam_val"]);
+                        a.userid = Convert.ToString(ds.Tables[1].Rows[0]["userid"]);
+
+
+                        if (ds.Tables[1].Rows[0]["tyaam_val"].ToString() != "")
+                        {
+                            //First Convert XML to Json
+
+                            try
+                            {
+                                XmlDocument doc = new XmlDocument();
+                                doc.LoadXml(ds.Tables[1].Rows[0]["tyaam_val"].ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+
+                                XmlDocument doc1 = new XmlDocument();
+
+                                doc1.LoadXml(doc.ChildNodes[0].InnerXml);
+
+
+
+                                //XmlDocument doc2 = new XmlDocument();
+                                //doc2.LoadXml(doc.SelectNodes("/DocumentElement/ADDINFO").Item(0).InnerXml);
+
+                                string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
+                                JsonText = JsonText.Substring(1, JsonText.Length - 2);
+
+
+
+                                a.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+
+                                a.additionalInfo.DOC_PATH = a.additionalInfo.DOC_PATH;
+                            }
+                            catch
+                            {
+                                a.additionalInfo = null;
+                            }
+
+                        }
+                        else
+                        {
+                            a.additionalInfo = new AgencyAdditionalInfo();
+                        }
+
+
+
+                    }
+                }
+
+
+
+            }
+
+
+            return a;
+        }
 
 
 

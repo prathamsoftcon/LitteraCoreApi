@@ -102,6 +102,8 @@ namespace LitteraCore.Models
         public decimal? trg_completionpercentage { get; set; }
         [JsonInclude]
         public Trg_Setting? trg_Setting { get; set; }
+
+        public bool is_reg_open { get; set; }
     }
 
     public class FB_Share_Data

@@ -17,9 +17,11 @@
   "REACT_APP_IDLE_TIMEOUT": "1800",
   "REACT_URL_SHORTNER_PATH": "http://p9:8085/api/Urls",
   "REACT_URL_SHORTNER_KEY": "UHJhdGhhbXNvZnRTZWNyZXRLZXkxMjM=",
-  "REACT_CONFERENCE_API_PATH":"https://localhost:44347",
-  "REACT_CONFERENCE_API_KEY":"UHJhdGhhbXNvZnRTZWNyZXRLZXkxMjM=",
-  "GOOGLE_ANALYTICS_MEGER_ID":"G-VQYRHELLC1",
-  "FEEDBACK_RATING_TYPE":"1" ,
-  "_comment_FEEDBACK_RATING_TYPE": " 0 for star rating and 1 for thumb rating"
+  "REACT_CONFERENCE_API_PATH": "https://localhost:44347",
+  "REACT_CONFERENCE_API_KEY": "UHJhdGhhbXNvZnRTZWNyZXRLZXkxMjM=",
+  "GOOGLE_ANALYTICS_MEGER_ID": "G-VQYRHELLC1",
+  "FEEDBACK_RATING_TYPE": "1",
+  "_comment_FEEDBACK_RATING_TYPE": " 0 for star rating and 1 for thumb rating",
+  "REACT_APP_LOGOUT_PATH": "http://p9:8888/"
+  //"REACT_APP_LOGOUT_PATH": "/homepage"
 }

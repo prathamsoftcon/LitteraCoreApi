@@ -54,6 +54,24 @@ namespace LitteraCore.Controllers
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
             trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+
+
+            if (trgdetail.TrainingStatus == "4")
+            {
+                trgdetail.is_reg_open = false;
+            }
+            else
+            {
+                if (trgdetail.T_EndDate >= System.DateTime.Now)
+                {
+                    trgdetail.is_reg_open = true;
+                }
+                else
+                {
+                    trgdetail.is_reg_open = false;
+                }
+            }
+
             return Ok(trgdetail);
         }
         [HttpGet]

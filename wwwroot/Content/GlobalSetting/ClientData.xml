@@ -366,6 +366,34 @@
 			/Content/GlobalSetting/Dev/certificatelogo.png?1.1
 		</value>
 	</setting>
+	<setting>
+		<key>INSTRUCTION_URL</key>
+		<value>
+			/Content/GlobalSetting/Dev/certificatelogo.png?1.1
+		</value>
+	</setting>
+	<setting>
+		<key>MENULIST</key>
+		<value>
+			[
+  {
+    "menu_name": "Home",
+    "redirect_url": "https://www.example.com/home",
+    "redirect_self_window": true
+  },
+  {
+    "menu_name": "About Us",
+    "redirect_url": "https://www.example.com/about",
+    "redirect_self_window": false
+  },
+  {
+    "menu_name": "Contact",
+    "redirect_url": "https://www.example.com/contact",
+    "redirect_self_window": true
+  }
+]
+		</value>
+	</setting>
 	
 </ClientData>
 

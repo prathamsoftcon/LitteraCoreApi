@@ -43,6 +43,17 @@ namespace LitteraCore.Controllers
             return Ok(AL);
         }
 
+
+
+        [HttpPost]
+        [Route("api/Learning_Time")]
+        public IActionResult Learning_Time([FromBody]learningtime lt)
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            bool issaved = CBL.save_participant_learning_time(lt);
+            return Ok(issaved);
+        }
+
         //[HttpGet]
         //[Route("api/GlobalContentType")]
         //public IActionResult GlobalContentType()

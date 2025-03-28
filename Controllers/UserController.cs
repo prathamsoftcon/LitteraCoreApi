@@ -5,6 +5,13 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using LitteraCore.BLContext;
+using LitteraCore.Models.SmsSettings;
+using Microsoft.Extensions.Hosting.Internal;
+using Newtonsoft.Json.Linq;
+using System.Net;
+using LitteraCore.Common.EmailService;
+using System.Runtime.ConstrainedExecution;
 
 namespace LitteraCore.Controllers
 {
@@ -20,101 +27,156 @@ namespace LitteraCore.Controllers
             _logger = logger;
         }
         [HttpPost]
-        [Route("api/CreateParticipantUser")]
-        public IActionResult CreateParticipantUser(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        [Route("api/CreateUser")]
+        public  IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
         {
-            TrainingDB WDB = new TrainingDB(_configuration);
-
-            List<Training> lwtc = new List<Training>();
-            List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
-
-            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
-            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
-            UserTypeTrg usertrg = new UserTypeTrg();
-
-            //***************
-            List<FilterUserTrg> FL = new List<FilterUserTrg>();
-            FL = lwtc.ConvertAll(x => new FilterUserTrg { trainingid = x.TrainingId.ToString() });
-            //**********
-            userwise_lwtc = WDB.Get_Users_Trg_Data(FL, usertype, userid, startdate, enddate);
-            lwtc = lwtc.Where(x => userwise_lwtc.Any(y => y.trainingid.ToString() == x.TrainingId.ToString())).ToList();
-
-
-            //in case of participant not need to show proposed and cancelled training
-            if (usertype == "5")
+            UserBL UBL = new UserBL(_configuration);
+            if (user.branchid == null)
             {
-                lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
+                user.branchid = CommonEnum.Branchid;
             }
-
-            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+            bool isUserCreationMail = true;
+            //variable to check need to send user creation mail or not.
+            //*************Code to check already exists user
+            //Check mobile
+            if (user.mobileno != null)
             {
-                ParticipantDB PDB = new ParticipantDB(_configuration);
-                DMSBL DBL = new DMSBL(_configuration);
-                List<ParticipantAdditionlInfo> PAI = PDB.Get_Participant_Additional_info(null, userid);
-                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
-                List<DMS> DS = new List<DMS>();
-                if (ttpaiIds != "")
+                Agency amob = new Agency();
+                amob = UBL.Check_Mobile(user.mobileno, null, user.agency.AgencyTypeId);
+                if (amob.agencyid != null)
                 {
-                    DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                    if (amob.userid.ToString().ToUpper() != user.userid.ToString().ToUpper())
+                    {
+                        throw new Exception("This mobile no already registerd with another user.");
+                    }
+                    // if agency already exist then not need to send mail
+                    isUserCreationMail = false;
+
                 }
-
-
-                foreach (Training vw in lwtc)
-                {
-                    string ttpaid = PAI.Where(o => o.TrainingId.ToString().ToUpper() == vw.TrainingId.ToString().ToUpper() && o.Participantid.ToString().ToUpper() == userid.ToString().ToUpper()).FirstOrDefault().ttpai_id;
-                    string status = DS.Where(o => o.doc_id.ToString().ToUpper() == ttpaid.ToString().ToUpper()).FirstOrDefault().doc_status.ToString();
-                    vw.participantstatus = status;
-                }
-
-
             }
-            //**********Implement Search
-            var searchService = new SearchService();
-            var filteredItems = lwtc;
-            if (searchCriterias != null)
+
+
+
+
+
+            //Check email
+            if (user.emailid != null)
             {
-                filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
-            }
+                Agency aemail = new Agency();
+                aemail = UBL.Check_Mobile(user.emailid, null, user.agency.AgencyTypeId);
 
-            lwtc = filteredItems;
-
-            //*********
-
-            List<SessionCompletionStatus> trg_session_status = new List<SessionCompletionStatus>();
-            SessionDB sdb = new SessionDB(_configuration);
-            trg_session_status = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
-
-            List<Session> sl = sdb.Get_Session_Data(startdate, enddate);
-            foreach (Training item in lwtc)
-            {
-                decimal completion = 0;
-                List<SessionCompletionStatus> trg_status = new List<SessionCompletionStatus>();
-                trg_status = trg_session_status.Where(o => o.tttttm_training_id.ToString().ToUpper() == item.TrainingId.ToString().ToUpper()).ToList();
-                if (trg_status.Count() > 0)
+                if (aemail.agencyid != null)
                 {
-                    completion = Math.Round(trg_status.Sum(o => o.percentcomplete) / trg_status.Count(), 2);
+                    if (aemail.userid.ToString().ToUpper() != user.userid.ToString().ToUpper())
+                    {
+                        throw new Exception("This email id already registerd with another user.");
+                    }
+                    // if agency already exist then not need to send mail
+                    isUserCreationMail = false;
                 }
-
-
-                item.trg_completionpercentage = completion;
-
-
-                var filter = sl.Where(o => o.trainingid.ToString() == item.TrainingId.ToString());
-                item.sessions = filter.ToList();
-                item.no_of_sessions = filter.Where(o => o.ttttt_status == "0").Select(x => x.ttttt_session_id).Distinct().Count();
-
-                var filterfaculties = filter.ToList().Where(o => o.ttttt_facultyid != null);
-                // item.faculties = filter.ToList().Where(o => o.ttttt_facultyid !=null);
-
-
-
-
             }
 
-            var pagedList = Paging.GetPagedList(param, lwtc);
-            var result = Paging.GetPagedData(param, lwtc);
 
-            return Ok(result);
+            //***********
+
+
+
+
+            bool issaved = false;
+            issaved = UBL.Save_User_Data(user);
+            //if (issaved == true)
+            //{
+            //    if (isUserCreationMail == true)
+            //    {
+            //        if (user.emailid != null)
+            //        {
+            //            //Code to send Mail on user creation
+
+            //            string mailpassword = "";
+            //            if (user.password_enc != null)
+            //            {
+            //                mailpassword = (YEncryptDecryptData.YEncryptDecryptData.Decrypt(user.password_enc, true));
+            //            }
+            //            if (APPURL != null && APPURL != "")
+            //            {
+            //                EmailTemplate es = new EmailTemplate();
+            //                var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_EMAIl_Template?APIKEY=" + Common.StaticData.APPKEY + "&id=USERREGISTRATION");
+            //                var response = (HttpWebResponse)request.GetResponse();
+            //                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+            //                JObject j = JObject.Parse(responseString);
+            //                es = j.ToObject<EmailTemplate>();
+
+            //                string mailsubject = es.subject;
+            //                string mailtext = es.text;
+            //                mailsubject = mailsubject.Replace("(#name#)", user.agency.ag_first_name);
+            //                mailtext = mailtext.Replace("(#name#)", user.agency.ag_first_name);
+            //                mailtext = mailtext.Replace("(#regname#)", user.agency.ag_first_name);
+            //                mailtext = mailtext.Replace("(#domain#)", APPURL);
+            //                mailtext = mailtext.Replace("(#pwd#)", mailpassword);
+
+            //                SmtpEmailService s = new SmtpEmailService(_configuration);
+            //                await s.SendEmailAsync(user.emailid, mailsubject, mailtext);
+
+            //            }
+
+            //        }
+
+            //        //********************
+            //        //Code to send SMS
+            //        if (user.mobileno != null)
+            //        {
+            //            if (APPURL != null && APPURL != "")
+            //            {
+            //                var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_TEMPLATE?APIKEY=" + Common.StaticData.APPKEY + "&messageid=11");
+            //                var response = (HttpWebResponse)request.GetResponse();
+            //                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+            //                JObject j = JObject.Parse(responseString);
+            //                SMSTemplate st = j.ToObject<SMSTemplate>();
+
+            //                //  Hashtable td = JsonConvert.SerializeObject(responseString);
+
+            //                string finalmessage = "";
+
+            //                finalmessage = st.text.ToString().Replace("{#var#}", APPURL);
+
+
+
+            //                SMSSetting s = new SMSSetting();
+
+            //                var request2 = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_SETTING?APIKEY=" + Common.StaticData.APPKEY + "");
+            //                var response2 = (HttpWebResponse)request2.GetResponse();
+            //                var responseString2 = new StreamReader(response2.GetResponseStream()).ReadToEnd();
+            //                // var p = JsonConvert.SerializeObject(responseString);
+            //                JObject j1 = JObject.Parse(responseString2);
+            //                s = j1.ToObject<SMSSetting>();
+            //                CommonDB c = new CommonDB();
+            //                string smsapi = c.Get_SMS_API_URL(0);
+            //                if (smsapi != "")
+            //                {
+            //                    c.sendSMS(user.mobileno, finalmessage, st.DLT_CT_ID.ToString(), smsapi);
+            //                }
+
+            //            }
+
+            //        }
+            //    }
+
+
+            //    //*******************
+
+
+            //    return Ok(true);
+            //}
+            //else
+            //{
+            //    return BadRequest();
+            //}
+            return Ok(true);
+
+
+
         }
 
     }
