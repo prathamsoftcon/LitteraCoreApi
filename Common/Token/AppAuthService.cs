@@ -40,6 +40,8 @@ namespace LitteraCore.Common.Token
 
             AuthDB ADB = new AuthDB(_configuration);
             UserInfo U=ADB.GetUserInfo(username);
+            AgencyDB agdb=new AgencyDB(_configuration);
+            Agency a = agdb.Get_Agency_Data(null, U.agencyid, 1, 1, null).FirstOrDefault();
             
 
             //AuthDB ADB = new AuthDB(_configuration);
@@ -75,13 +77,17 @@ namespace LitteraCore.Common.Token
                             new Claim("usertype",JsonConvert.SerializeObject(U.usertype)),
                           new Claim("usertype_roles",JsonConvert.SerializeObject(U.userrole)),
                           new Claim("branchid",U.branchid),
+                          new Claim("salutation",a.ag_salutation),
+                          new Claim("f_name",a.ag_first_name),
+                          new Claim("m_name",a.ag_m_name),
+                          new Claim("l_name",a.ag_l_name)
                     }),
                 Expires = DateTime.UtcNow.AddDays(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
           
-            return new UserToken { AuthToken = tokenHandler.WriteToken(token), userdetails= U };
+            return new UserToken { AuthToken = tokenHandler.WriteToken(token), userdetails= U, agencydetail= a };
         }
 
      

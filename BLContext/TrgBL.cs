@@ -194,7 +194,12 @@ namespace LitteraCore.BLContext
             bool isParentnull = false;
             while (isParentnull != true)
             {
-                string parentid = CL.Where(o => o.TrainingCategoryId == categoryid).FirstOrDefault().parentcategoryid;
+                string parentid = null;
+                if(CL.Where(o => o.TrainingCategoryId.ToString().ToUpper() == categoryid.ToString().ToUpper()).Count() > 0)
+                {
+                    parentid = CL.Where(o => o.TrainingCategoryId.ToString().ToUpper() == categoryid.ToString().ToUpper()).FirstOrDefault().parentcategoryid;
+                }
+             
                 if (parentid == null)
                 {
                     isParentnull = true;
@@ -432,6 +437,31 @@ namespace LitteraCore.BLContext
             TrainingDB TDB = new TrainingDB(_configuration);
             bool issaved = TDB.Save_Trg_Participant_Mapping(trgmapping);
             return issaved;
+        }
+
+        public List<Trg_Type> Get_Trg_Type()
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Trg_Type> trgdata = new List<Trg_Type>();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            trgdata = tdb.Get_Trg_Type();
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
+        public List<Trg_Title> Get_Trg_Title()
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Trg_Title> trgdata = new List<Trg_Title>();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            trgdata = tdb.Get_Trg_Title();
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
         }
 
     }

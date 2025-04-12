@@ -153,9 +153,14 @@ namespace LitteraCore.Controllers
                     
                 }
             }
+            else
+            {
+                al = AL.Items.ToList();
+            }
 
-
-            return Ok(AL);
+            PagedResult<Agency> FAL = new PagedResult<Agency>();
+            FAL.Items = al;
+            return Ok(FAL);
         }
     }
 }

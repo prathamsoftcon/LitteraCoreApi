@@ -301,4 +301,18 @@ namespace LitteraCore.Models
 
         public string ttpai_id { get; set; }
     }
+    public class Trg_Type
+    {
+        public string tttt_id { get; set; }
+        public string tttt_name { get; set; }
+        public string tttt_hname { get; set; }
+        public int tttt_active { get; set; }
+    }
+    public class Trg_Title
+    {
+        public string CourseId { get; set; }
+        public string CourseName { get; set; }
+        public string HCourseName { get; set; }
+        public string CourseCode { get; set; }
+    }
 }

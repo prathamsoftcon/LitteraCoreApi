@@ -1,4 +1,5 @@
 ﻿using LitteraCore.BLContext;
+using LitteraCore.Common;
 using LitteraCore.Common.EmailService;
 using LitteraCore.Common.OTP;
 using LitteraCore.Common.SmsService;
@@ -54,13 +55,153 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SupportQuery")]
-        public IActionResult SupportQuery(string? fromdate=null,string? todate=null)
+        public IActionResult SupportQuery(string? fromdate=null,string? todate=null,string appurl=null)
         {
             List<Support> s = new List<Support>();
             SupportBL SBL = new SupportBL(_configuration);
             s = SBL.GetSupportQuery();
+            s = s.Where(o => o.clienturl.ToString().ToUpper().Contains(appurl.ToString().ToUpper())).ToList(); 
             return Ok(s);
 
         }
+
+        [HttpPost]
+        [Route("api/Login_Failed")]
+        public IActionResult Login_Failed(string? fromdate = null, string? todate = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias=null)
+        {
+            
+            List<Login_Failed_User> s = new List<Login_Failed_User>();
+            SupportBL SBL = new SupportBL(_configuration);
+            s = SBL.Login_Failed_User(fromdate, todate, param.PageNumber, param.PageSize, searchCriterias);
+            param.PageNumber = 1;
+            var result = Paging.GetPagedData(param, s);
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.FirstOrDefault().total;
+                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().total / param.PageSize);
+            }
+          
+            return Ok(result);
+        
+
+        }
+
+
+
+        [HttpPost]
+        [Route("api/User_Analytics_Data")]
+        public IActionResult User_Analytics_Data(string? fromdate = null, string? todate = null,int type=1, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
+        {
+            //type=1 First Login ,2-Password not updated,3-Password Updated
+            List<Support_Analytical_Report> s = new List<Support_Analytical_Report>();
+            SupportBL SBL = new SupportBL(_configuration);
+
+          
+
+            s = SBL.Login_Analytics(fromdate, todate, type, param.PageNumber, param.PageSize, searchCriterias);
+            param.PageNumber = 1;
+            var result = Paging.GetPagedData(param, s);
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.FirstOrDefault().total;
+                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().total / param.PageSize);
+            }
+
+            return Ok(result);
+
+
+        }
+
+
+        [HttpGet]
+        [Route("api/Learning_Time")]
+        public IActionResult Learning_Time(string? trainingid = null, string? participantid = null, string? ttsam_id = null,int unit=1)
+        {
+            string unitname = "";
+            decimal learning = 0;
+            List<Support> s = new List<Support>();
+            SupportBL SBL = new SupportBL(_configuration);
+            learning = SBL.Learning_Time(trainingid, participantid, ttsam_id, unit);
+            if (unit == 1)
+            {
+                unitname = "Min";
+            }
+            else if(unit == 2)
+            {
+                unitname = "Sec";
+            }
+            else if (unit == 3)
+            {
+                unitname = "Hr";
+            }
+            return Ok(new {learning= learning ,unit= unitname });
+
+        }
+
+
+        [HttpPost]
+        [Route("api/Learning_Time_Report")]
+        public IActionResult Learning_Time_Report(string? trainingid = null, string? participantid = null, string? ttsam_id = null, int unit = 1, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
+        {
+            string unitname = "";
+            decimal learning = 0;
+            List<Learning_Time> s = new List<Learning_Time>();
+            SupportBL SBL = new SupportBL(_configuration);
+            s = SBL.Learning_Report(trainingid, participantid, ttsam_id, unit, param.PageNumber, param.PageSize);
+           // s = SBL.Login_Analytics(fromdate, todate, type, param.PageNumber, param.PageSize, searchCriterias);
+            param.PageNumber = 1;
+            var result = Paging.GetPagedData(param, s);
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.FirstOrDefault().totalrecords;
+                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().totalrecords / param.PageSize);
+            }
+            return Ok(result);
+
+        }
+
+
+
+        [HttpPost]
+        [Route("api/SearchParticipant")]
+        public IActionResult SearchParticipant([FromBody] SearchParam? searchCriterias = null, [FromQuery] PaginationParam? param = null,string ? branchid=null)
+        {
+           
+            List<Support_Analytical_Report> s = new List<Support_Analytical_Report>();
+            SupportBL SBL = new SupportBL(_configuration);
+           s.Add(new Support_Analytical_Report { userid=Guid.NewGuid().ToString(), agencyname="Prince", email="Ratnesh@gmail.com", eventdate=null, mobileno="888888888", total=2, username= "91-888888888" });
+
+
+            //s = SBL.Login_Analytics(fromdate, todate, type, param.PageNumber, param.PageSize, searchCriterias);
+            param.PageNumber = 1;
+            var result = Paging.GetPagedData(param, s);
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.FirstOrDefault().total;
+                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().total / param.PageSize);
+            }
+
+            return Ok(result);
+
+
+        }
+
+
+        [HttpGet]
+        [Route("api/Learning_Report_Summary")]
+        public IActionResult Learning_Report_Summary(string? trainingid = null, string? participantid = null, string? ttsam_id = null, string? branchid = null, int reporttype = 1, string? fromdate = null, string? todate = null, int pageno = 1, int pagesize = -1, string? SearchColumn = null, string? searchvalue = null, string? sortcolumn = null, string? sortdirection = null)
+        {
+            string unitname = "";
+            decimal learning = 0;
+            List<Learning_Report_Data> s = new List<Learning_Report_Data>();
+            SupportBL SBL = new SupportBL(_configuration);
+            s = SBL.Learning_Report_Data(trainingid, participantid, ttsam_id, branchid, reporttype,fromdate,todate,pageno,pagesize, SearchColumn, searchvalue, sortcolumn, sortdirection);
+          
+            return Ok(s);
+
+        }
+
+
+
     }
 }

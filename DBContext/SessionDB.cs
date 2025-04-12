@@ -807,7 +807,7 @@ namespace LitteraCore.DBContext
 
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> trgparticipants = new List<Participant>();
-            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, null, branchid);
+            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
 
 
 
@@ -858,23 +858,7 @@ namespace LitteraCore.DBContext
                     vw.facultyname = "";
                 }
 
-                //vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
-                //if (Convert.ToString(row["facultyimgpath"]) != "")
-                //{
-                //    vw.facultyimgpath = up.Get_Agency_Photo_Path() + Convert.ToString(row["facultyimgpath"]);
-                //}
-                //else
-                //{
-                //    vw.facultyimgpath = up.Get_Agency_Default_Photo_Path();
-                //}
-                //vw.Attendance = Convert.ToString(row["Attendance"]);
-                //if (row["ttttt_session_duration_type"] != DBNull.Value)
-                //{
-                //    vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
-                //}
-
-                //vw.Session_type_icon = CommonEnum.Get_Session_Icon(vw.ttttt_type);
-                //vw.Session_type_name = CommonEnum.Get_Session_Type_Name(vw.ttttt_type);
+              
                 vw.noofcompletion = Convert.ToInt32(row["noofpersons"]);
                 vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
                 //dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "'";

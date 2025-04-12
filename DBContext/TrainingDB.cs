@@ -662,5 +662,75 @@ namespace LitteraCore.DBContext
 
             return LI;
         }
+
+        public List<Trg_Type> Get_Trg_Type()
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Trg_Type> trgdata = new List<Trg_Type>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_training_type", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Get Data" + System.DateTime.Now);
+            foreach (DataRow row in dt.Rows)
+            {
+                Trg_Type vw = new Trg_Type();
+                vw.tttt_id = Convert.ToString(row["tttt_id"]);
+                vw.tttt_name = Convert.ToString(row["tttt_name"]);
+                vw.tttt_hname = Convert.ToString(row["tttt_hname"]);
+                vw.tttt_active = Convert.ToInt32(row["tttt_active"]);
+               
+                trgdata.Add(vw);
+            }
+
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
+
+        public List<Trg_Title> Get_Trg_Title()
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Trg_Title> trgdata = new List<Trg_Title>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.TP_GetCourse", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Get Data" + System.DateTime.Now);
+            foreach (DataRow row in dt.Rows)
+            {
+                Trg_Title vw = new Trg_Title();
+                vw.CourseId = Convert.ToString(row["CourseId"]);
+                vw.CourseName = Convert.ToString(row["CourseName"]);
+                vw.HCourseName = Convert.ToString(row["HCourseName"]);
+                vw.CourseCode = Convert.ToString(row["CourseCode"]);
+
+                trgdata.Add(vw);
+            }
+
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
     }
 }

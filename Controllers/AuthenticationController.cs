@@ -18,6 +18,7 @@ using System.Data;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text.Json;
 using static LitteraCore.Common.CommonEnum;
 using static LitteraCore.Models.Firebase;
@@ -416,7 +417,7 @@ namespace LitteraCore.Controllers
             {
                 AppAuthService auth = new AppAuthService(_configuration);
                 AuthDB ADB = new AuthDB(_configuration);
-               // UserInfo U = ADB.GetUserInfo(username);
+                //UserInfo U = ADB.GetUserInfo(username);
                 var token = auth.Authenticate(username);
                 Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken));
                 return Ok(token);
@@ -813,6 +814,44 @@ namespace LitteraCore.Controllers
 
             // Return the serialized claims
             return Ok(simplifiedClaims);
+        }
+
+        [HttpGet]
+        [Route("api/Send_General_OTP")]
+        public async Task<IActionResult> Send_General_OTP(string username)
+        {
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+            AuthDB adb = new AuthDB(_configuration);
+            //List<User> lU = new List<User>();
+            var otp = await _otpManager.GenerateOtpAsync(username.ToString());
+            var otpid = await _otpManager.GenerateOtpID();
+            if (username.Contains("@") == true)
+            {
+              
+                SmsTemplate template = new SmsTemplate();
+                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+
+                SmtpEmailService s = new SmtpEmailService(_configuration);
+                await s.SendEmailAsync(username, "OTP Details", msg);
+
+
+
+            }
+            else
+            {
+              
+                SmsTemplate template = new SmsTemplate();
+                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                await _smsService.SendSmsAsync(username.ToString(), msg, template.TemplateID);
+            }
+
+
+           
+
+            return Ok(otp);
         }
 
 

@@ -206,5 +206,24 @@ namespace LitteraCore.Controllers
             PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
             return Ok(PL);
         }
+
+        [HttpGet]
+        [Route("api/Trg_Type")]
+        public IActionResult Trg_Type()
+        {
+            List<Trg_Type> T = new List<Trg_Type>();
+            TrgBL CBL = new TrgBL(_configuration);
+            T = CBL.Get_Trg_Type();
+            return Ok(T);
+        }
+        [HttpGet]
+        [Route("api/Trg_Title")]
+        public IActionResult Trg_Title()
+        {
+            List<Trg_Title> T = new List<Trg_Title>();
+            TrgBL CBL = new TrgBL(_configuration);
+            T = CBL.Get_Trg_Title();
+            return Ok(T);
+        }
     }
 }

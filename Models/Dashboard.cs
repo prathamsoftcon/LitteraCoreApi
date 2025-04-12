@@ -19,4 +19,9 @@
         public int no_of_pending_assignment { get; set; }
 
     }
+    public class Mock_Test_Tag
+    {
+        public string displayname { get; set; }
+        public string tag { get; set; }
+    }
 }

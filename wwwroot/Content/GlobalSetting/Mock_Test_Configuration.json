@@ -1,0 +1,73 @@
+{
+  "TrainingTags": [
+    {
+      "trainingid": "EEB19B85-3543-C532-E95B-AC26E661494F",
+      "tags": [
+        {
+          "displayname": "Module I",
+          "tag": "PHQ"
+        },
+        {
+          "displayname": "Module II",
+          "tag": "PHQ"
+        },
+        {
+          "displayname": "Module III",
+          "tag": "PHQ"
+        }
+      ]
+    },
+    {
+      "trainingid": "46523232-E797-5EC6-77C8-88F689CB5B8A",
+      "tags": [
+        {
+          "displayname": "Module I",
+          "tag": "Module1"
+        },
+        {
+          "displayname": "Module II",
+          "tag": "Module2"
+        },
+        {
+          "displayname": "Module III",
+          "tag": "Module3"
+        }
+      ]
+    },
+    {
+      "trainingid": "0FEF5693-12ED-0D46-3C5A-848BCEAD86A4",
+      "tags": [
+        {
+          "displayname": "Module I",
+          "tag": "OP1_Module1"
+        },
+        {
+          "displayname": "Module II",
+          "tag": "OP1_Module2"
+        },
+        {
+          "displayname": "Module III",
+          "tag": "OP1_Module3"
+        }
+      ]
+    },
+    {
+      "trainingid": "3FF88E1A-3A8F-7428-6D4C-B3162874DAEA",
+      "tags": [
+        {
+          "displayname": "Module I",
+          "tag": "Tourism_Module1"
+        },
+        {
+          "displayname": "Module II",
+          "tag": "Tourism_Module2"
+        },
+        {
+          "displayname": "Module III",
+          "tag": "Tourism_Module3"
+        }
+      ]
+    }
+  ]
+
+}

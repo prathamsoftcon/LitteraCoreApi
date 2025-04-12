@@ -107,6 +107,18 @@ namespace LitteraCore.BLContext
             return TS;
         }
 
+        public Mock_test_configuration GET_MOCK_TEST_CONFIGURATION()
+        {
+            Mock_test_configuration TS = new Mock_test_configuration();
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Mock_Test_Configuration.json"));
+            TS = JsonConvert.DeserializeObject<Mock_test_configuration>(jsontxt);
+
+
+
+            return TS;
+        }
+
     }
 
 }

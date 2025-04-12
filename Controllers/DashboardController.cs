@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using static LitteraCore.Common.CommonEnum;
 using System.Text;
 using Microsoft.Extensions.Primitives;
+using LitteraCore.BLContext;
 
 namespace LitteraCore.Controllers
 {
@@ -601,27 +602,30 @@ namespace LitteraCore.Controllers
                                           && o.TrainingStatus != "0").ToList());
                 lwtc_final= lwtc_final.Take(5).ToList();
             }
-           
+
             //**********Implement Search
-            //var searchService = new SearchService();
-            //var filteredItems = lwtc;
-            //if (searchCriterias != null)
-            //{
-            //    filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
-            //}
+           
+            var searchService = new SearchService();
+            var filteredItems = lwtc_final;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(lwtc_final, searchCriterias.SearchCriteria.ToList());
+            }
 
-            //lwtc = filteredItems;
-
-            //lwtc = lwtc.Where(o => o.TrainingStatus != "0").ToList();
+            lwtc_final = filteredItems;
 
             //*********
+
+            lwtc_final = lwtc_final.Where(o => o.TrainingStatus != "0").ToList();
+
+          
 
             //in case of participant not need to show proposed and cancelled training
             //lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
 
             //*************
 
-            foreach(Training t in lwtc_final)
+            foreach (Training t in lwtc_final)
             {
                 if (t.TrainingStatus == "4")
                 {
@@ -840,6 +844,182 @@ namespace LitteraCore.Controllers
 
             // Return the start and end dates as a tuple
             return (startDate, endDate);
+        }
+
+
+
+        [HttpGet]
+        [Route("api/Get_Training_Tags")]
+        public IActionResult Get_Training_Tags(string trainingid)
+        {
+            List<tags> mcl = new List<tags>();
+            EvalBL ebl = new EvalBL(_configuration);
+            Mock_test_configuration mtc = new Mock_test_configuration();
+            mtc = ebl.GET_MOCK_TEST_CONFIGURATION();
+            List<TrainingTags> tt = new List<TrainingTags>();
+            tt = mtc.TrainingTags.ToList();
+            TrainingTags t=new TrainingTags();
+           if(tt.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).Count() > 0)
+            {
+                t = tt.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).FirstOrDefault();
+                mcl = t.tags.ToList();
+            }
+            else
+            {
+                mcl.Add(new tags { displayname = "Module I", tag = "asp.net" });
+                mcl.Add(new tags { displayname = "Module II", tag = "reactjs" });
+                mcl.Add(new tags { displayname = "Module III", tag = "dbms" });
+            }
+           
+            return Ok(mcl);
+        }
+
+        [HttpGet]
+        [Route("api/Get_Participant_By_MOBILE")]
+        public IActionResult Get_Participant_By_MOBILE(string mobileno,string name,string? trainingid=null)
+        {
+           string participantid=Guid.NewGuid().ToString();
+            UserDB UBL = new UserDB(_configuration);
+            User amob = new User();
+            amob = UBL.GET_MOBILE_NO_DATA(mobileno, 2);
+            if(amob.userid != null)
+            {
+                return Ok(amob.agency.AgencyId);
+            }
+            else
+            {
+                string userid= Guid.NewGuid().ToString();
+                string agencyid= Guid.NewGuid().ToString();
+                List<user_branches_detail> lbd=new    List<user_branches_detail>();
+                lbd.Add(new user_branches_detail  { branchid = Common.CommonEnum.Branchid });
+                user_branches ubr = new user_branches
+                {
+                    branchtype = "00001",
+                    branches = lbd.ToArray()
+                };
+                UserAgency ag = new UserAgency
+                {
+                    AgencyId = agencyid,
+                    AgencyName = name,
+                    ag_first_name = name,
+                    ag_mobileno = mobileno,
+                    AgencyTypeId="00051",
+                    CreatedBy = userid
+
+
+                };
+
+                UserBL ub = new UserBL(_configuration);
+                LoginUser lu = new LoginUser();
+                lu.userid = userid;
+                lu.f_name= name;
+                lu.username = mobileno;
+                lu.usertype = "5";
+                lu.branchid = Common.CommonEnum.Branchid;
+                lu.createdby = userid;
+                lu.agency = ag;
+                lu.branches = ubr;
+
+
+
+
+                ub.Save_User_Data(lu);
+                return Ok(lu.agency.AgencyId);
+            }
+            
+        }
+        [HttpPost]
+        [Route("api/MOCK_TEST_EVENTS")]
+        public IActionResult MOCK_TEST_EVENTS(DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        {
+            param.PageNumber = 1;
+            param.PageSize = 100;
+            DateTime dtcurrent = DateTime.Now;
+
+            TrainingDB WDB = new TrainingDB(_configuration);
+
+            List<Training> lwtc = new List<Training>();
+
+            List<Training> lwtc_all = new List<Training>();
+
+            List<Training> lwtc_final = new List<Training>();
+
+
+            var (start, end) = GetCurrentFinancialYearDates();
+
+
+            lwtc = WDB.Get_VW_Training_calendar(start, end);
+            lwtc_all = lwtc;
+
+            lwtc = lwtc.Where(o => o.T_EndDate >= dtcurrent).ToList();
+
+            if (lwtc.Where(o => o.TrainingStatus == "1" || o.TrainingStatus == "5").Count() >= 5)
+            {
+                lwtc_final = lwtc.Where(o => o.TrainingStatus == "1" || o.TrainingStatus == "5").ToList();
+            }
+            else
+            {
+                lwtc_final = lwtc.Where(o => o.TrainingStatus == "1" || o.TrainingStatus == "5").ToList();
+
+
+                lwtc_final.AddRange(lwtc_all.Where(o => o.T_EndDate < dtcurrent
+                                          && o.TrainingStatus != "2"
+                                          && o.TrainingStatus != "3"
+                                          && o.TrainingStatus != "0").ToList());
+                lwtc_final = lwtc_final.Take(5).ToList();
+            }
+
+            //**********Implement Search
+            //var searchService = new SearchService();
+            //var filteredItems = lwtc;
+            //if (searchCriterias != null)
+            //{
+            //    filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
+            //}
+
+            //lwtc = filteredItems;
+
+            //lwtc = lwtc.Where(o => o.TrainingStatus != "0").ToList();
+
+            //*********
+
+            //in case of participant not need to show proposed and cancelled training
+            //lwtc = lwtc.Where(o => o.TrainingStatus != "2" && o.TrainingStatus != "3").ToList();
+
+            //*************
+
+            foreach (Training t in lwtc_final)
+            {
+                if (t.TrainingStatus == "4")
+                {
+                    t.is_reg_open = false;
+                }
+                else
+                {
+                    if (t.T_EndDate >= System.DateTime.Now)
+                    {
+                        t.is_reg_open = true;
+                    }
+                    else
+                    {
+                        t.is_reg_open = false;
+                    }
+                }
+            }
+
+
+            //Filter Trainings
+            List<tags> mcl = new List<tags>();
+            EvalBL ebl = new EvalBL(_configuration);
+            Mock_test_configuration mtc = new Mock_test_configuration();
+            mtc = ebl.GET_MOCK_TEST_CONFIGURATION();
+            List<TrainingTags> ttg = mtc.TrainingTags.ToList();
+            var filteredList = lwtc_final.Where(lwtc => ttg.Any(tt => tt.trainingid.ToString().ToUpper() == lwtc.TrainingId.ToString().ToUpper())).ToList();
+
+            //  var pagedList = Paging.GetPagedList(param, filteredList);
+            var result = Paging.GetPagedData(param, filteredList);
+
+            return Ok(result);
         }
 
 

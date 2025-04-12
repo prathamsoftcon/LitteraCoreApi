@@ -34,4 +34,20 @@
         public string name { get; set; }
         public decimal percentage { get; set; }
     }
+    public class Mock_test_configuration
+    {
+
+        public string participantid { get; set; }
+        public TrainingTags[] TrainingTags { get; set; }
+    }
+    public class TrainingTags
+    {
+        public string trainingid { get; set; }
+        public tags[] tags { get; set; }
+    }
+    public class tags
+    {
+        public string displayname { get; set; }
+        public string tag { get; set; }
+    }
 }

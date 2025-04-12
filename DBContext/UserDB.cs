@@ -695,5 +695,52 @@ namespace LitteraCore.DBContext
 
 
 
+        public User GET_MOBILE_NO_DATA(string mobileno, int type)
+        {
+            DataSet ds = new DataSet();
+            Agency a = new Agency();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_check_value_in_agency_master", con);
+            cmd.Parameters.AddWithValue("@value", mobileno);
+            cmd.Parameters.AddWithValue("@type", type);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(ds);
+            User u = new User();
+            if (Convert.ToInt16(ds.Tables[0].Rows[0]["Isavailable"]) != 0)
+            {
+                DataTable dtfiltereddata = new DataTable();
+
+                dtfiltereddata = ds.Tables[1];
+
+                //Calculate user details
+                DataTable dtUserDetails = new DataTable();
+                dtUserDetails = ds.Tables[1];
+                List<userDetails> ud = new List<userDetails>();
+
+                foreach (DataRow dr in dtUserDetails.Rows)
+                {
+                    UserAgency ua = new UserAgency();
+                    u.userid = Convert.ToString(dr["UserID"]);
+                    ua.AgencyId = Convert.ToString(dr["AgencyId"]);
+                    u.agency = ua;
+                }
+
+
+
+
+               
+
+
+            }
+
+
+            return u;
+        }
+
+
+
     }
 }
