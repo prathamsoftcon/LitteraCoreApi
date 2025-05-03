@@ -58,6 +58,8 @@
         public string taau_uploadid { get; set; }
 
         public List<AssignmentQuestions> AssignmentQuestionsMarks { get; set; }
+
+        public Trg_Setting? trg_Setting { get; set; }
     }
     public class AssignmentType
     {

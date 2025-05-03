@@ -464,5 +464,146 @@ namespace LitteraCore.BLContext
             return trgdata;
         }
 
+        public string Geenerate_certificate_text(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid,string APPURL,string Logo_Path)
+        {
+            string cert = "";
+            
+            Certificate ct = new Certificate();
+            ct=CommonDB.Get_Certificate_Configuration();
+            string certificateHtml = @"
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Certificate</title>
+    <link rel=""stylesheet"" type=""text/css"" href=""style.css"" />
+</head>
+<body>
+    <div class="""">
+        <div class=""certificate-container"" id=""certificate"">
+            <img class=""certificate-img"" src=""certificate.png""/>
+            <div class=""certificate"">
+                <div class=""certificate-text"">
+                    <p>##certtext##</p>
+                    <p></p>
+                </div>
+                <div class=""certificate-footer"">
+                    <div class=""date"">
+                        <p>Date: ""##PrintDate##""</p>
+                    </div>
+                 ##Sinatory##
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>";
+
+
+            Agency loginbranchdetail = new Agency();
+            AgencyBL abl = new AgencyBL(_configuration);
+            Agency ParticpantDetail = new Agency();
+            PaginationParam param = new PaginationParam { PageNumber = 1, PageSize = 10 };
+            ParticpantDetail = abl.Get_Agency(null, participantid, null, param, null).Items.FirstOrDefault();
+
+
+          
+            TrainingDB tbl = new TrainingDB(_configuration);
+     
+
+            List<variables> lv = new List<variables>();
+            lv = ct.variables.ToList();
+            string f_cert_text = "";
+            f_cert_text = ct.certificate_text;
+            foreach (variables v in lv)
+            {
+                if (ParticpantDetail.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                {
+                    var propInfo = ParticpantDetail.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    var value = propInfo.GetValue(ParticpantDetail, null)?.ToString() ?? "";
+                    f_cert_text = f_cert_text.Replace(v.name, value);
+                }
+                else if (ParticpantDetail.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                {
+                    var propInfo = ParticpantDetail.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    var value = propInfo.GetValue(ParticpantDetail.additionalInfo, null)?.ToString() ?? "";
+                    f_cert_text = f_cert_text.Replace(v.name, value);
+                }
+                else if (Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                {
+                    var propInfo = Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    var value = propInfo.GetValue(Trg, null)?.ToString() ?? "";
+                    f_cert_text = f_cert_text.Replace(v.name, value);
+                }
+
+            }
+
+
+
+            string signatorytext = "";
+           
+            int signatoryindex = 0;
+            foreach (CERTIFICATE_SIGNATORY sign in dtsignatory)
+            {
+                signatoryindex = signatoryindex + 1;
+                signatorytext = signatorytext + @" <div class=""signature signature-@"+ signatoryindex + @""">
+                <img src='="+ APPURL + @"/""@""@"+ Logo_Path + @"""/""@" + sign.signaturepath +@"' style='width: 130px;height: 50px;visibility:"" + displayimg + ""' />
+                        <p>" + sign.name + @"</p>
+                        <p>" + sign.designation + @"</p>
+                    </div>";
+            }
+
+            certificateHtml = certificateHtml.Replace("certificate.png", APPURL+"/"+ct.certificate_bg_path);
+            certificateHtml = certificateHtml.Replace("style.css", APPURL + "/css/certificate_style.css");
+            certificateHtml = certificateHtml.Replace("##PrintDate##", System.DateTime.Now.ToString("dd-MM-yyyy"));
+            certificateHtml = certificateHtml.Replace("##certtext##", f_cert_text);
+            certificateHtml = certificateHtml.Replace("##Sinatory##", signatorytext);
+
+
+
+            return certificateHtml;
+        }
+
+
+        public List<Participant> Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null, string sortcolumn = null, string sortvalue = null, string filtername = null, string filtervalue = null,int pageno = 1, int pagesize = -1)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Participant> trgdata = new List<Participant>();
+            ParticipantDB tdb = new ParticipantDB(_configuration);
+            trgdata = tdb.Get_Trg_Participant_List(trainingid,participantid,branchid,searchcolumn,searchvalue,sortcolumn,sortvalue,filtername,filtervalue, pageno,pagesize);
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
+
+        public Boolean Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+         
+            TrainingDB tdb = new TrainingDB(_configuration);
+            bool issaved = tdb.Update_Training_Status(trainingid,trainingstatus,reason,createdby,branchid);
+  
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return issaved;
+        }
+
+        public Boolean Update_Bulk_Participant_Status(string participantid, string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+
+            TrainingDB tdb = new TrainingDB(_configuration);
+            bool issaved = tdb.Update_Bulk_Trg_Participant_Status(participantid,trainingid,branchid,currentstatus,updatedstatus,createdbyempid);
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return issaved;
+        }
+
     }
 }

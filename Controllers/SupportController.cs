@@ -96,15 +96,14 @@ namespace LitteraCore.Controllers
             List<Support_Analytical_Report> s = new List<Support_Analytical_Report>();
             SupportBL SBL = new SupportBL(_configuration);
 
-          
 
             s = SBL.Login_Analytics(fromdate, todate, type, param.PageNumber, param.PageSize, searchCriterias);
             param.PageNumber = 1;
             var result = Paging.GetPagedData(param, s);
             if (s.Count > 0)
             {
-                result.TotalRecords = s.FirstOrDefault().total;
                 result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().total / param.PageSize);
+                result.TotalRecords = s.FirstOrDefault().total;
             }
 
             return Ok(result);
@@ -134,7 +133,7 @@ namespace LitteraCore.Controllers
             {
                 unitname = "Hr";
             }
-            return Ok(new {learning= learning ,unit= unitname });
+            return Ok(new {learning= Math.Round(learning,2) ,unit= unitname });
 
         }
 
@@ -164,24 +163,15 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SearchParticipant")]
-        public IActionResult SearchParticipant([FromBody] SearchParam? searchCriterias = null, [FromQuery] PaginationParam? param = null,string ? branchid=null)
+        public IActionResult SearchParticipant(string? trainingid=null,string? searchcolumn=null,string? searchvalue=null,string ? branchid=null)
         {
-           
-            List<Support_Analytical_Report> s = new List<Support_Analytical_Report>();
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+
+
+            List<Participant> s = new List<Participant>();
+            s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue);
             SupportBL SBL = new SupportBL(_configuration);
-           s.Add(new Support_Analytical_Report { userid=Guid.NewGuid().ToString(), agencyname="Prince", email="Ratnesh@gmail.com", eventdate=null, mobileno="888888888", total=2, username= "91-888888888" });
-
-
-            //s = SBL.Login_Analytics(fromdate, todate, type, param.PageNumber, param.PageSize, searchCriterias);
-            param.PageNumber = 1;
-            var result = Paging.GetPagedData(param, s);
-            if (s.Count > 0)
-            {
-                result.TotalRecords = s.FirstOrDefault().total;
-                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().total / param.PageSize);
-            }
-
-            return Ok(result);
+            return Ok(s);
 
 
         }
@@ -202,6 +192,7 @@ namespace LitteraCore.Controllers
         }
 
 
+     
 
     }
 }

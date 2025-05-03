@@ -55,6 +55,46 @@ namespace LitteraCore.DBContext
             return AL;
         }
 
+        public List<contentType> Get_Content_Type_All()
+        {
+
+            List<contentType> AL = new List<contentType>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString); con.Open();
+            SqlCommand cmd = new SqlCommand("Content.tbl_GlobalContentTypeSelect", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+         
+            foreach (DataRow row in dt.Rows)
+            {
+                contentType vw = new contentType();
+                vw.GlobalContentTypeID = Convert.ToString(row["GlobalContentTypeID"]);
+                vw.GlobalContentType = Convert.ToString(row["GlobalContentType"]);
+                vw.SessionAttachmentType = Convert.ToString(row["SessionAttachmentType"]);
+                vw.GlobalContentDescription = Convert.ToString(row["GlobalContentDescription"]);
+
+
+
+                AL.Add(vw);
+            }
+
+
+
+
+
+            return AL;
+        }
+
         public List<Content> Get_Trg_Content(PaginationParam param, string trainingid = null, string sessionid = null)
         {
 

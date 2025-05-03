@@ -62,7 +62,7 @@
 
         public string tplt_ttsam_id { get; set; }
         public string tplt_ttpai_id { get; set; }
-        public int tplt_learning_time { get; set; }
+        public decimal tplt_learning_time { get; set; }
         public string tplt_createdon { get; set; }
         public string tplt_createdby { get; set; }
 

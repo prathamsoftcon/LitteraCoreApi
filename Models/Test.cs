@@ -53,6 +53,8 @@
         public string Test_time { get; set; }
 
         public string ttttt_status { get; set; }
+
+        public Trg_Setting? trg_Setting { get; set; }
     }
     public class TEST_RESULT_DATA
     {

@@ -10,7 +10,7 @@ using System.Xml;
 
 namespace LitteraCore.DBContext
 {
-    public class UserDB
+    public class UserDB 
     {
          private readonly IConfiguration _configuration;
         public UserDB(IConfiguration configuration)

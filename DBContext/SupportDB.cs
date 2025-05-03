@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Security.Cryptography.Xml;
+using static LitteraCore.Models.MaskInfo;
 
 namespace LitteraCore.DBContext
 {
@@ -211,6 +212,10 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+            Form f = new Form();
+            f = CommonDB.Get_Form_Masking_Info("9654");
+           
+
             foreach (DataRow dr in dt.Rows)
             {
 
@@ -220,8 +225,8 @@ namespace LitteraCore.DBContext
                        userid= Convert.ToString(dr["tyat_userid"]),
                        username = Convert.ToString(dr["UserName"]),
                        agencyname= Convert.ToString(dr["AgencyName"]),
-                       email = Convert.ToString(dr["ag_email"]),
-                       mobileno = Convert.ToString(dr["ag_mobileno"]),
+                       email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]),f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                       mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                        eventdate= Convert.ToString(dr["eventdate"]),
                         total = Convert.ToInt32(dr["total"])
                     }
@@ -263,6 +268,12 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+
+
+            Form f = new Form();
+            f = CommonDB.Get_Form_Masking_Info("9654");
+
+          
             foreach (DataRow dr in dt.Rows)
             {
 
@@ -272,8 +283,8 @@ namespace LitteraCore.DBContext
                        // userid = Convert.ToString(dr["tyat_userid"]),
                         username = Convert.ToString(dr["UserName"]),
                         agencyname = Convert.ToString(dr["AgencyName"]),
-                        email = Convert.ToString(dr["ag_email"]),
-                        mobileno = Convert.ToString(dr["ag_mobileno"]),
+                        email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
                         total=Convert.ToInt32(dr["total"])
                     }
@@ -314,6 +325,12 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+
+            Form f = new Form();
+            f = CommonDB.Get_Form_Masking_Info("9654");
+
+         
+
             foreach (DataRow dr in dt.Rows)
             {
 
@@ -323,8 +340,8 @@ namespace LitteraCore.DBContext
                         // userid = Convert.ToString(dr["tyat_userid"]),
                         username = Convert.ToString(dr["UserName"]),
                         agencyname = Convert.ToString(dr["AgencyName"]),
-                        email = Convert.ToString(dr["ag_email"]),
-                        mobileno = Convert.ToString(dr["ag_mobileno"]),
+                        email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
                         total = Convert.ToInt32(dr["total"])
                     }
@@ -335,7 +352,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public List<Learning_Time> Learning_Time(string trainingid, string participantid,string ttsam_id)
+        public List<Learning_Time> Learning_Time(string trainingid, string participantid,string ttsam_id,int reporttype,string fromdate=null,string todate=null)
         {
           
             List<Learning_Time> L = new List<Learning_Time>();
@@ -348,7 +365,24 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@trainingid", trainingid);
             cmd.Parameters.AddWithValue("@participantid", participantid);
             cmd.Parameters.AddWithValue("@ttsam_id", ttsam_id);
-           
+            cmd.Parameters.AddWithValue("@reporttype", reporttype);
+            if(fromdate != null)
+            {
+                cmd.Parameters.AddWithValue("@Fromdate", fromdate);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@Fromdate", DBNull.Value);
+            }
+            if (todate != null)
+            {
+                cmd.Parameters.AddWithValue("@todate", todate);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@todate", DBNull.Value);
+            }
+
 
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -365,7 +399,7 @@ namespace LitteraCore.DBContext
                        // tplt_ttpai_id= Convert.ToString(dr["tplt_ttpai_id"]),
                         tplt_ttsam_id = Convert.ToString(dr["tplt_ttsam_id"]),
                         //tplt_createdby = Convert.ToString(dr["tplt_createdby"]),
-                        tplt_learning_time=Convert.ToInt16(dr["Learningtime"]),
+                        tplt_learning_time=Convert.ToDecimal(dr["Learningtime"]),
                         GlobalContentTitle = Convert.ToString(dr["GlobalContentTitle"]),
                         GlobalContentyTypeID = Convert.ToString(dr["GlobalContentyTypeID"]),
                         Participantid = Convert.ToString(dr["Participantid"]),
@@ -439,7 +473,7 @@ namespace LitteraCore.DBContext
             if (reporttype == 1)
             {
                 ContentDB cdb = new ContentDB(_configuration);
-                l = cdb.Get_Content_Type();
+                l = cdb.Get_Content_Type_All();
             }
             List<Learning_Report_Data> L = new List<Learning_Report_Data>();
             DataTable dt = new DataTable();
@@ -484,7 +518,7 @@ namespace LitteraCore.DBContext
 
             if (searchvalue != null)
             {
-                cmd.Parameters.AddWithValue("@SearchColumn", searchvalue);
+                cmd.Parameters.AddWithValue("@SearchColumn", SearchColumn);
             }
             else
             {
@@ -557,6 +591,13 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+
+            Form f = new Form();
+            f = CommonDB.Get_Form_Masking_Info("9657");
+
+
+
+
             foreach (DataRow dr in dt.Rows)
             {
                 string content_type_name = "";
@@ -574,12 +615,14 @@ namespace LitteraCore.DBContext
                     {
                         // tplt_Id = Convert.ToString(dr["tplt_Id"]),
                         // tplt_ttpai_id= Convert.ToString(dr["tplt_ttpai_id"]),
+                        AgencyName = Convert.ToString(dr["AgencyName"]),
                         tplt_ttsam_id = Convert.ToString(dr["tplt_ttsam_id"]),
                         GlobalContentTitle = Convert.ToString(dr["GlobalContentTitle"]),
                         GlobalContentyTypeID = Convert.ToString(dr["GlobalContentyTypeID"]),
                         Participantid = Convert.ToString(dr["Participantid"]),
-                        ag_email = Convert.ToString(dr["ag_email"]),
-                        ag_mobileno = Convert.ToString(dr["ag_mobileno"]),
+                        ag_email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        ag_mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                        
                         learningtime = Convert.ToDecimal(dr["learningtime"]),
                         totalrecord = Convert.ToInt16(dr["totalrecord"]),
                         trainingid = Convert.ToString(dr["trainingid"]),

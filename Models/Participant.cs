@@ -100,6 +100,12 @@
 
         public ParticipantTrainings[] registeredtrg { get; set; }
 
+        public int totalrecords { get; set; }
+
+        public string rcname { get; set; }
+
+        public string scname { get; set; }
+
         public string get_path(string absouutepath)
         {
             string path = "";

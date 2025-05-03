@@ -854,6 +854,138 @@ namespace LitteraCore.Controllers
             return Ok(otp);
         }
 
+        [HttpGet]
+        [Route("api/VerifyOTPWithLogin")]
+        public async Task<IActionResult> VerifyOTPWithLogin(string username, string otp,string user_id)
+        {
+            //Check Valid User
+            bool password_changed=false;
+            AuthDB adb=new AuthDB(_configuration); 
+
+            var isValid = _otpManager.VerifyOtpAsync(username, otp);
+
+           
+            if (Convert.ToBoolean(isValid.Result))
+            {
+                bool ischanged = adb.is_password_changed(user_id);
+                if (ischanged == false)
+                {
+
+                    string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                    // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+                    if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+                    {
+                        clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
+                    }
+
+
+                    //Login Trail Entry
+                    adb.Make_Login_Entry(user_id, "0", clientIp);
+                    Audit_Trail at = new Audit_Trail
+                    {
+                        tyat_ip = clientIp,
+                        tyat_userid = user_id,
+                        tyat_page_name = "Change Password",
+                        tyat_event_name = "Onload Change Password",
+                        tyat_recordid = "",
+                        tyat_createdon = System.DateTime.Now
+
+
+                    };
+                    //Audit Trail 'On Load Change Password'
+                    ApplicationConfigBL abl = new ApplicationConfigBL(_configuration);
+                    abl.Save_Audit_Trail(at);
+
+                    //Change Password
+
+                    userlist ul = new userlist();
+                    List<update_pass> up = new List<update_pass>();
+                    up.Add(new update_pass { userid = user_id });
+                    ul.users = up;
+
+
+                    DataTable dtusers = adb.Get_User_Agency_Data(ul);
+
+                    foreach (update_pass u in ul.users)
+                    {
+                        string userid = u.userid;
+                        dtusers.DefaultView.RowFilter = "tyuam_userid='" + u.userid + "'";
+                        DataTable dt = dtusers.DefaultView.ToTable();
+                        if (dt.Rows.Count > 0)
+                        {
+                            try
+                            {
+                                if (Convert.ToString(dt.Rows[0]["ag_dob"]) != "")
+                                {
+                                    string password = Convert.ToDateTime(dt.Rows[0]["ag_dob"]).ToString("yyyy/MM/dd").Replace("/", "").Replace("-", "");
+                                    string hp = AuthDB.GetMD5Hash(password);
+                                    string finaldata = YEncryptDecryptData.YEncryptDecryptData.Encrypt(hp, true);
+                                    u.password = finaldata;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+
+
+                        }
+
+
+                    }
+                    AuthDB abd = new AuthDB(_configuration);
+
+                    bool issaved = abd.Update_bulk_password(ul);
+
+                    password_changed = adb.Password_Updated(user_id);
+
+                 
+                    //Password Change Entry
+                    Audit_Trail atpc = new Audit_Trail
+                    {
+                        tyat_ip = clientIp,
+                        tyat_userid = user_id,
+                        tyat_page_name = "Change Password",
+                        tyat_event_name = "password_updated",
+                        tyat_recordid = "",
+                        tyat_createdon = System.DateTime.Now
+
+
+                    };
+                    abl.Save_Audit_Trail(atpc);
+                }
+
+
+               
+                //Password Updated entry
+                return Ok(new { password_changed= password_changed });
+            }
+            else
+            {
+                return Unauthorized("Invalid Otp");
+            }
+
+
+            return Unauthorized();
+        }
+
+
+        [HttpPost]
+        [Route("api/Login_Fail_Entry")]
+        public IActionResult Login_Fail_Entry(string username, string? reason=null)
+        {
+            //Code to check old password
+           
+            LoginBL adb = new LoginBL(_configuration);
+            bool  issaved = adb.Save_Login_Fail_Entry(username, reason);
+        
+            return Ok(issaved);
+
+
+
+        }
+
 
     }
 }

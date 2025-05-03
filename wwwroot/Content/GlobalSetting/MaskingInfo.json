@@ -1,0 +1,37 @@
+﻿{
+	"MaskData": [
+		{
+			"Formid": "9511",
+			"Description": "participant_Registration_List",
+			"Columns": [
+				"MOBILENO",
+				"EMAIL"
+			]
+		},
+		{
+			"Formid": "9505",
+			"Description": "Training Progress Report",
+			"Columns": [
+				"MOBILENO",
+				"EMAIL"
+			]
+		},
+		{
+			"Formid": "9657",
+			"Description": "Learning Time Report",
+			"Columns": [
+				"MOBILENO",
+				"EMAIL"
+			]
+		},
+	
+		{
+			"Formid": "9654",
+			"Description": "Analytics",
+			"Columns": [
+				"MOBILENO",
+				"EMAIL"
+			]
+		}
+	]
+}

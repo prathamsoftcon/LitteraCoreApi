@@ -85,6 +85,40 @@ namespace LitteraCore.DBContext
                 }
 
                 // ass.taau_status= Convert.ToString(row["taau_status"]);
+
+                if (Convert.ToString(row["trg_setting"]) != "")
+                {
+                    try
+                    {
+                        Trg_Setting p = new Trg_Setting();
+                        p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(row["trg_setting"]));
+                        ass.trg_Setting = p;
+                        if (p.displaycontrols != null)
+                        {
+                            if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                            {
+                                if (p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                {
+                                    ass.TrainingCode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                    
+                                }
+                            }
+                        }
+
+
+
+                    }
+                    catch
+                    {
+                        ass.trg_Setting = null;
+
+                    }
+
+                }
+                else
+                {
+                    ass.trg_Setting = null;
+                }
                 assingdata.Add(ass);
             }
 

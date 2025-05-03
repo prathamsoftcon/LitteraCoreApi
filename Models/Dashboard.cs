@@ -18,6 +18,18 @@
         public int no_of_pending_tests { get; set; }
         public int no_of_pending_assignment { get; set; }
 
+
+        public int total_enrollments { get; set; }
+        public int consent_received { get; set; }
+
+        public int approved { get; set; }
+
+        public int Pending_for_Approval { get; set; }
+
+        public int Course_started { get; set; }
+
+        public int Course_completed { get; set; }
+
     }
     public class Mock_Test_Tag
     {

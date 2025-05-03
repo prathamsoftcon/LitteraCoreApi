@@ -148,5 +148,24 @@ namespace LitteraCore.DBContext
 
             return true;
         }
+
+        public bool Save_Login_Fail_Entry(string username, string reason)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_ins_failed_login_entry", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tyflu_username", username);
+            cmd.Parameters.AddWithValue("@tyflu_reason", reason);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
     }
 }

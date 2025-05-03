@@ -135,6 +135,20 @@ namespace LitteraCore.DBContext
                         Trg_Setting p = new Trg_Setting();
                         p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(row["trg_setting"]));
                         vw.trg_Setting = p;
+                        if (p.displaycontrols != null)
+                        {
+                            if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                            {
+                                if(p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                {
+                                    vw.Trainingcode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                    vw.TrainingNo = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                }
+                            }
+                        }
+                      
+
+
                     }
                     catch
                     {
@@ -479,6 +493,20 @@ namespace LitteraCore.DBContext
                             {
                                 Trg_Setting p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(reader["trg_setting"]));
                                 vw.trg_Setting = p;
+                                if (p.displaycontrols != null)
+                                {
+                                    if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                                    {
+                                        if (p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                        {
+                                            vw.Trainingcode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                            vw.TrainingNo = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                        }
+                                    }
+                                }
+
+
+
                             }
                             catch
                             {
@@ -731,6 +759,76 @@ namespace LitteraCore.DBContext
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
 
             return trgdata;
+        }
+
+
+        public bool Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
+        {
+            List<User> user = new List<User>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("TrainingPlan.TP_UpdTrainingStatus", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+            cmd.Parameters.AddWithValue("@TrainingStatus", trainingstatus);
+            cmd.Parameters.AddWithValue("@StatusUpdateDate", System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
+            cmd.Parameters.AddWithValue("@CreatedBy", createdby);
+            if (reason != null)
+            {
+                cmd.Parameters.AddWithValue("@StatusReason", reason);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@StatusReason", DBNull.Value);
+            }
+
+            cmd.Parameters.AddWithValue("@BranchId", branchid);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+
+
+        public bool Update_Bulk_Trg_Participant_Status(string participantid, string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid)
+        {
+
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_training_update_participant_status", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            if (participantid != null)
+            {
+                cmd.Parameters.AddWithValue("@ParticipantId", participantid);
+            }
+            if (trainingid != null)
+            {
+                cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+            }
+            if (branchid != null)
+            {
+                cmd.Parameters.AddWithValue("@branchid", branchid);
+            }
+            cmd.Parameters.AddWithValue("@currentstatus", currentstatus);
+            cmd.Parameters.AddWithValue("@updatedstatus", updatedstatus);
+            cmd.Parameters.AddWithValue("@createdbyempid", createdbyempid);
+
+
+            cmd.ExecuteNonQuery();
+
+            con.Close();
+
+            return true;
         }
     }
 }

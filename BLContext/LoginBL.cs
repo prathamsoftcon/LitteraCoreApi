@@ -20,5 +20,11 @@ namespace LitteraCore.BLContext
            
             return up;
         }
+
+        public bool Save_Login_Fail_Entry(string username, string reason) {
+            LoginDB UDB = new LoginDB(_configuration);
+            bool issaved= UDB.Save_Login_Fail_Entry(username, reason);
+            return false; 
+        }
     }
 }

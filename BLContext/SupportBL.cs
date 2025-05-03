@@ -78,7 +78,7 @@ namespace LitteraCore.BLContext
             List<Learning_Time> sl = new List<Learning_Time>();
 
             SupportDB ABD = new SupportDB(_configuration);
-            sl = ABD.Learning_Time(trainingid, participantid, ttsam_id);
+            sl = ABD.Learning_Time(trainingid, participantid, ttsam_id,2);
             if (unit == 1) //min
             {
                 learningtime = sl.Sum(o => o.tplt_learning_time) / 60;

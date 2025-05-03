@@ -1029,6 +1029,37 @@ namespace LitteraCore.DBContext
                 vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
 
                 vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
+
+                if (Convert.ToString(row["trg_setting"]) != "")
+                {
+                    try
+                    {
+                        Trg_Setting p = new Trg_Setting();
+                        p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(row["trg_setting"]));
+                     
+                        if (p.displaycontrols != null)
+                        {
+                            if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                            {
+                                if (p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                {
+                                    vw.trainingcode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                  
+                                }
+                            }
+                        }
+
+
+
+                    }
+                    catch
+                    {
+                       
+
+                    }
+
+                }
+
                 sessiondata.Add(vw);
             }
 

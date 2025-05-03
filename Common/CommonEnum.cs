@@ -557,6 +557,12 @@ namespace LitteraCore.Common
 
 
         }
+        public enum MaskingColumn
+        {
+            MOBILENO = 0,
+            EMAIL = 1,
+
+        }
 
 
     }

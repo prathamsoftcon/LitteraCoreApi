@@ -47,8 +47,8 @@ namespace LitteraCore.Controllers
                         assignments_new.Add(a);
                     }
                 }
-
-                assignments = assignments_new;
+                //Comment below condition to show assignment on bhoj
+               // assignments = assignments_new;
 
                 //************To get assignment upload status
                 List<AssignmentUpload> uploads=new List<AssignmentUpload>();

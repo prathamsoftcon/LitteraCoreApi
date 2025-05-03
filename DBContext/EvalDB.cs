@@ -1,5 +1,6 @@
 ﻿using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System.Data;
 
 namespace LitteraCore.DBContext
@@ -91,6 +92,40 @@ namespace LitteraCore.DBContext
 
                         T.TrainingCategoryId = reader["TrainingCategoryId"].ToString();
                         T.QuestionDifficultyID = reader["QuestionDifficultyID"].ToString();
+
+                        if (Convert.ToString(reader["trg_setting"]) != "")
+                        {
+                            try
+                            {
+                                Trg_Setting p = new Trg_Setting();
+                                p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(reader["trg_setting"]));
+                                T.trg_Setting = p;
+                                if (p.displaycontrols != null)
+                                {
+                                    if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                                    {
+                                        if (p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                        {
+                                            T.trainingcode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                           
+                                        }
+                                    }
+                                }
+
+
+
+                            }
+                            catch
+                            {
+                                T.trg_Setting = null;
+
+                            }
+
+                        }
+                        else
+                        {
+                            T.trg_Setting = null;
+                        }
 
                         assingvaluation.Add(T);
                     }

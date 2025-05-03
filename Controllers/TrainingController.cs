@@ -3,6 +3,8 @@ using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System.Security.Cryptography.Xml;
 using static LitteraCore.Common.CommonEnum;
 
@@ -138,16 +140,16 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
-        [Route("api/Generate_Certificate")]
-        public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid,string APPURL,string Logo_Path)
-        {
+        //[HttpGet]
+        //[Route("api/Generate_Certificate")]
+        //public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid,string APPURL,string Logo_Path)
+        //{
 
-           TrgBL tbl=new TrgBL(_configuration);
-            string certificatedata = tbl.GET_TRG_CERTIFICATE(trainingid, participantid, branchid, APPURL, Logo_Path);
+        //   TrgBL tbl=new TrgBL(_configuration);
+        //    string certificatedata = tbl.GET_TRG_CERTIFICATE(trainingid, participantid, branchid, APPURL, Logo_Path);
            
-            return Ok(certificatedata);
-        }
+        //    return Ok(certificatedata);
+        //}
         [HttpGet]
         [Route("api/Check_Signatory_Available")]
         public IActionResult Check_Signatory_Available(string trainingid)
@@ -225,5 +227,116 @@ namespace LitteraCore.Controllers
             T = CBL.Get_Trg_Title();
             return Ok(T);
         }
+
+
+        [HttpGet]
+        [Route("api/Generate_Certificate")]
+        public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path)
+        {
+
+            TrgBL tb = new TrgBL(_configuration);
+            TrainingDB tbl = new TrainingDB(_configuration);
+
+            Training Trg = new Training();
+            List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+            string certificatedata = tb.Geenerate_certificate_text(Trg, dtsignatory, participantid, APPURL, Logo_Path);
+
+            return Ok(certificatedata);
+        }
+
+
+
+
+        [HttpGet]
+        [Route("api/Generate_Certificate_All")]
+        public IActionResult Generate_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path)
+        {
+
+            TrgBL tb = new TrgBL(_configuration);
+            TrainingDB tbl = new TrainingDB(_configuration);
+
+            Training Trg = new Training();
+            List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+            List<Participant> p = new List<Participant>();
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+            p = pdb.Get_TRG_PARTICIPANT_Data(trainingid);
+            string certificatedata = "";
+            foreach (Participant pr in p)
+            {
+                certificatedata= certificatedata+tb.Geenerate_certificate_text(Trg, dtsignatory, pr.ParticipantId, APPURL, Logo_Path);
+            }
+
+          
+            return Ok(certificatedata);
+        }
+
+
+        [HttpPost]
+        [Route("api/Get_Trg_Participant_List")]
+        public IActionResult Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null, string sortcolumn = null, string sortvalue = null,string filtername=null,string filtervalue=null, int pageno = 1, int pagesize = -1)
+        {
+           TrgBL tbl=new TrgBL(_configuration);
+            List<Participant> p = new List<Participant>();
+            p = tbl.Get_Trg_Participant_List(trainingid, participantid, branchid, searchcolumn, searchvalue, sortcolumn, sortvalue,filtername,filtervalue, pageno, pagesize);
+            PaginationParam param= new PaginationParam{ PageNumber = 1, PageSize = pagesize };
+            var result = Paging.GetPagedData(param, p);
+            if (p.Count > 0)
+            {
+                result.TotalRecords = p.FirstOrDefault().totalrecords;
+                result.TotalPages = (int)Math.Ceiling((double)p.FirstOrDefault().totalrecords / param.PageSize);
+            }
+            return Ok(result);
+
+        }
+
+
+        [HttpPost]
+        [Route("api/Update_Training_Status")]
+        public IActionResult Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
+        {
+            TrgBL tbl = new TrgBL(_configuration);
+           
+            bool issaved = tbl.Update_Training_Status(trainingid,trainingstatus,reason,createdby,branchid);
+         
+            return Ok(issaved);
+
+        }
+
+        [HttpPost]
+        [Route("api/Update_Bulk_Participant_Status")]
+        public IActionResult Update_Bulk_Participant_Status(string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid,string? participantid= null)
+        {
+            TrgBL tbl = new TrgBL(_configuration);
+
+            bool issaved = tbl.Update_Bulk_Participant_Status(participantid,trainingid,branchid,currentstatus,updatedstatus,createdbyempid);
+
+            return Ok(issaved);
+
+        }
+
+        [HttpPost]
+        [Route("api/Update_Multiple_Participant_Status")]
+        public IActionResult Update_Multiple_Participant_Status(string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid, string? participantid = null)
+        {
+            TrgBL tbl = new TrgBL(_configuration);
+            if (participantid != null)
+            {
+                string[] participant=participantid.Split(',');
+                foreach(string part in participant)
+                {
+                    bool issaved = tbl.Update_Bulk_Participant_Status(part, trainingid, branchid, currentstatus, updatedstatus, createdbyempid);
+                }
+            }
+          
+
+            return Ok(true);
+
+        }
+
+
     }
 }
