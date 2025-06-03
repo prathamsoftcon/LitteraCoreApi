@@ -15,6 +15,8 @@ using LitteraCore.Common.EmailService;
 using LitteraCore.Common.SmsService;
 using Newtonsoft.Json.Converters;
 using System.Text.Json.Serialization;
+using Azure.Core;
+using MailKit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +41,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Console()
      .WriteTo.File("logs/error.log",
-        rollingInterval: RollingInterval.Month,
+        rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error,
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {NewLine} RequestId: {RequestId} {NewLine} RequestMethod:{RequestMethod} URL: {RequestScheme}://{RequestHost}/{RequestPath}?{RequestParams} {NewLine} BodyParameter : {BodyParam}  {NewLine} {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
@@ -127,8 +129,8 @@ app.Use(async (context, next) =>
     string str = "";
     foreach (var queryParam in context.Request.Query)
     {
-        str += queryParam.Key +"=" + queryParam.Value +"&";
-     
+        str += queryParam.Key + "=" + queryParam.Value + "&";
+
     }
 
     LogContext.PushProperty("RequestParams", str);
@@ -150,10 +152,11 @@ app.Use(async (context, next) =>
             LogContext.PushProperty("BodyParam", bodyParams);
         }
     }
-   
+
 
     await next();
 });
+
 
 app.Run();
 public class JsonDateTimeConverter : JsonConverter<DateTime>

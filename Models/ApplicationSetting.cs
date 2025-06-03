@@ -155,6 +155,16 @@ namespace LitteraCore.Models
         public DateTime? tyat_createdon { get; set; }
         public string? tyat_ip { get; set; }
 
+        public client_device_info? device_Info { get; set; }
+
+    }
+    public class client_device_info
+    {
+        public string userAgent { get; set; }
+        public string platform { get; set; }
+        public string language { get; set; }
+        public string device_width { get; set; }
+        public string device_height { get; set; }
     }
     public class Error_Log
     {
@@ -171,6 +181,11 @@ namespace LitteraCore.Models
     {
         public int branch_selection_required { get; set; }
         public int max_level_allowed { get; set; }
+    }
+    public class Masking_Setting
+    {
+        public int data_masking_required { get; set; }
+
     }
 
 

@@ -1,7 +1,9 @@
 ﻿using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System.Data;
+using System.Text.Json.Nodes;
 
 namespace LitteraCore.DBContext
 {
@@ -54,6 +56,12 @@ namespace LitteraCore.DBContext
                     dr["SettingValue"] = "{'IS_SMS_SEND':'0','SMSAPI':''}";
                     dt.Rows.Add(dr);
                 }
+                if (settinguniqueid == "10")
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["SettingValue"] = "{'data_masking_required':'0'}";
+                    dt.Rows.Add(dr);
+                }
 
             }
             return dt;
@@ -73,9 +81,18 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@tyat_userid", at.tyat_userid);
             cmd.Parameters.AddWithValue("@tyat_page_name", at.tyat_page_name);
             cmd.Parameters.AddWithValue("@tyat_event_name", at.tyat_event_name);
-            cmd.Parameters.AddWithValue("@tyat_recordid", at.tyat_recordid);
+            if (at.tyat_recordid.Trim() == "")
+            {
+                cmd.Parameters.AddWithValue("@tyat_recordid",DBNull.Value);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@tyat_recordid", at.tyat_recordid);
+            }
+     
             cmd.Parameters.AddWithValue("tyat_ip", at.tyat_ip);
-            
+            string jsonString = JsonConvert.SerializeObject(at.device_Info);
+            // cmd.Parameters.AddWithValue("deciceinfo", at.tyat_ip);
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             cmd.ExecuteNonQuery();

@@ -293,6 +293,70 @@ namespace LitteraCore.DBContext
 
         }
 
+        public contentDetail Get_Content_Detail(string ttsam_id)
+        {
+            contentDetail cd = new contentDetail();
+            DataTable dt = new DataTable();
+            string path = "";
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand(@"select GlobalWysiwagText,ttsam_trg_id,ttsam_ttttt_session_id from trainingplan.tbl_tp_session_attachment_master tam
+inner join Content.tbl_ContentMaster cm on tam.ttsam_globalcontentid = cm.GlobalContentID
+where ttsam_id = '"+ ttsam_id + "'", con);
+         
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            if (dt.Rows.Count > 0)
+            {
+                cd.content_path = Convert.ToString(dt.Rows[0]["GlobalWysiwagText"]);
+                cd.sessionid = Convert.ToString(dt.Rows[0]["ttsam_ttttt_session_id"]);
+                cd.trainingid= Convert.ToString(dt.Rows[0]["ttsam_trg_id"]);
+            }
+
+            return cd;
+
+        }
+
+        public contentDetail Get_ttpai_from_Content(string contentid,string participantid)
+        {
+            contentDetail cd = new contentDetail();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand(@"select ai.ttpai_id,am.ag_mobileno from TrainingPlan.tbl_tp_participant_additional_info ai 
+inner join YUser.AgencyMaster am on ai.Participantid=am.AgencyId where 
+TrainingId = (select ttsam_trg_id from TrainingPlan.tbl_tp_session_attachment_master
+where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'", con);
+
+
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            if (dt.Rows.Count > 0)
+            {
+                cd.ttpai_id= Convert.ToString(dt.Rows[0]["ttpai_id"]);
+                cd.mobileno = Convert.ToString(dt.Rows[0]["ag_mobileno"]);
+            }
+
+            return cd;
+
+        }
+
 
     }
 }

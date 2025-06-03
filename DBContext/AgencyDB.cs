@@ -991,7 +991,7 @@ namespace LitteraCore.DBContext
         //        {
         //            cmd.Parameters.AddWithValue("@agencyid", agencyid);
         //        }
-               
+
         //        cmd.Connection = con;
         //        cmd.CommandTimeout = 5000;
         //        SqlDataReader row = cmd.ExecuteReader();
@@ -1200,6 +1200,214 @@ namespace LitteraCore.DBContext
         //}
 
 
+        public bool Update_Agency_Personal_Info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_PersonalInfo PI, string OtherXML)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_personal_info_vr1]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@AgencyId", agencyid);
+
+            cmd.Parameters.AddWithValue("@AgencyTypeId", agencytypeid);
+            cmd.Parameters.AddWithValue("@gender", PI.gender);
+            cmd.Parameters.AddWithValue("@dob", PI.dob);
+            cmd.Parameters.AddWithValue("@salutation", PI.salutation);
+            cmd.Parameters.AddWithValue("@firstname", PI.fname);
+            cmd.Parameters.AddWithValue("@middlename", PI.mname);
+            cmd.Parameters.AddWithValue("@lastname", PI.lname);
+            cmd.Parameters.AddWithValue("@createdby", createdby);
+            cmd.Parameters.AddWithValue("@branchid", branchid);
+            cmd.Parameters.AddWithValue("@photo_path", PI.photo_path);
+            cmd.Parameters.AddWithValue("@additionalinfo", OtherXML);
+            string fname = "";
+            string mname = "";
+            string lname = "";
+            if (PI.fname != null)
+            {
+                fname = PI.fname;
+            }
+            if (PI.mname != null)
+            {
+                mname = PI.mname;
+            }
+            if (PI.lname != null)
+            {
+                lname = PI.lname;
+            }
+
+            string Agencyname = fname + " " + mname + " " + lname;
+            cmd.Parameters.AddWithValue("@Agencyname", Agencyname);
+            //string p1 = JsonConvert.SerializeObject(pi);
+            //cmd.Parameters.AddWithValue("@agency_Json", p1);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
+
+        public bool Update_Agency_Address_Info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_Participant_AddressInfo pi)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_address_info_vr1]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@AgencyId", agencyid);
+
+            cmd.Parameters.AddWithValue("@AgencyTypeId", agencytypeid);
+            cmd.Parameters.AddWithValue("@createdby", createdby);
+            cmd.Parameters.AddWithValue("@branchid", branchid);
+            if (pi.address != null)
+            {
+                cmd.Parameters.AddWithValue("@Address", pi.address);
+            }
+            if (pi.state != null)
+            {
+                cmd.Parameters.AddWithValue("@State", pi.state);
+            }
+            if (pi.city != null)
+            {
+                cmd.Parameters.AddWithValue("@City", pi.city);
+            }
+            if (pi.pincode != null)
+            {
+                cmd.Parameters.AddWithValue("@PinCode", pi.pincode);
+            }
+            if (pi.alt_mobileno != null)
+            {
+                cmd.Parameters.AddWithValue("@alternativemobile", pi.alt_mobileno);
+            }
+            if (pi.latitude != null)
+            {
+                cmd.Parameters.AddWithValue("@latitude", pi.latitude);
+            }
+            if (pi.longitude != null)
+            {
+                cmd.Parameters.AddWithValue("@longitude", pi.longitude);
+            }
+            if (pi.alt_email != null)
+            {
+                cmd.Parameters.AddWithValue("@alternative_email", pi.alt_email);
+            }
+            if (pi.phone_no != null)
+            {
+                cmd.Parameters.AddWithValue("@phoneno", pi.phone_no);
+            }
+
+
+            //string p1 = JsonConvert.SerializeObject(pi);
+            //cmd.Parameters.AddWithValue("@agency_Json", p1);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
+
+        public AgencyAdditionalInfo Get_Agency_Additionl_Info(string agencyid, string agencytypeid)
+        {
+
+            AgencyAdditionalInfo AI = new AgencyAdditionalInfo();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_additional_info_vr1", con);
+            cmd.Parameters.AddWithValue("@agencyid", agencyid);
+            cmd.Parameters.AddWithValue("@agencytype", agencytypeid);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //File.AppendAllText(HttpContext.Current.Server.MapPath("~/Log/Log.txt"), "Father Name" + dt.Rows.Count.ToString());
+            if (dt.Rows.Count > 0)
+            {
+
+                if (dt.Rows[0]["tyaam_val"].ToString() != "")
+                {
+                    if (agencytypeid != "00053")
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(dt.Rows[0]["tyaam_val"].ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+
+                        XmlDocument doc1 = new XmlDocument();
+
+                        doc1.LoadXml(doc.ChildNodes[0].InnerXml);
+                        string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
+                        JsonText = JsonText.Substring(1, JsonText.Length - 2);
+                        AI = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+                    }
+                    else
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(dt.Rows[0]["tyaam_val"].ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+                        XmlDocument doc1 = new XmlDocument();
+                        doc1.LoadXml(doc.ChildNodes[0].ChildNodes[0].OuterXml);
+                        string JsonText = JsonConvert.SerializeXmlNode(doc1);
+                        //string JsonText = doc.ChildNodes[0].ChildNodes[0].InnerXml;
+
+                        AI = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("{\"ADDINFO\":{", "{").Replace("}}", "}"));
+
+                        if (AI.ID_PROOF_TYPE != null)
+                        {
+                            if (AI.ID_PROOF_TYPE.ToString() != "")
+                            {
+                                AI.ID_PROOF_TYPE_TXT = (Enum.GetName(typeof(CommonEnum.ID_PROOF_TYPE), Convert.ToInt32(AI.ID_PROOF_TYPE)));
+                            }
+                        }
+                        if (AI.CAST != null)
+                        {
+                            if (AI.CAST.ToString() != "")
+                            {
+                                AI.CAST_TXT = (Enum.GetName(typeof(CommonEnum.CASTCATEGORY), Convert.ToInt32(AI.CAST)));
+                            }
+                        }
+                    }
+
+
+
+                }
+            }
+            if (AI == null)
+            {
+                AI = new AgencyAdditionalInfo();
+            }
+            return AI;
+        }
+
+        public bool Update_Agency_Other_Info(string agencyid, string agencytypeid, string branchid, string createdby, string AdditionalXML)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_Other_info_vr1]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@AgencyId", agencyid);
+
+            cmd.Parameters.AddWithValue("@AgencyTypeId", agencytypeid);
+            cmd.Parameters.AddWithValue("@createdby", createdby);
+            cmd.Parameters.AddWithValue("@branchid", branchid);
+            cmd.Parameters.AddWithValue("@additionalinfo", AdditionalXML);
+            //string p1 = JsonConvert.SerializeObject(pi);
+            //cmd.Parameters.AddWithValue("@agency_Json", p1);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
 
     }
 }

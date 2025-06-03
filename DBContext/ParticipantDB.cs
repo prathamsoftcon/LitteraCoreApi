@@ -4,7 +4,9 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Data;
+using System.Web;
 using System.Xml;
+using static LitteraCore.Models.MaskInfo;
 
 namespace LitteraCore.DBContext
 {
@@ -435,7 +437,7 @@ namespace LitteraCore.DBContext
                     }
                     if (searchvalue != null)
                     {
-                        cmd.Parameters.AddWithValue("@SearchValue", searchvalue);
+                        cmd.Parameters.AddWithValue("@SearchValue", HttpUtility.UrlDecode(searchvalue));
                     }
                     else
                     {
@@ -696,7 +698,7 @@ namespace LitteraCore.DBContext
                 }
                 if (searchvalue != null)
                 {
-                    cmd.Parameters.AddWithValue("@SearchValue", searchvalue);
+                    cmd.Parameters.AddWithValue("@SearchValue", HttpUtility.UrlDecode(searchvalue));
                 }
                 else
                 {
@@ -742,6 +744,14 @@ namespace LitteraCore.DBContext
                 cmd.CommandTimeout = 5000;
 
                 // Execute reader
+                Form f = new Form();
+                f = CommonDB.Get_Form_Masking_Info("9511");
+
+                int ismaskingrequired = 0;
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                Masking_Setting ml = new Masking_Setting();
+                ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting("10").Rows[0]["SettingValue"].ToString());
+                ismaskingrequired = ml.data_masking_required;
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -761,8 +771,10 @@ namespace LitteraCore.DBContext
                             DurationInGovtJob = Convert.ToString(reader["DurationInGovtJob"]),
                             SpecialSkillAreas = Convert.ToString(reader["SpecialSkillAreas"]),
                             BranchId = Convert.ToString(reader["BranchId"]),
-                            mobileno = Convert.ToString(reader["mobileno"]),
-                            email = Convert.ToString(reader["email"]),
+                            email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(reader["email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                            mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(reader["mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                            //mobileno = Convert.ToString(reader["mobileno"]),
+                            //email = Convert.ToString(reader["email"]),
                             gender = Convert.ToString(reader["gender"]),
                             salutation = Convert.ToString(reader["salutation"]),
                             F_NAME = Convert.ToString(reader["F_NAME"]),

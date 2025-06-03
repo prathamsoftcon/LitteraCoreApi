@@ -2,6 +2,7 @@
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System.Data;
 using System.Security.Cryptography.Xml;
 using static LitteraCore.Models.MaskInfo;
@@ -214,7 +215,12 @@ namespace LitteraCore.DBContext
             con.Close();
             Form f = new Form();
             f = CommonDB.Get_Form_Masking_Info("9654");
-           
+
+            int ismaskingrequired = 0;
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            Masking_Setting ml = new Masking_Setting();
+            ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting("10").Rows[0]["SettingValue"].ToString());
+            ismaskingrequired = ml.data_masking_required;
 
             foreach (DataRow dr in dt.Rows)
             {
@@ -225,10 +231,11 @@ namespace LitteraCore.DBContext
                        userid= Convert.ToString(dr["tyat_userid"]),
                        username = Convert.ToString(dr["UserName"]),
                        agencyname= Convert.ToString(dr["AgencyName"]),
-                       email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]),f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
-                       mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                       email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_email"]),f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                       mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                        eventdate= Convert.ToString(dr["eventdate"]),
-                        total = Convert.ToInt32(dr["total"])
+                        total = Convert.ToInt32(dr["total"]),
+                        usercode = Convert.ToString(dr["usercode"])
                     }
                     );
             }
@@ -273,7 +280,12 @@ namespace LitteraCore.DBContext
             Form f = new Form();
             f = CommonDB.Get_Form_Masking_Info("9654");
 
-          
+            int ismaskingrequired = 0;
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            Masking_Setting ml = new Masking_Setting();
+            ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting("10").Rows[0]["SettingValue"].ToString());
+            ismaskingrequired = ml.data_masking_required;
+
             foreach (DataRow dr in dt.Rows)
             {
 
@@ -283,10 +295,11 @@ namespace LitteraCore.DBContext
                        // userid = Convert.ToString(dr["tyat_userid"]),
                         username = Convert.ToString(dr["UserName"]),
                         agencyname = Convert.ToString(dr["AgencyName"]),
-                        email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
-                        mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                        email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
-                        total=Convert.ToInt32(dr["total"])
+                        total=Convert.ToInt32(dr["total"]),
+                        usercode = Convert.ToString(dr["usercode"])
                     }
                     );
             }
@@ -329,7 +342,11 @@ namespace LitteraCore.DBContext
             Form f = new Form();
             f = CommonDB.Get_Form_Masking_Info("9654");
 
-         
+            int ismaskingrequired = 0;
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            Masking_Setting ml = new Masking_Setting();
+            ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting("10").Rows[0]["SettingValue"].ToString());
+            ismaskingrequired = ml.data_masking_required;
 
             foreach (DataRow dr in dt.Rows)
             {
@@ -340,10 +357,11 @@ namespace LitteraCore.DBContext
                         // userid = Convert.ToString(dr["tyat_userid"]),
                         username = Convert.ToString(dr["UserName"]),
                         agencyname = Convert.ToString(dr["AgencyName"]),
-                        email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
-                        mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                        email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
-                        total = Convert.ToInt32(dr["total"])
+                        total = Convert.ToInt32(dr["total"]),
+                        usercode = Convert.ToString(dr["usercode"])
                     }
                     );
             }
@@ -595,7 +613,11 @@ namespace LitteraCore.DBContext
             Form f = new Form();
             f = CommonDB.Get_Form_Masking_Info("9657");
 
-
+            int ismaskingrequired = 0;
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            Masking_Setting ml = new Masking_Setting();
+            ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting("10").Rows[0]["SettingValue"].ToString());
+            ismaskingrequired = ml.data_masking_required;
 
 
             foreach (DataRow dr in dt.Rows)
@@ -620,14 +642,15 @@ namespace LitteraCore.DBContext
                         GlobalContentTitle = Convert.ToString(dr["GlobalContentTitle"]),
                         GlobalContentyTypeID = Convert.ToString(dr["GlobalContentyTypeID"]),
                         Participantid = Convert.ToString(dr["Participantid"]),
-                        ag_email = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
-                        ag_mobileno = CommonDB.Get_MaskData(1, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
+                        ag_email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
+                        ag_mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         
                         learningtime = Convert.ToDecimal(dr["learningtime"]),
                         totalrecord = Convert.ToInt16(dr["totalrecord"]),
                         trainingid = Convert.ToString(dr["trainingid"]),
                         trainingname = Convert.ToString(dr["trainingname"]),
-                        GlobalContentyType_Name= content_type_name
+                        usercode = Convert.ToString(dr["usercode"]),
+                        GlobalContentyType_Name = content_type_name
 
                     }
                     );
@@ -636,6 +659,37 @@ namespace LitteraCore.DBContext
             return L;
         }
 
+        public bool Check_First_Login(string participantid)
+        {
+            bool ischanged =false;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("select  * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid=(select tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id='"+ participantid + "')", con);
+
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            if (dt.Rows.Count > 0)
+            {
+                ischanged = true;
+            }
+            else
+            {
+                ischanged = false;
+            }
+
+            return ischanged;
+
+        }
 
 
     }

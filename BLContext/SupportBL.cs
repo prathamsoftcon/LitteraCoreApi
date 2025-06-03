@@ -52,6 +52,7 @@ namespace LitteraCore.BLContext
         }
         public List<Support_Analytical_Report> Login_Analytics(string fromdate, string todate,int reportype=1, int pageno = 1, int pagesize = 1, SearchParam filter = null)
         {
+
             List<Support_Analytical_Report> sl = new List<Support_Analytical_Report>();
 
             SupportDB ABD = new SupportDB(_configuration);

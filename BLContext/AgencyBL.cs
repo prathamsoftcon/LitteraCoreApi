@@ -158,5 +158,172 @@ namespace LitteraCore.BLContext
             return s;
         }
 
+
+        public bool Update_Personal_info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_PersonalInfo pi)
+        {
+            AgencyDB ABD = new AgencyDB(_configuration);
+            bool issaved = false;
+            string OtherXML = "";
+            DataTable dtXML = new DataTable();
+            dtXML.Columns.Add("DESIGNATION");
+            dtXML.Columns.Add("CURRENTPOSTING");
+            dtXML.Columns.Add("ISBHOPAL");
+            dtXML.Columns.Add("ID_PROOF_TYPE");
+            dtXML.Columns.Add("ID_PROOF_VALUE");
+            dtXML.Columns.Add("FATHER_NAME");
+            dtXML.Columns.Add("MOTHER_NAME");
+            dtXML.Columns.Add("CAST");
+            dtXML.Columns.Add("UPLOAD_PATH");
+
+            //Code to get Agency old Data
+
+            AgencyAdditionalInfo AI = new AgencyAdditionalInfo();
+            AI = ABD.Get_Agency_Additionl_Info(agencyid, agencytypeid);
+
+            if (pi.OtherInfo.class_or_term != null)
+            {
+                AI.DESIGNATION = pi.OtherInfo.class_or_term;
+            }
+            if (pi.OtherInfo.school != null)
+            {
+                AI.CURRENTPOSTING = pi.OtherInfo.school;
+            }
+            AI.CAST = pi.OtherInfo.cast_category;
+            AI.FATHER_NAME = pi.OtherInfo.fathername;
+            AI.MOTHER_NAME = pi.OtherInfo.mothername;
+            AI.ID_PROOF_TYPE = pi.OtherInfo.id_type;
+            AI.ID_PROOF_VALUE = pi.OtherInfo.id_no;
+            
+            if (AI != null)
+            {
+                DataRow dr = dtXML.NewRow();
+                if (AI.DESIGNATION != null)
+                {
+                    dr["DESIGNATION"] = AI.DESIGNATION;
+                }
+                if (AI.CURRENTPOSTING != null)
+                {
+                    dr["CURRENTPOSTING"] = AI.CURRENTPOSTING;
+                }
+                if (AI.ISBHOPAL != null)
+                {
+                    dr["ISBHOPAL"] = AI.ISBHOPAL;
+                }
+                if (AI.ID_PROOF_TYPE != null)
+                {
+                    dr["ID_PROOF_TYPE"] = AI.ID_PROOF_TYPE;
+                }
+                if (AI.ID_PROOF_VALUE != null)
+                {
+                    dr["ID_PROOF_VALUE"] = AI.ID_PROOF_VALUE;
+                }
+                if (AI.FATHER_NAME != null)
+                {
+                    dr["FATHER_NAME"] = AI.FATHER_NAME;
+                }
+                if (AI.MOTHER_NAME != null)
+                {
+                    dr["MOTHER_NAME"] = AI.MOTHER_NAME;
+                }
+                if (AI.CAST != null)
+                {
+                    dr["CAST"] = AI.CAST;
+                }
+                if (AI.DOC_PATH != null)
+                {
+                    dr["UPLOAD_PATH"] = AI.DOC_PATH;
+                }
+                dtXML.Rows.Add(dr);
+                dtXML.TableName = "ADDINFO";
+                StringWriter sr = new StringWriter();
+                dtXML.WriteXml(sr);
+                OtherXML = sr.ToString();
+            }
+
+
+
+
+
+
+            issaved = ABD.Update_Agency_Personal_Info(agencyid, agencytypeid, branchid, createdby, pi, OtherXML);
+            return issaved;
+        }
+
+        public bool Update_Address_info(string agencytypeid, string agencyid, string branchid, string createdby, Agency_Participant_AddressInfo pi)
+        {
+            AgencyDB ABD = new AgencyDB(_configuration);
+            bool issaved = false;
+
+            issaved = ABD.Update_Agency_Address_Info(agencyid, agencytypeid, branchid, createdby, pi);
+            return issaved;
+        }
+        public bool Update_Other_info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_Participant_OtherInfo pi)
+        {
+            AgencyDB ABD = new AgencyDB(_configuration);
+            bool issaved = false;
+            string OtherXML = "";
+            DataTable dtXML = new DataTable();
+            dtXML.Columns.Add("DESIGNATION");
+            dtXML.Columns.Add("CURRENTPOSTING");
+            dtXML.Columns.Add("ISBHOPAL");
+            dtXML.Columns.Add("ID_PROOF_TYPE");
+            dtXML.Columns.Add("ID_PROOF_VALUE");
+            dtXML.Columns.Add("FATHER_NAME");
+            dtXML.Columns.Add("MOTHER_NAME");
+            dtXML.Columns.Add("CAST");
+            dtXML.Columns.Add("DOC_PATH");
+
+            //Code to get Agency old Data
+
+            AgencyAdditionalInfo AI = new AgencyAdditionalInfo();
+            AI = ABD.Get_Agency_Additionl_Info(agencyid, agencytypeid);
+            AI.DESIGNATION = pi.class_or_term;
+            AI.CURRENTPOSTING = pi.school;
+            AI.DOC_PATH = pi.doc_Path;
+        
+            if (pi.cast_category != null)
+            {
+                AI.CAST = pi.cast_category;
+            }
+            if (pi.fathername != null)
+            {
+                AI.FATHER_NAME = pi.fathername;
+            }
+            if (pi.mothername != null)
+            {
+                AI.MOTHER_NAME = pi.mothername;
+            }
+            if (pi.id_type != null)
+            {
+                AI.ID_PROOF_TYPE = pi.id_type;
+            }
+            if (pi.id_no != null)
+            {
+                AI.ID_PROOF_VALUE = pi.id_no;
+            }
+            if (pi.id_no != null)
+            {
+                AI.ID_PROOF_VALUE = pi.id_no;
+            }
+        
+            DataRow dr = dtXML.NewRow();
+            dr["DESIGNATION"] = AI.DESIGNATION;
+            dr["CURRENTPOSTING"] = AI.CURRENTPOSTING;
+            dr["ISBHOPAL"] = AI.ISBHOPAL;
+            dr["ID_PROOF_TYPE"] = AI.ID_PROOF_TYPE;
+            dr["ID_PROOF_VALUE"] = AI.ID_PROOF_VALUE;
+            dr["FATHER_NAME"] = AI.FATHER_NAME;
+            dr["MOTHER_NAME"] = AI.MOTHER_NAME;
+            dr["CAST"] = AI.CAST;
+            dr["DOC_PATH"] = AI.DOC_PATH;
+            dtXML.Rows.Add(dr);
+
+            dtXML.TableName = "ADDINFO";
+            StringWriter sr = new StringWriter();
+            dtXML.WriteXml(sr);
+            OtherXML = sr.ToString();
+            issaved = ABD.Update_Agency_Other_Info(agencyid, agencytypeid, branchid, createdby, OtherXML);
+            return issaved;
+        }
     }
 }

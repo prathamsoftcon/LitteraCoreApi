@@ -369,7 +369,16 @@ namespace LitteraCore.Controllers
 
             //****************Get Session Restriction data
             SessionDB sdb=new SessionDB(_configuration);
-            List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid,branchid);
+
+            List<Session> slp = new List<Session>();
+
+            if (usertype !=null)
+            {
+                slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
+            }
+         
+
+
             SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
             SessionBL sbl=new SessionBL(_configuration);
 
@@ -614,12 +623,12 @@ namespace LitteraCore.Controllers
                     }
                     else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Day)
                     {
-                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test)
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
                             {
                                 //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment) && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test ) && (o.completiontype != null && o.completiontype.id.ToString() != "2")).Count() <= 0)
                                 {
                                     isrestricted = false;
                                 }
@@ -643,7 +652,7 @@ namespace LitteraCore.Controllers
                             }
                             else
                             {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Practical && completiontypeid.ToString() != "2").Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1  && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Practical && completiontypeid.ToString() != "2").Count() <= 0)
                                 {
 
                                     if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
@@ -685,7 +694,7 @@ namespace LitteraCore.Controllers
                             }
                             else
                             {
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) < Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 ).Count() <= 0)
                                 {
                                     if (SL.Where(o => Convert.ToInt32(o.ttttt_session_no) < Convert.ToInt32(opensessiondetail.ttttt_session_no) && Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1).Count() <= 0)
                                     {
@@ -699,12 +708,12 @@ namespace LitteraCore.Controllers
                     }
                     else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Week)
                     {
-                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test)
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 ).Count() <= 0)
                             {
                                 //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test )).Count() <= 0)
                                 {
                                     isrestricted = false;
                                 }
@@ -713,7 +722,7 @@ namespace LitteraCore.Controllers
                         }
                         else
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.ttttt_session_week) < Convert.ToInt32(opensessiondetail.ttttt_session_week) && o.noofcompletion != 1 ).Count() <= 0)
                             {
                                 isrestricted = false;
                             }
@@ -721,12 +730,12 @@ namespace LitteraCore.Controllers
                     }
                     else if (restrictiondata.restrictionon == (int)CommonEnum.SessionEntryControl.Module)
                     {
-                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test || Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Assignment)
+                        if (Convert.ToInt32(opensessiondetail.ttttt_type) == (int)CommonEnum.SESSION_TYPE.Test )
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 ).Count() <= 0)
                             {
                                 //Extra condition in case of test/Assignment to complete all sessions for the day before complete test/assignment
-                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment)).Count() <= 0)
+                                if (SL.Where(o => Convert.ToInt32(o.ttttt_session_day) == Convert.ToInt32(opensessiondetail.ttttt_session_day) && o.noofcompletion != 1 && (Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Test )).Count() <= 0)
                                 {
                                     isrestricted = false;
                                 }
@@ -735,7 +744,7 @@ namespace LitteraCore.Controllers
                         }
                         else
                         {
-                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1 && Convert.ToInt32(o.ttttt_type) != (int)CommonEnum.SESSION_TYPE.Assignment).Count() <= 0)
+                            if (SL.Where(o => Convert.ToInt32(o.module) < Convert.ToInt32(opensessiondetail.module) && o.noofcompletion != 1).Count() <= 0)
                             {
                                 isrestricted = false;
                             }
@@ -1255,13 +1264,21 @@ namespace LitteraCore.Controllers
                 {
                     if(sessn.completionpercentage == 0)
                     {
-                        if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
+                        //if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
+                        if (sessn.ttttt_type == 7)
                         {
                             if(participantstatus == 1)
                             {
                                 activeSession = sessn;
                             }
                             
+                        }
+                        else if(sessn.ttttt_type == 6) //Assignment
+                        {
+                            if (activeSession == null)
+                            {
+                                activeSession = sessn;
+                            }
                         }
                         else
                         {

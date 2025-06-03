@@ -32,16 +32,19 @@ namespace LitteraCore.Controllers
     
     public class AuthenticationController : ControllerBase
     {
+        
         private readonly OtpManager _otpManager;
         private readonly IConfiguration _configuration;
         private readonly ISmsService _smsService;
         private readonly IEmailService _mailService;
+
         public AuthenticationController(IConfiguration configuration, OtpManager otpManager,ISmsService smsService, IEmailService emailService)
         {
             _configuration = configuration;
             _otpManager = otpManager;
             _smsService = smsService;
             _mailService = emailService;
+           
         }
 
 
@@ -985,6 +988,74 @@ namespace LitteraCore.Controllers
 
 
         }
+
+
+
+        [HttpPost]
+        [Route("api/Match_Password")]
+        public IActionResult Match_Password(Update_Password u)
+        {
+            //Code to check old password
+            AppAuthService auth = new AppAuthService(_configuration);
+            List<User> lU = new List<User>();
+            AuthDB adb = new AuthDB(_configuration);
+            lU = adb.GET_LOGIN_DETAIL(u.username);
+            if (lU.Count > 0)
+            {
+                string decryptedpass = YEncryptDecryptData.YEncryptDecryptData.Decrypt(lU.FirstOrDefault().password, true);
+                if (decryptedpass == u.password)
+                {
+                    return Ok(true);
+                  
+                }
+            }
+
+
+
+            return Ok(false);
+
+
+
+        }
+
+
+        [HttpPost]
+        [Route("api/SAVE_USER_LOG")]
+        public IActionResult SAVE_USER_LOG(string userid)
+        {
+           
+            string ip = GetClientIp();
+            AuthDB adb = new AuthDB(_configuration);
+
+            if(adb.Make_Login_Entry(userid, null, ip) == true)
+            {
+                adb.Password_Updated(userid);
+            }
+          
+
+
+            return Ok(true);
+
+
+
+        }
+
+        [HttpGet("clientip")]
+        public string GetClientIp()
+        {
+            string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+            if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
+            }
+
+            return clientIp;
+        }
+
+
+
 
 
     }

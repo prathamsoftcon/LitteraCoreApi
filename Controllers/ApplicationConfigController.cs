@@ -122,6 +122,13 @@ namespace LitteraCore.Controllers
             
                 return Ok(ml);
             }
+            else if (settingtype ==10)
+            {
+                Masking_Setting ml = new Masking_Setting();
+                ml = JsonConvert.DeserializeObject<Masking_Setting>(a.Get_Application_Setting(settingtype.ToString()).Rows[0]["SettingValue"].ToString());
+                return Ok(ml);
+
+            }
 
             return Ok(response);
         }
@@ -248,6 +255,8 @@ namespace LitteraCore.Controllers
 
          
         }
+
+      
 
 
     }

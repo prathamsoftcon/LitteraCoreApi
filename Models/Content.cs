@@ -61,5 +61,20 @@
         public string ttsar_download { get; set; }
         public string ttsar_delete { get; set; }
     }
+
+    public class contentDetail
+    {
+        public string content_path { get; set; }
+        public string ttpai_id { get; set; }
+        public string mobileno { get; set; }
+        public string userid { get; set; }
+        public string trainingid { get; set; }
+        public string sessionid { get; set; }
+        public bool feedbacksubmitted { get; set; } = false;
+        public Content[] Items { get; set; }
+
+        public Session Session { get; set; }
+    }
+  
   
 }

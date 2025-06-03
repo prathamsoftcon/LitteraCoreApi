@@ -104,6 +104,9 @@ namespace LitteraCore.Models
         public Trg_Setting? trg_Setting { get; set; }
 
         public bool is_reg_open { get; set; }
+
+        public decimal trg_rating { get; set; } = 3.5M;
+        public int no_of_response { get; set; }
     }
 
     public class FB_Share_Data

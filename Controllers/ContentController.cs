@@ -54,6 +54,47 @@ namespace LitteraCore.Controllers
             return Ok(issaved);
         }
 
+
+
+        [HttpGet]
+        [Route("api/GET_CONTENT_DETAILS")]
+        public IActionResult GET_CONTENT_DETAILS(string ttsam_id, string participantid)
+        {
+            contentDetail cd = new contentDetail();
+            ContentDB cdb = new ContentDB(_configuration);
+            cd = cdb.Get_ttpai_from_Content(ttsam_id, participantid);
+            contentDetail cdn=new contentDetail();
+            cdn = cdb.Get_Content_Detail(ttsam_id);
+            cd.content_path = cdn.content_path;
+            cd.trainingid = cdn.trainingid;
+            cd.sessionid = cdn.sessionid;
+            //********
+            UserDB UBL = new UserDB(_configuration);
+            User amob = new User();
+            amob = UBL.GET_MOBILE_NO_DATA(cd.mobileno, 2);
+            if(amob != null)
+            {
+                cd.userid = amob.userid;
+            }
+            ContentDB CDB = new ContentDB(_configuration);
+            List<Content> AL = new List<Content>();
+            PaginationParam param = null;
+            AL = CDB.Get_Trg_Content(param, cd.trainingid, cd.sessionid);
+            AL = AL.Where(o => o.ttsad_ttsam_id.ToString().ToUpper() == ttsam_id.ToString().ToUpper()).ToList();
+            //********
+            cd.Items = AL.ToArray();
+
+
+
+
+            SessionBL cbl = new SessionBL(_configuration);
+            List<Session> s = new List<Session>();
+            s = cbl.Get_Session_Data_By_Trg(cd.trainingid);
+            Session sd = s.Where(o=>o.ttttt_session_id.ToString().ToUpper()==cd.sessionid.ToString().ToUpper()).FirstOrDefault();
+            cd.Session = sd;
+            return Ok(cd);
+        }
+
         //[HttpGet]
         //[Route("api/GlobalContentType")]
         //public IActionResult GlobalContentType()

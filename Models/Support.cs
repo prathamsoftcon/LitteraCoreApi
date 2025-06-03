@@ -53,6 +53,7 @@
         public string mobileno { get; set; }
         public string email { get; set; }
         public string eventdate { get; set; }
+        public string usercode { get; set; }
         public int total { get; set; }
 
     }
@@ -92,6 +93,7 @@
         public int totalrecord { get; set; }
         public string trainingid { get; set; }
         public string trainingname { get; set; }
+        public string usercode { get; set; }
 
     }
 

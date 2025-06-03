@@ -24,6 +24,9 @@ namespace LitteraCore.DBContext
 
         public static string Get_MaskData(int ismaskingreq, string data, Form form, int columntype)
         {
+           
+            
+
             if (ismaskingreq == 1)
             {
                 // Check if masking is required for this column
@@ -73,6 +76,7 @@ namespace LitteraCore.DBContext
 
         public static Form Get_Form_Masking_Info(string formid=null)
         {
+
             MaskDataWrapper maskDataWrapper = new MaskDataWrapper();
 
 

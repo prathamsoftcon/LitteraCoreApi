@@ -5,6 +5,7 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace LitteraCore.Controllers
 {
@@ -162,5 +163,66 @@ namespace LitteraCore.Controllers
             FAL.Items = al;
             return Ok(FAL);
         }
+
+
+        [HttpPost]
+        [Route("api/PARTICIPANT_PERSONAL_INFO")]
+        public IActionResult PARTICIPANT_PERSONAL_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody]Agency_PersonalInfo pi)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            bool issaved = false;
+           
+            issaved = ABL.Update_Personal_info(agencyid, agencytypeid, branchid, createdby, pi);
+            if (issaved == true)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+           
+        }
+
+        [HttpPost]
+        [Route("api/AGENCY_ADDRESS_INFO")]
+        public IActionResult AGENCY_ADDRESS_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_AddressInfo ai)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            bool issaved = false;
+
+            issaved = ABL.Update_Address_info(agencyid, agencytypeid, branchid, createdby, ai);
+            if (issaved == true)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+
+        }
+
+        [HttpPost]
+        [Route("api/PARTICIPANT_OTHER_INFO")]
+        public IActionResult OTHER_INFO(string APIKEY, string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_OtherInfo oi)
+        {
+
+            AgencyBL ABL = new AgencyBL(_configuration);
+            bool issaved = false;
+            issaved = ABL.Update_Other_info(agencyid, agencytypeid, branchid, createdby, oi);
+            if (issaved == true)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+        }
+
     }
 }

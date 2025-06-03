@@ -204,4 +204,48 @@
         public string ag_gstn { get; set; }
         public string ag_sign_path { get; set; }
     }
+
+    public class Agency_PersonalInfo
+    {
+
+        public int? gender { get; set; }
+        public DateTime? dob { get; set; }
+
+        public string salutation { get; set; }
+        public string fname { get; set; }
+        public string mname { get; set; }
+        public string lname { get; set; }
+        public string photo_path { get; set; }
+        public Agency_Participant_OtherInfo OtherInfo { get; set; }
+
+    }
+    public class Agency_Participant_AddressInfo
+    {
+        public string address { get; set; }
+        public string state { get; set; }
+        public string city { get; set; }
+        public string pincode { get; set; }
+
+        public string latitude { get; set; }
+        public string longitude { get; set; }
+        public string alt_mobileno { get; set; }
+
+        public string phone_no { get; set; }
+        public string alt_email { get; set; }
+
+    }
+
+    public class Agency_Participant_OtherInfo
+    {
+        public string fathername { get; set; }
+        public string mothername { get; set; }
+        public string cast_category { get; set; }
+        public string id_type { get; set; }
+        public string id_no { get; set; }
+        public string class_or_term { get; set; }
+        public string school { get; set; }
+        public string doc_Path { get; set; }
+
+
+    }
 }

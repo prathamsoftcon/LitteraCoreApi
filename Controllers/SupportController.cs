@@ -8,6 +8,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using System.Net;
 
@@ -21,12 +22,16 @@ namespace LitteraCore.Controllers
         private readonly IConfiguration _configuration;
         private readonly ISmsService _smsService;
         private readonly IEmailService _mailService;
-        public SupportController(IConfiguration configuration, OtpManager otpManager, ISmsService smsService, IEmailService emailService)
+        private readonly IWebHostEnvironment _env;
+
+      
+        public SupportController(IConfiguration configuration, OtpManager otpManager, ISmsService smsService, IEmailService emailService, IWebHostEnvironment env)
         {
             _configuration = configuration;
             _otpManager = otpManager;
             _smsService = smsService;
             _mailService = emailService;
+            _env = env;
         }
 
         [HttpPost]
@@ -163,7 +168,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SearchParticipant")]
-        public IActionResult SearchParticipant(string? trainingid=null,string? searchcolumn=null,string? searchvalue=null,string ? branchid=null)
+        public IActionResult SearchParticipant(string? trainingid=null,string? searchcolumn=null,string? searchvalue=null,string ? branchid=null, [FromQuery] PaginationParam? param = null)
         {
             ParticipantDB pdb = new ParticipantDB(_configuration);
 
@@ -171,7 +176,21 @@ namespace LitteraCore.Controllers
             List<Participant> s = new List<Participant>();
             s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue);
             SupportBL SBL = new SupportBL(_configuration);
-            return Ok(s);
+
+           
+            var result = Paging.GetPagedData(param, s);
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.FirstOrDefault().totalrecords;
+                result.TotalPages = (int)Math.Ceiling((double)s.FirstOrDefault().totalrecords / param.PageSize);
+            }
+            if (s.Count > 0)
+            {
+                result.TotalRecords = s.Count();
+                result.TotalPages = (int)Math.Ceiling((double)s.Count() / param.PageSize);
+            }
+            return Ok(result);
+           
 
 
         }
@@ -190,9 +209,93 @@ namespace LitteraCore.Controllers
             return Ok(s);
 
         }
+        [HttpGet("api/ErrorFile")]
+        public IActionResult DownloadFile(string APIFolder, string ErrorDate)
+        {
+            // Full path to the file
+            string fileName = "";
+            string errorfolder = "";
+
+            if (APIFolder.ToString().ToUpper() == "LITTERACORE")
+            {
+                fileName = "error" + ErrorDate.Replace("/", "").Replace("-", "") + ".log";
+                errorfolder = "logs";
+            }
+            else if(APIFolder.ToString().ToUpper() == "LITTERAAPI")
+            {
+                fileName = "Log.txt";
+                errorfolder = "Log";
+            }
+            else if (APIFolder.ToString().ToUpper() == "EVALUATION")
+            {
+                fileName = "EFLog.txt";
+                errorfolder = "Log";
+            }
+            else if (APIFolder.ToString().ToUpper() == "SUVEY")
+            {
+                fileName = "WebApi" + ErrorDate.Replace("/", "").Replace("-", "") + ".log";
+                errorfolder = "Log";
+            }
+
+            string projectRoot = _env.ContentRootPath;
+            string parentFolder = Directory.GetParent(projectRoot)?.Parent+"/"+ APIFolder;
+           
+            var filePath = Path.Combine(parentFolder, errorfolder, fileName);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            //var contentType = GetContentType(filePath);
+            //var fileBytes = System.IO.File.ReadAllBytes(filePath);
+
+            //return File(fileBytes, contentType, fileName); // triggers browser download
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var contentType = GetContentType(filePath);
+
+            return File(stream, contentType, fileName);
+        }
+
+        [HttpGet("api/GET_API_NAMES")]
+        public IActionResult GET_API_NAMES()
+        {
+            // Full path to the file
+
+            List<string> S = new List<string>();
+            S.Add("LITTERACORE");
+            S.Add("LITTERAAPI");
+            S.Add("EVALUATION");
+            S.Add("SUVEY");
+            S.Add("URLSHORTNER");
 
 
-     
+            return Ok(S);
+        }
+        private string GetContentType(string path)
+        {
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(path, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+            return contentType;
+        }
+
+        [HttpGet]
+        [Route("api/Check_First_Login")]
+        public IActionResult Check_First_Login(string participantid)
+        {
+            string unitname = "";
+            decimal learning = 0;
+            List<Learning_Report_Data> s = new List<Learning_Report_Data>();
+            SupportDB SBL = new SupportDB(_configuration);
+            bool ischanged = SBL.Check_First_Login(participantid);
+
+            return Ok(ischanged);
+
+        }
+
 
     }
 }
