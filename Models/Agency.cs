@@ -209,7 +209,7 @@
     {
 
         public int? gender { get; set; }
-        public DateTime? dob { get; set; }
+        public string dob { get; set; }
 
         public string salutation { get; set; }
         public string fname { get; set; }

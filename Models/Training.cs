@@ -318,4 +318,19 @@ namespace LitteraCore.Models
         public string HCourseName { get; set; }
         public string CourseCode { get; set; }
     }
+
+
+    public class Littera_Events
+    {
+        public string trainingId { get; set; }
+        public string t_Name { get; set; }
+        public string t_Details { get; set; }
+        public int noOfParticipants_Registered { get; set; }
+        public string trainingStatus { get;set; }
+        public string img_path { get; set; }
+        public string trg_type { get; set; }
+        public string redirection_link { get; set; }
+        public Trg_Setting? trg_Setting { get; set; }
+
+    }
 }

@@ -11,6 +11,7 @@ namespace LitteraCore.Common
         public static string Agencytype_Staff = "00008";
         public static string Discount_Ledgerid = "417119B3-18B6-43A1-8A52-064E99B6880E";
         public static string Branchid = "dff7c661-5b84-4a7e-8250-31c420dd9fcd";
+        public static DateTime content_expiry = Convert.ToDateTime("2025/06/30");
         public enum UserType
         {
             Admin = 1,

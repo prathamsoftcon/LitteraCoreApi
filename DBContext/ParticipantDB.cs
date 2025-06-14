@@ -704,7 +704,15 @@ namespace LitteraCore.DBContext
                 {
                     cmd.Parameters.AddWithValue("@SearchValue", DBNull.Value);
                 }
-                cmd.Parameters.AddWithValue("@branchid", branchid);
+                if(branchid != null)
+                {
+                    cmd.Parameters.AddWithValue("@branchid", branchid);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@branchid", DBNull.Value);
+                }
+            
 
                 if (sortcolumn != null)
                 {
@@ -799,7 +807,10 @@ namespace LitteraCore.DBContext
                             ttpai_id = Convert.ToString(reader["ttpai_id"]),
                             totalrecords = Convert.ToInt32(reader["totalrecords"]),
                             rcname = Convert.ToString(reader["district_name"]),
-                            scname = Convert.ToString(reader["Branchname"])
+                            scname = Convert.ToString(reader["Branchname"]),
+                            TrainingCode= Convert.ToString(reader["TrainingCode"]),
+                            t_Name = Convert.ToString(reader["t_Name"])
+
 
                         };
 

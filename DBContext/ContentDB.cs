@@ -281,6 +281,7 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@tplt_learning_time", lt.tplt_learning_time);
             cmd.Parameters.AddWithValue("@tplt_createdon", lt.tplt_createdon);
             cmd.Parameters.AddWithValue("@tplt_createdby", lt.tplt_createdby);
+            cmd.Parameters.AddWithValue("@tplt_sessionid", lt.tplt_sessionid);
             cmd.CommandType = CommandType.StoredProcedure;
 
             cmd.Connection = con;
@@ -332,9 +333,10 @@ where ttsam_id = '"+ ttsam_id + "'", con);
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             con.Open();
-            SqlCommand cmd = new SqlCommand(@"select ai.ttpai_id,am.ag_mobileno from TrainingPlan.tbl_tp_participant_additional_info ai 
-inner join YUser.AgencyMaster am on ai.Participantid=am.AgencyId where 
-TrainingId = (select ttsam_trg_id from TrainingPlan.tbl_tp_session_attachment_master
+            SqlCommand cmd = new SqlCommand(@"select ai.ttpai_id,am.ag_mobileno,am.AgencyId,amp.tyuam_userid from TrainingPlan.tbl_tp_participant_additional_info ai 
+inner join YUser.AgencyMaster am on ai.Participantid=am.AgencyId 
+inner join YUser.tbl_yuser_user_agency_mapping amp on amp.tyuam_agency_id=am.AgencyId
+where TrainingId = (select ttsam_trg_id from TrainingPlan.tbl_tp_session_attachment_master
 where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'", con);
 
 
@@ -351,9 +353,31 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             {
                 cd.ttpai_id= Convert.ToString(dt.Rows[0]["ttpai_id"]);
                 cd.mobileno = Convert.ToString(dt.Rows[0]["ag_mobileno"]);
+                cd.userid = Convert.ToString(dt.Rows[0]["tyuam_userid"]);
             }
 
             return cd;
+
+        }
+
+        public bool INSERT_CONTENT_VISITING(string contentid, string mobileno, string ip)
+        {
+
+            //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
+            //con.Open();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_track_content", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@ContentID", contentid);
+            cmd.Parameters.AddWithValue("@MobileNo", mobileno);
+            cmd.Parameters.AddWithValue("@IPAddress", ip);
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
 
         }
 

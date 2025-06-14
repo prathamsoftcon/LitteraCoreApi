@@ -103,6 +103,7 @@ namespace LitteraCore.Controllers
         {
             try
             {
+               
                 if (u.OTP != null)
                 {
                     string username = "";
@@ -133,6 +134,9 @@ namespace LitteraCore.Controllers
                         };
 
                         Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                        AuthDB adb = new AuthDB(_configuration);
+                        string ip = GetClientIp();
+                        adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
                         return Ok(token);
                     }
                     else
@@ -176,6 +180,9 @@ namespace LitteraCore.Controllers
                             };
 
                             Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                            
+                            string ip = GetClientIp();
+                            adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
                             return Ok(token);
                         }
                         else
@@ -269,7 +276,7 @@ namespace LitteraCore.Controllers
                       
                     }
 
-                    return Ok(new {otp= otp, userid= lU.userid});
+                    return Ok(new {otp= otp, userid= lU.userid,agencyid=lU.agencyid});
 
                 }
                 else
@@ -1054,7 +1061,17 @@ namespace LitteraCore.Controllers
             return clientIp;
         }
 
+        [HttpGet("api/CHECK_VIDEO_LINK_EXPIRY")]
+        public IActionResult CHECK_VIDEO_LINK_EXPIRY(string trainingid)
+        {
+         DateTime content_Expiry=Common.CommonEnum.content_expiry;
+            if(System.DateTime.Now> content_Expiry)
+            {
+                return Ok(true);
+            }
 
+            return Ok(false);
+        }
 
 
 

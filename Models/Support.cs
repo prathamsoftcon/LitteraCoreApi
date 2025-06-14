@@ -1,5 +1,6 @@
 ﻿namespace LitteraCore.Models
 {
+    
     public class Support
     {
         public string id { get; set; }
@@ -97,5 +98,21 @@
 
     }
 
+    public class Enrollment_Summary
+    {
+        public string trainingid { get; set; }
+        public string t_name { get; set; }
+        public string t_code { get; set; }
+        public string total_enrollments { get; set; }
+        public string proposed_participants { get; set; }
+        public string no_of_active_lerners { get; set; }
+
+     
+
+    }
+    public class TrainingList
+    {
+        public string[] id { get; set; }
+    }
 
 }

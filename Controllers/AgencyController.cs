@@ -192,7 +192,7 @@ namespace LitteraCore.Controllers
             AgencyBL ABL = new AgencyBL(_configuration);
             bool issaved = false;
 
-            issaved = ABL.Update_Address_info(agencyid, agencytypeid, branchid, createdby, ai);
+            issaved = ABL.Update_Address_info(agencytypeid, agencyid, branchid, createdby, ai);
             if (issaved == true)
             {
                 return Ok();
@@ -207,7 +207,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/PARTICIPANT_OTHER_INFO")]
-        public IActionResult OTHER_INFO(string APIKEY, string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_OtherInfo oi)
+        public IActionResult OTHER_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_OtherInfo oi)
         {
 
             AgencyBL ABL = new AgencyBL(_configuration);

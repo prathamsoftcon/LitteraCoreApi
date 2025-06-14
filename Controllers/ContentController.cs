@@ -60,6 +60,9 @@ namespace LitteraCore.Controllers
         [Route("api/GET_CONTENT_DETAILS")]
         public IActionResult GET_CONTENT_DETAILS(string ttsam_id, string participantid)
         {
+
+            string ipaddress = GetClientIp();
+
             contentDetail cd = new contentDetail();
             ContentDB cdb = new ContentDB(_configuration);
             cd = cdb.Get_ttpai_from_Content(ttsam_id, participantid);
@@ -79,6 +82,22 @@ namespace LitteraCore.Controllers
             ContentDB CDB = new ContentDB(_configuration);
             List<Content> AL = new List<Content>();
             PaginationParam param = null;
+          
+            bool issaved = cdb.INSERT_CONTENT_VISITING(ttsam_id, cd.mobileno, ipaddress);
+            // Save Learning Time with 0 entry
+            ContentBL CBL = new ContentBL(_configuration);
+            learningtime lt=new learningtime {  tplt_Id=Guid.NewGuid().ToString(),
+             tplt_learning_time=0,
+             tplt_createdon=System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"),
+             tplt_createdby= participantid,
+             tplt_ttpai_id=cd.ttpai_id,
+             tplt_ttsam_id= ttsam_id
+
+            };
+
+
+            bool islearningtimesaved = CBL.save_participant_learning_time(lt);
+
             AL = CDB.Get_Trg_Content(param, cd.trainingid, cd.sessionid);
             AL = AL.Where(o => o.ttsad_ttsam_id.ToString().ToUpper() == ttsam_id.ToString().ToUpper()).ToList();
             //********
@@ -92,6 +111,17 @@ namespace LitteraCore.Controllers
             s = cbl.Get_Session_Data_By_Trg(cd.trainingid);
             Session sd = s.Where(o=>o.ttttt_session_id.ToString().ToUpper()==cd.sessionid.ToString().ToUpper()).FirstOrDefault();
             cd.Session = sd;
+
+
+            //get branchid
+            UserBranch ub = new UserBranch();
+            AgencyBL abl = new AgencyBL(_configuration);
+            ub = abl.Get_User_Branche(cd.userid);
+            if (ub.branches.Count() > 0)
+            {
+                cd.branchid = ub.branches.FirstOrDefault().branchid;
+            }
+
             return Ok(cd);
         }
 
@@ -105,7 +135,19 @@ namespace LitteraCore.Controllers
         //    ctype = CBL.Get_Content_Type();
         //    return Ok(ctype);
         //}
+        [HttpGet("GETCLIENTIP")]
+        public string GetClientIp()
+        {
+            string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
+            // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+            if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
+            }
+
+            return clientIp;
+        }
 
     }
 }

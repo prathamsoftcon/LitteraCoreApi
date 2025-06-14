@@ -88,7 +88,15 @@ namespace LitteraCore.BLContext
         public bool save_participant_learning_time(learningtime lt)
         {
             ContentDB CDB = new ContentDB(_configuration);
-         
+
+
+            contentDetail cdn = new contentDetail();
+            ContentDB cdb = new ContentDB(_configuration);
+            contentDetail cd = new contentDetail();
+            cdn = cdb.Get_Content_Detail(lt.tplt_ttsam_id);
+
+            lt.tplt_sessionid = cdn.sessionid;
+
             bool issaved = CDB.save_participant_learning_time(lt);
             return issaved;
         }

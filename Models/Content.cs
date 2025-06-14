@@ -71,6 +71,8 @@
         public string trainingid { get; set; }
         public string sessionid { get; set; }
         public bool feedbacksubmitted { get; set; } = false;
+
+        public string branchid { get; set; }
         public Content[] Items { get; set; }
 
         public Session Session { get; set; }

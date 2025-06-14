@@ -296,6 +296,29 @@ namespace LitteraCore.Controllers
 
         }
 
+        [HttpPost]
+        [Route("api/GET_ENROLLMENT_SUMMARY")]
+        public IActionResult GET_ENROLLMENT_SUMMARY(TrainingList trainings,string branchid, [FromQuery] PaginationParam? param = null)
+        {
+            List<Enrollment_Summary> li=new List<Enrollment_Summary>();
+            List<Participant> p = new List<Participant>();
+            ParticipantDB tdb = new ParticipantDB(_configuration);
+            foreach (string trg in trainings.id)
+            {
+                p = tdb.Get_Trg_Participant_List(trg, null, branchid, null, null, null, null, null, null, 1, 1);
+                if (p.Count()  > 0)
+                {
+                    li.Add(new Enrollment_Summary {  trainingid = trg, t_code=p.FirstOrDefault().TrainingCode, total_enrollments=p.FirstOrDefault().totalrecords.ToString(), proposed_participants=null, t_name=p.FirstOrDefault().t_Name, no_of_active_lerners="0" });
+                }
+            }
+
+         
+            var result = Paging.GetPagedData(param, li);
+           
+            return Ok(result);
+
+        }
+
 
     }
 }

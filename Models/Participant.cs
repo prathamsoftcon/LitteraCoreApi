@@ -164,5 +164,7 @@
 
         public string tplt_createdon { get; set; }
         public string tplt_createdby { get; set; }
+
+        public string tplt_sessionid { get; set; }
     }
 }

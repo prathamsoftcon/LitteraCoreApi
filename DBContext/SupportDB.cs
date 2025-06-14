@@ -644,8 +644,8 @@ namespace LitteraCore.DBContext
                         Participantid = Convert.ToString(dr["Participantid"]),
                         ag_email = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_email"]), f, (int)Common.CommonEnum.MaskingColumn.EMAIL),
                         ag_mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
-                        
-                        learningtime = Convert.ToDecimal(dr["learningtime"]),
+
+                        learningtime = dr["learningtime"] == DBNull.Value ? 0 : Convert.ToDecimal(dr["learningtime"]),
                         totalrecord = Convert.ToInt16(dr["totalrecord"]),
                         trainingid = Convert.ToString(dr["trainingid"]),
                         trainingname = Convert.ToString(dr["trainingname"]),
@@ -666,7 +666,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             con.Open();
-            SqlCommand cmd = new SqlCommand("select  * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid=(select tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id='"+ participantid + "')", con);
+            SqlCommand cmd = new SqlCommand("select  * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid=(select top 1 tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id='" + participantid + "')", con);
 
             cmd.CommandType = CommandType.Text;
 
