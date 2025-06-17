@@ -174,4 +174,12 @@
         public string branchid { get; set; }
         public string branchname { get; set; }
     }
+    public class OptionsDisplay
+    {
+        public string id { get; set; }
+
+        public string name { get; set; }
+
+        public bool dispay { get; set; }
+    }
 }

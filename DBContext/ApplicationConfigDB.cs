@@ -266,5 +266,18 @@ namespace LitteraCore.DBContext
 
         }
 
+
+        public  Branch_Configuration GET_BRANCH_CONFIGURATION()
+        {
+
+            //string Foldername = CommonDB.GET_JSON__FOLDER();
+            //string jsontxt = System.IO.File.ReadAllText(System.Web.HttpContext.Current.Server.MapPath("~/" + Foldername + "/TrainingSettings.json"));
+            ApplicationSetting a = new ApplicationSetting();
+            HttpResponseMessage response = new HttpResponseMessage();
+            Branch_Configuration ml = new Branch_Configuration();
+            ml = JsonConvert.DeserializeObject<Branch_Configuration>(Get_Application_Setting("9").Rows[0]["SettingValue"].ToString());
+            return ml;
+        }
+
     }
 }

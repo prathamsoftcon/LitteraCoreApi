@@ -3,6 +3,7 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using static Azure.Core.HttpHeader;
@@ -811,90 +812,153 @@ namespace LitteraCore.DBContext
 
 
 
+            //foreach (DataRow row in dt.Rows)
+            //{
+            //    Session vw = new Session();
+            //    vw.trainingid = Convert.ToString(row["trainingid"]);
+            //    // vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
+            //    vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
+            //    // vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
+            //    // vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
+            //    vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
+            //    vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
+            //    vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+            //    vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
+            //    vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
+            //    // vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
+            //    vw.ttttt_session_end_time = Convert.ToString(row["ttttt_session_end_time"]);
+            //    vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
+            //    //vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
+            //    //vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
+            //    //vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
+            //    vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
+            //    if (Convert.ToString(row["ttttt_module_no"]) != "")
+            //    {
+            //        vw.module = Convert.ToInt32(row["ttttt_module_no"]);
+            //    }
+            //    else
+            //    {
+            //        vw.module = 0;
+            //    }
+
+            //    vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
+            //    //if (row["ttttt_session_duration_type"] != DBNull.Value)
+            //    //{
+            //    //    vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
+            //    //}
+
+            //    //vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
+            //    //vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
+            //    //vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
+            //    if (Convert.ToString(row["tttttf_status"]) != "9")
+            //    {
+            //        vw.facultyname = Convert.ToString(row["facultyname"]);
+            //    }
+            //    else
+            //    {
+            //        vw.facultyname = "";
+            //    }
+
+
+            //    vw.noofcompletion = Convert.ToInt32(row["noofpersons"]);
+            //    vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
+            //    //dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "'";
+            //    //DataTable dtfilterdata = dt.DefaultView.ToTable();
+            //    List<completionDetail> cp = new List<completionDetail>();
+            //    // foreach (DataRow dr1 in dtfilterdata.Rows)
+            //    //{
+            //    //    cp.Add(new completionDetail { agencyid = dr1["tta_agency_id"].ToString(), agencyname = dr1["AgencyName"].ToString() });
+            //    //}
+            //    //vw.completiondetail = cp.ToArray();
+
+            //    foreach (Participant p in trgparticipants)
+            //    {
+            //        dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tta_agency_id='" + p.ParticipantId + "'";
+            //        DataTable dtfilterdata1 = dt.DefaultView.ToTable();
+            //        if (dtfilterdata1.Rows.Count > 0)
+            //        {
+            //            cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
+            //        }
+            //        else
+            //        {
+            //            cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
+            //        }
+
+
+            //    }
+
+            //    vw.completiondetail = cp.ToArray();
+
+
+
+
+
+            //    sessiondata.Add(vw);
+            //}
+
+            var lookup = new Dictionary<string, HashSet<string>>();
+
+            // Group all matching session_id + agency_id combinations
+            foreach (DataRow row in dt.Rows)
+            {
+                string sessionId = row["ttttt_session_id"].ToString();
+                string agencyId = row["tta_agency_id"].ToString();
+
+                if (!lookup.ContainsKey(sessionId))
+                {
+                    lookup[sessionId] = new HashSet<string>();
+                }
+                lookup[sessionId].Add(agencyId);
+            }
+
+
             foreach (DataRow row in dt.Rows)
             {
                 Session vw = new Session();
                 vw.trainingid = Convert.ToString(row["trainingid"]);
-                // vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
                 vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
-                // vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
-                // vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
                 vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
                 vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
                 vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
                 vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
                 vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
-                // vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
                 vw.ttttt_session_end_time = Convert.ToString(row["ttttt_session_end_time"]);
                 vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
-                //vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
-                //vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
-                //vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
                 vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
-                if (Convert.ToString(row["ttttt_module_no"]) != "")
-                {
-                    vw.module = Convert.ToInt32(row["ttttt_module_no"]);
-                }
-                else
-                {
-                    vw.module = 0;
-                }
-
+                vw.module = string.IsNullOrEmpty(Convert.ToString(row["ttttt_module_no"])) ? 0 : Convert.ToInt32(row["ttttt_module_no"]);
                 vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
-                //if (row["ttttt_session_duration_type"] != DBNull.Value)
-                //{
-                //    vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
-                //}
 
-                //vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
-                //vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
-                //vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
                 if (Convert.ToString(row["tttttf_status"]) != "9")
-                {
                     vw.facultyname = Convert.ToString(row["facultyname"]);
-                }
                 else
-                {
                     vw.facultyname = "";
-                }
 
-              
                 vw.noofcompletion = Convert.ToInt32(row["noofpersons"]);
                 vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
-                //dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "'";
-                //DataTable dtfilterdata = dt.DefaultView.ToTable();
+
+                // Optimized participant completion lookup
+                string currentSessionId = vw.ttttt_session_id;
                 List<completionDetail> cp = new List<completionDetail>();
-                // foreach (DataRow dr1 in dtfilterdata.Rows)
-                //{
-                //    cp.Add(new completionDetail { agencyid = dr1["tta_agency_id"].ToString(), agencyname = dr1["AgencyName"].ToString() });
-                //}
-                //vw.completiondetail = cp.ToArray();
 
                 foreach (Participant p in trgparticipants)
                 {
-                    dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tta_agency_id='" + p.ParticipantId + "'";
-                    DataTable dtfilterdata1 = dt.DefaultView.ToTable();
-                    if (dtfilterdata1.Rows.Count > 0)
-                    {
-                        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
-                    }
-                    else
-                    {
-                        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
-                    }
+                    string participantId = p.ParticipantId;
 
+                    bool isCompleted = lookup.ContainsKey(currentSessionId) && lookup[currentSessionId].Contains(participantId);
 
+                    cp.Add(new completionDetail
+                    {
+                        agencyid = participantId,
+                        agencyname = p.ParticipantName,
+                        status = isCompleted ? "Completed" : "Pending",
+                        emailid = p.email,
+                        mobileno = p.mobileno
+                    });
                 }
 
                 vw.completiondetail = cp.ToArray();
-
-
-
-
-
                 sessiondata.Add(vw);
             }
-
 
             // sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
 

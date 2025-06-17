@@ -223,7 +223,9 @@ namespace LitteraCore.Common
             Approved = 1,
             Suspended = 9,
             Paid = 2,
-            Deleted = -1
+            Deleted = -1,
+            Consent_Received = 4,
+            Sent_For_Approval = 5
 
         }
         public enum Participant_Status
