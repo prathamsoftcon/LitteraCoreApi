@@ -187,6 +187,6 @@ namespace LitteraCore.Models
         public int data_masking_required { get; set; }
 
     }
-
+    
 
 }
