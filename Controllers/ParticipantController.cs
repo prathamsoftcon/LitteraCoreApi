@@ -332,5 +332,15 @@ namespace LitteraCore.Controllers
 
             return Ok(lu);
         }
+
+        [HttpGet]
+        [Route("api/Participant_Exist_In_trg")]
+        public IActionResult Validate_User_Training(string participantid, string trainingid)
+        {
+
+            ParticipantDB WDB = new ParticipantDB(_configuration);
+            bool isexist = WDB.Validate_User_Training(participantid, trainingid);
+            return Ok(isexist);
+        }
     }
 }

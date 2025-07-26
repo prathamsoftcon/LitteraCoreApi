@@ -219,7 +219,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateOTP")]
-        public async Task<IActionResult> GenerateMobileOTP(string username)
+        public async Task<IActionResult> GenerateMobileOTP(string username,int utilityOTP=0)
         {
             //Check Valid User
             AppAuthService auth = new AppAuthService(_configuration);
@@ -242,6 +242,12 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting("6");
                 ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                if (utilityOTP == 1)
+                {
+                    ml.OTP_ON_SMS = "1";
+                    ml.OTP_ON_MAIL = "1";
+                }
 
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
                 var otpid = await _otpManager.GenerateOtpID();
@@ -1064,13 +1070,64 @@ namespace LitteraCore.Controllers
         [HttpGet("api/CHECK_VIDEO_LINK_EXPIRY")]
         public IActionResult CHECK_VIDEO_LINK_EXPIRY(string trainingid)
         {
-         DateTime content_Expiry=Common.CommonEnum.content_expiry;
-            if(System.DateTime.Now> content_Expiry)
+            ApplicationConfigBL abl = new ApplicationConfigBL(_configuration);
+            DateTime content_Expiry = abl.Get_Content_Expiry();
+            if (System.DateTime.Now> content_Expiry)
             {
                 return Ok(true);
             }
 
             return Ok(false);
+        }
+
+
+
+        [HttpGet]
+        [Route("api/User_Session_Details")]
+        public IActionResult User_Session_Details(string SecretKey, int usertype)
+        {
+            string username = "";
+            DashboardBL dbl = new DashboardBL(_configuration);
+            if (dbl.validate_external_user_key(SecretKey) != true)
+            {
+                return Unauthorized();
+            }
+            if (usertype == (int)CommonEnum.usertype.Admin)
+            {
+                username = CommonEnum.default_admin;
+            }
+            else if (usertype == (int)CommonEnum.usertype.CD)
+            {
+                username = CommonEnum.default_cd;
+            }
+            else if (usertype == (int)CommonEnum.usertype.FACULTY)
+            {
+                username = CommonEnum.default_faulty;
+            }
+            else if (usertype == (int)CommonEnum.usertype.PARTICIPANT)
+            {
+                username = CommonEnum.default_participant;
+            }
+            else if (usertype == (int)CommonEnum.usertype.DEPT)
+            {
+                username = CommonEnum.default_org;
+            }
+            AppAuthService auth = new AppAuthService(_configuration);
+            var token = auth.Authenticate(username);
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
+                Secure = true,                // Only send the cookie over HTTPS
+                SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
+                Expires = DateTime.Now.AddHours(1) // Cookie expiry time
+            };
+
+            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+            AuthDB adb = new AuthDB(_configuration);
+
+
+
+            return Ok(token);
         }
 
 

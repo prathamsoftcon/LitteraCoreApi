@@ -77,6 +77,18 @@
 
         public Session Session { get; set; }
     }
-  
-  
+
+
+    public class activity_data
+    {
+        public string tpad_id { get; set; }
+        public string tpad_activity_id { get; set; }
+        public string tpad_ttpai_id { get; set; }
+        public string tpad_ttsam_id { get; set; }
+        public string tpad_activity_data { get; set; }
+        public string tpad_createdon { get; set; }
+      
+    }
+
+
 }

@@ -18,7 +18,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_lms_get_meeting_list", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -78,7 +78,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_lms_delete_meeting", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -100,7 +100,7 @@ namespace LitteraCore.DBContext
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
                 SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_lms_get_trg_meeting", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandTimeout = 5000;

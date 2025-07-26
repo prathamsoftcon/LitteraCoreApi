@@ -23,7 +23,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("Masterconfig");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("DBO.proc_insert_support_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -68,7 +68,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("Masterconfig");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("dbo.proc_get_tbl_client_support_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -115,7 +115,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("Masterconfig");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("dbo.proc_update_reply_status", con);
             cmd.Parameters.AddWithValue("@id", us.id);
             cmd.Parameters.AddWithValue("@status", us.status);
@@ -145,7 +145,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_failed_login_users", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@fromdate", fromdate);
@@ -195,7 +195,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_login_report", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@fromdate", fromdate);
@@ -257,7 +257,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_pwd_not_updated", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@fromdate", fromdate);
@@ -320,7 +320,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_pwd_updated", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@fromdate", fromdate);
@@ -377,7 +377,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_learning_report", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@trainingid", trainingid);
@@ -439,7 +439,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_learning_report", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@trainingid", trainingid);
@@ -497,7 +497,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_participant_learning_report", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if(trainingid != null)
@@ -665,7 +665,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("select  * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid=(select top 1 tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id='" + participantid + "')", con);
 
             cmd.CommandType = CommandType.Text;

@@ -19,7 +19,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_insert_tbl_tp_ai_data_collection", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -59,7 +59,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_update_like_tbl_tp_ai_data_collection", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -97,7 +97,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_ai_data_collection", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;

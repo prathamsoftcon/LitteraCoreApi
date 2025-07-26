@@ -1258,6 +1258,16 @@ namespace LitteraCore.Controllers
             //**************Now logic to get participant next session
 
             Session activeSession=null;
+            int is_session_not_restricted = 0;
+            if (trgdetail.trg_Setting.Session.SessionRestriction != null)
+            {
+                if (trgdetail.trg_Setting.Session.SessionRestriction.isrestricted == 0)
+                {
+                    is_session_not_restricted = 1;
+                }
+               
+            }
+
             foreach (Session sessn in s)
             {
                 if (sessn.is_Session_Restricted == false)
@@ -1270,6 +1280,10 @@ namespace LitteraCore.Controllers
                             if(participantstatus == 1)
                             {
                                 activeSession = sessn;
+                                if (is_session_not_restricted == 1)
+                                {
+                                    break;
+                                }
                             }
                             
                         }
@@ -1278,6 +1292,10 @@ namespace LitteraCore.Controllers
                             if (activeSession == null)
                             {
                                 activeSession = sessn;
+                                if (is_session_not_restricted == 1)
+                                {
+                                    break;
+                                }
                             }
                         }
                         else
@@ -1287,6 +1305,10 @@ namespace LitteraCore.Controllers
                                 if (activeSession == null)
                                 {
                                     activeSession = sessn;
+                                    if (is_session_not_restricted == 1)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }

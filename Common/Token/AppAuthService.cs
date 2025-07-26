@@ -41,7 +41,7 @@ namespace LitteraCore.Common.Token
             AuthDB ADB = new AuthDB(_configuration);
             UserInfo U=ADB.GetUserInfo(username);
             AgencyDB agdb=new AgencyDB(_configuration);
-            Agency a = agdb.Get_Agency_Data(null, U.agencyid, 1, 1, null).FirstOrDefault();
+            Agency a = agdb.Get_Agency_Data_For_Login(null, U.agencyid, 1, 1, null).FirstOrDefault();
             
 
             //AuthDB ADB = new AuthDB(_configuration);

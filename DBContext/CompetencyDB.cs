@@ -28,7 +28,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlTransaction st = con.BeginTransaction();
             DMSBL dbl = new DMSBL(_configuration);
             String docno = "";
@@ -121,7 +121,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_competency_functions", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -212,7 +212,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_delete_tbl_tp_competency_functions", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -232,7 +232,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlTransaction st = con.BeginTransaction();
             DMSBL dbl = new DMSBL(_configuration);
             String docno = "";
@@ -318,7 +318,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_competency_job_positions", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -401,7 +401,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_del_tbl_tp_competency_job_positions", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -421,7 +421,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlTransaction st = con.BeginTransaction();
             DMSBL dbl = new DMSBL(_configuration);
             String docno = "";
@@ -500,7 +500,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_competency_activity", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -583,7 +583,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_delete_tbl_tp_competency_activity", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -603,7 +603,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_competency_job_position_level", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -658,7 +658,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlTransaction st = con.BeginTransaction();
             DMSBL dbl = new DMSBL(_configuration);
             String docno = "";
@@ -736,7 +736,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_get_tbl_tp_competency_job_role", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -849,7 +849,7 @@ namespace LitteraCore.DBContext
            
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
             SqlCommand cmd = new SqlCommand("competency.proc_ins_upd_tbl_compt_frack_employee_master", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -905,7 +905,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
             SqlCommand cmd = new SqlCommand("competency.proc_ins_upd_tbl_compt_frack_employee_activities", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -927,7 +927,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
             SqlCommand cmd = new SqlCommand("competency.proc_ins_upd_tbl_compt_frack_employee_knowledge_resources", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -949,7 +949,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("competency.proc_get_tbl_compt_frack_employee_activities", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@employeeid", employeeid);
@@ -988,7 +988,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("competency.proc_get_employee_info", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@mobileno", mobileno);
@@ -1022,7 +1022,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("competency.proc_get_frac_post", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1061,7 +1061,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("competency.get_fracing_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1099,7 +1099,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Eval.proc_Get_selfassessmenttest_list", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@UserID", userid);

@@ -21,7 +21,7 @@ namespace LitteraCore.Models
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
                 using (SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId=@TrainingId", con))
                 {
@@ -185,7 +185,7 @@ namespace LitteraCore.Models
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_training_fees_details", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -206,7 +206,7 @@ namespace LitteraCore.Models
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Select * from TrainingPlan.[VW_TotalFees_byReceiptID] where trainingid='" + trainingid + "'", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;

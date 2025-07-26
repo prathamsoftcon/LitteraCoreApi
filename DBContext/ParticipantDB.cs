@@ -24,7 +24,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             //SqlConnection con = new SqlConnection(connectionString);
-            //con.Open();
+            // if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
 
             List<Agency> sp = new List<Agency>();
@@ -35,7 +35,7 @@ namespace LitteraCore.DBContext
             {
                  using (SqlConnection con = new SqlConnection(connectionString))
                 {
-                    con.Open();
+                     if (con.State == ConnectionState.Open) { con.Close();}con.Open();
                     SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_training_participants_vr2", con);
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -192,7 +192,15 @@ namespace LitteraCore.DBContext
 
                                 if (vw.additionalInfo?.CAST != null)
                                 {
-                                    vw.castname = Enum.GetName(typeof(Common.CommonEnum.Cast), Convert.ToInt32(vw.additionalInfo.CAST.ToString()));
+                                    try
+                                    {
+                                        vw.castname = Enum.GetName(typeof(Common.CommonEnum.Cast), Convert.ToInt32(vw.additionalInfo.CAST.ToString()));
+                                    }
+                                    catch
+                                    {
+
+                                    }
+                                  
                                 }
                             }
                             else
@@ -265,7 +273,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("TrainingPlan.proc_get_participant_training_status", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if (trainingid != null)
@@ -312,7 +320,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_get_participant_additional_info", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if (trainingid != null)
@@ -395,7 +403,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             //SqlConnection con = new SqlConnection(connectionString);
-            //con.Open();
+            // if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
 
             List<Agency> sp = new List<Agency>();
@@ -406,7 +414,7 @@ namespace LitteraCore.DBContext
             {
                 using (SqlConnection con = new SqlConnection(connectionString))
                 {
-                    con.Open();
+                     if (con.State == ConnectionState.Open) { con.Close();}con.Open();
                     SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_training_participants_vr2", con);
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -658,7 +666,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             //SqlConnection con = new SqlConnection(connectionString);
-            //con.Open();
+            // if (con.State == ConnectionState.Open) { con.Close();}con.Open();
 
 
             List<Agency> sp = new List<Agency>();
@@ -667,7 +675,7 @@ namespace LitteraCore.DBContext
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
                 SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_training_participants_vr2", con);
                 cmd.CommandType = CommandType.StoredProcedure;
 
@@ -901,7 +909,15 @@ namespace LitteraCore.DBContext
 
                             if (vw.additionalInfo?.CAST != null)
                             {
-                                vw.castname = Enum.GetName(typeof(Common.CommonEnum.Cast), Convert.ToInt32(vw.additionalInfo.CAST.ToString()));
+                                try
+                                {
+                                    vw.castname = Enum.GetName(typeof(Common.CommonEnum.Cast), Convert.ToInt32(vw.additionalInfo.CAST.ToString()));
+                                }
+                                catch
+                                {
+
+                                }
+                             
                             }
                         }
                         else
@@ -918,5 +934,32 @@ namespace LitteraCore.DBContext
             return trgdata;
         }
 
+
+        public bool Validate_User_Training(string Participantid, string trainingid)
+        {
+            bool isexist = false;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            SqlCommand cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_participant_additional_info where Participantid='"+Participantid+"' and TrainingId='"+trainingid+"'", con);
+            cmd.CommandType = CommandType.Text;
+            
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            if (dt.Rows.Count > 0)
+            {
+                isexist = true;
+            }
+
+
+
+
+
+            return isexist;
+        }
     }
 }

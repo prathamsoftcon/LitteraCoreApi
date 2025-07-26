@@ -224,5 +224,44 @@ namespace LitteraCore.Controllers
 
         }
 
+        [HttpPost]
+        [Route("api/Update_Email")]
+        public IActionResult Update_Email(string agencyid, string emailid)
+        {
+
+            AgencyBL ABL = new AgencyBL(_configuration);
+            bool issaved = false;
+            issaved = ABL.Update_Emailid(agencyid, emailid);
+            if (issaved == true)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+        }
+
+        [HttpPost]
+        [Route("api/Update_Mobileno")]
+        public IActionResult Update_Mobileno(string agencyid, string mobileno)
+        {
+
+            AgencyBL ABL = new AgencyBL(_configuration);
+            bool issaved = false;
+            issaved = ABL.Update_Mobile_No(agencyid, mobileno);
+            if (issaved == true)
+            {
+                return Ok();
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+        }
+
+
     }
 }

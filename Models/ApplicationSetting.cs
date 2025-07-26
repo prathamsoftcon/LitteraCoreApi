@@ -32,6 +32,7 @@ namespace LitteraCore.Models
     public class RegistrationField
     {
         public int PASSWORD_ON_REGISTRATION { get; set; }
+        public int OTP_REQUIRED_ON_OUTSIDE_REGISTRATION { get; set; } = 1;
     }
     public class OTP_LOGIN_REQUIRED_SETTING
     {

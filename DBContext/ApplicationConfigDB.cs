@@ -24,7 +24,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("TrainingPlan.sp_get_PortalSetting", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -76,7 +76,7 @@ namespace LitteraCore.DBContext
           
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_ins_tbl_yuser_audit_trail", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -110,7 +110,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_ins_tbl_yuser_error_log", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -135,7 +135,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_get_tbl_yuser_audit_trail", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -205,7 +205,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("yuser.proc_get_tbl_yuser_error_log", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;

@@ -19,7 +19,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
                 SqlCommand cmd = new SqlCommand("eval.GetTestListWithUserType", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@userid", userid);
@@ -143,7 +143,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("eval.proc_ev_get_all_test_result", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@UserID", userid);
@@ -175,44 +175,91 @@ namespace LitteraCore.DBContext
 
 
             List<TEST_RESULT_DATA> T = new List<TEST_RESULT_DATA>();
+            //foreach (DataRow dr in dt.Rows)
+            //{
+            //    if (Convert.ToInt32(dr["type"]) != testtype)
+            //    {
+            //        continue;
+            //    }
+            //    TEST_RESULT_DATA r = new TEST_RESULT_DATA();
+            //    r.trainingid = Convert.ToString(dr["trainingid"]);
+            //    r.sessionid = Convert.ToString(dr["sessionid"]);
+            //    r.testid = Convert.ToString(dr["TestID"]);
+            //    r.testname = Convert.ToString(dr["TestName"]);
+            //    r.participantid = Convert.ToString(dr["PartcipantID"]);
+            //    r.Questionid = Convert.ToString(dr["QuestionID"]);
+            //    r.mark_per_question = Convert.ToDecimal(dr["mark_per_question"]);
+            //    r.iscorrect = Convert.ToInt32(dr["IsCorrect"]);
+            //    //This column is not used because mark obtained calculated on front
+            //    //  r.mark_obtained = Convert.ToDecimal(dr["tesQmarksobtained"]);
+
+            //    if (lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).Count() > 0)
+            //    {
+            //        r.training_code = lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).FirstOrDefault().Trainingcode;
+            //        r.training_name = lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).FirstOrDefault().T_Name;
+            //    }
+            //    if (sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).Count() > 0)
+            //    {
+            //        r.session_desc = sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).FirstOrDefault().ttttt_subject;
+            //        r.session_subject = sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).FirstOrDefault().ttttt_content_desc;
+            //    }
+            //    if (participants.Where(o => o.ParticipantId.ToString().ToUpper() == r.participantid.ToString().ToUpper()).Count() > 0)
+            //    {
+            //        r.participant_name = participants.Where(o => o.ParticipantId.ToString().ToUpper() == r.participantid.ToString().ToUpper()).FirstOrDefault().ParticipantName;
+            //    }
+            //    r.TestQuestionid = Convert.ToString(dr["TestQuestionID"]);
+            //    r.TestParticipantid = Convert.ToString(dr["TestPartcipantID"]);
+            //    T.Add(r);
+            //}
+
+            var trainingLookup = lwtc.ToDictionary(x => x.TrainingId.ToString().ToUpper(), x => x);
+            var sessionLookup = sl.ToDictionary(x => x.ttttt_session_id.ToString().ToUpper(), x => x);
+            //var participantLookup = participants.ToDictionary(x => x.ParticipantId.ToString().ToUpper(), x => x);
+            var participantLookup = participants
+    .GroupBy(x => x.ParticipantId.ToString().ToUpper())
+    .ToDictionary(g => g.Key, g => g.First());
+
             foreach (DataRow dr in dt.Rows)
             {
                 if (Convert.ToInt32(dr["type"]) != testtype)
-                {
                     continue;
-                }
-                TEST_RESULT_DATA r = new TEST_RESULT_DATA();
-                r.trainingid = Convert.ToString(dr["trainingid"]);
-                r.sessionid = Convert.ToString(dr["sessionid"]);
-                r.testid = Convert.ToString(dr["TestID"]);
-                r.testname = Convert.ToString(dr["TestName"]);
-                r.participantid = Convert.ToString(dr["PartcipantID"]);
-                r.Questionid = Convert.ToString(dr["QuestionID"]);
-                r.mark_per_question = Convert.ToDecimal(dr["mark_per_question"]);
-                r.iscorrect = Convert.ToInt32(dr["IsCorrect"]);
-                //This column is not used because mark obtained calculated on front
-                //  r.mark_obtained = Convert.ToDecimal(dr["tesQmarksobtained"]);
 
-                if (lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).Count() > 0)
+                TEST_RESULT_DATA r = new TEST_RESULT_DATA
                 {
-                    r.training_code = lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).FirstOrDefault().Trainingcode;
-                    r.training_name = lwtc.Where(o => o.TrainingId.ToString().ToUpper() == dr["trainingid"].ToString().ToUpper()).FirstOrDefault().T_Name;
-                }
-                if (sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).Count() > 0)
+                    trainingid = Convert.ToString(dr["trainingid"]),
+                    sessionid = Convert.ToString(dr["sessionid"]),
+                    testid = Convert.ToString(dr["TestID"]),
+                    testname = Convert.ToString(dr["TestName"]),
+                    participantid = Convert.ToString(dr["PartcipantID"]),
+                    Questionid = Convert.ToString(dr["QuestionID"]),
+                    mark_per_question = Convert.ToDecimal(dr["mark_per_question"]),
+                    iscorrect = Convert.ToInt32(dr["IsCorrect"]),
+                    TestQuestionid = Convert.ToString(dr["TestQuestionID"]),
+                    TestParticipantid = Convert.ToString(dr["TestPartcipantID"])
+                };
+
+                string trainingIdKey = r.trainingid.ToUpper();
+                if (trainingLookup.TryGetValue(trainingIdKey, out Training training))
                 {
-                    r.session_desc = sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).FirstOrDefault().ttttt_subject;
-                    r.session_subject = sl.Where(o => o.ttttt_session_id.ToString().ToUpper() == dr["sessionid"].ToString().ToUpper()).FirstOrDefault().ttttt_content_desc;
+                    r.training_code = training.Trainingcode;
+                    r.training_name = training.T_Name;
                 }
-                if (participants.Where(o => o.ParticipantId.ToString().ToUpper() == r.participantid.ToString().ToUpper()).Count() > 0)
+
+                string sessionIdKey = r.sessionid.ToUpper();
+                if (sessionLookup.TryGetValue(sessionIdKey, out Session session))
                 {
-                    r.participant_name = participants.Where(o => o.ParticipantId.ToString().ToUpper() == r.participantid.ToString().ToUpper()).FirstOrDefault().ParticipantName;
+                    r.session_desc = session.ttttt_subject;
+                    r.session_subject = session.ttttt_content_desc;
                 }
-                r.TestQuestionid = Convert.ToString(dr["TestQuestionID"]);
-                r.TestParticipantid = Convert.ToString(dr["TestPartcipantID"]);
+
+                string participantIdKey = r.participantid.ToUpper();
+                if (participantLookup.TryGetValue(participantIdKey, out Participant participant))
+                {
+                    r.participant_name = participant.ParticipantName;
+                }
+
                 T.Add(r);
             }
-
-
             return T;
         }
 
@@ -223,7 +270,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("eval.GetTestPrarticipantID", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@TestQuestionId", testquestionid);
@@ -248,6 +295,40 @@ namespace LitteraCore.DBContext
 
 
             return testparticipantid;
+        }
+
+        public List<user_session_test> Get_Test_Detail(string testis)
+        {
+
+
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            SqlCommand cmd = new SqlCommand("select tm.TrainingCategoryId,tq.SkillTag from Eval.TestQuestions tq inner join TrainingPlan.TrainingBasicDetails tm on tm.TrainingId=tq.[Training.TrainingID] where TestID='"+ testis + "' ", con);
+            cmd.CommandType = CommandType.Text;
+        
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //************Get Data
+           
+
+            List<user_session_test> T = new List<user_session_test>();
+            foreach (DataRow dr in dt.Rows)
+            {
+              
+                user_session_test r = new user_session_test();
+                r.trainingcategoryid = Convert.ToString(dr["trainingcategoryid"]);
+                r.skilltags = Convert.ToString(dr["SkillTag"]);
+            
+                T.Add(r);
+            }
+
+
+            return T;
         }
 
     }

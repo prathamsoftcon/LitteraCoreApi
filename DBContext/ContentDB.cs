@@ -20,7 +20,7 @@ namespace LitteraCore.DBContext
             List<contentType> AL = new List<contentType>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); con.Open();
+            SqlConnection con = new SqlConnection(connectionString);  if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Content.tbl_GlobalContentTypeSelect", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -61,7 +61,7 @@ namespace LitteraCore.DBContext
             List<contentType> AL = new List<contentType>();
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); con.Open();
+            SqlConnection con = new SqlConnection(connectionString);  if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Content.tbl_GlobalContentTypeSelect", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -102,7 +102,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_get_upload_session_attachement", con);
             if (trainingid != null)
             {
@@ -273,7 +273,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_ins_participant_learning_time", con);
             cmd.Parameters.AddWithValue("@tplt_Id", lt.tplt_Id);
             cmd.Parameters.AddWithValue("@tplt_ttsam_id", lt.tplt_ttsam_id);
@@ -301,7 +301,7 @@ namespace LitteraCore.DBContext
             string path = "";
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand(@"select GlobalWysiwagText,ttsam_trg_id,ttsam_ttttt_session_id from trainingplan.tbl_tp_session_attachment_master tam
 inner join Content.tbl_ContentMaster cm on tam.ttsam_globalcontentid = cm.GlobalContentID
 where ttsam_id = '"+ ttsam_id + "'", con);
@@ -332,7 +332,7 @@ where ttsam_id = '"+ ttsam_id + "'", con);
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand(@"select ai.ttpai_id,am.ag_mobileno,am.AgencyId,amp.tyuam_userid from TrainingPlan.tbl_tp_participant_additional_info ai 
 inner join YUser.AgencyMaster am on ai.Participantid=am.AgencyId 
 inner join YUser.tbl_yuser_user_agency_mapping amp on amp.tyuam_agency_id=am.AgencyId
@@ -364,10 +364,10 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
         {
 
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            // if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_track_content", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -377,6 +377,34 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             cmd.Parameters.AddWithValue("@IPAddress", ip);
             cmd.ExecuteNonQuery();
             con.Close();
+            return true;
+
+        }
+
+        public bool Save_Activity_Data(activity_data a)
+        {
+
+            List<Content> AL = new List<Content>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_activity_data", con);
+            cmd.Parameters.AddWithValue("@tpad_id",a.tpad_id);
+            cmd.Parameters.AddWithValue("@tpad_activity_id",a.tpad_activity_id);
+            cmd.Parameters.AddWithValue("@tpad_ttpai_id", a.tpad_ttpai_id);
+            cmd.Parameters.AddWithValue("@tpad_ttsam_id",a.tpad_ttsam_id);
+            cmd.Parameters.AddWithValue("@tpad_activity_data",a.tpad_activity_data);
+            cmd.Parameters.AddWithValue("@tpad_createdon",a.tpad_createdon);
+           
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
             return true;
 
         }

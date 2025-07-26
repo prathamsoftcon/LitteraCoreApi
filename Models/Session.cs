@@ -6,6 +6,7 @@ namespace LitteraCore.Models
     public class Session
     {
         public string trainingid { get; set; }
+        public string? trainingcategoryid { get; set; }
         public string? trainingcode { get; set; }
 
         public string? training_title { get; set; }

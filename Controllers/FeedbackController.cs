@@ -229,5 +229,276 @@ namespace LitteraCore.Controllers
             return Ok(true);
         }
 
+
+
+
+        [HttpPost]
+        [Route("api/Feedback360_Summery")]
+        public IActionResult Feedback360_Summery(string? surveyid = null, [FromQuery] PaginationParam? param=null, [FromBody] SearchParam? searchCriterias=null, string trainingid=null)
+        {
+
+
+
+            List<FeedbackReportSummery> FRS = new List<FeedbackReportSummery>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            FRS = FBL.Get_Feedback_360_Summery(surveyid,trainingid);
+          
+
+
+
+            //List<Search> searchdata = new List<Search>();
+            //if (filters != null && filters.Trim() != "")
+            //{
+            //    string[] sptfilter = filters.Split(";".ToCharArray());
+            //    foreach (string s in sptfilter)
+            //    {
+            //        if (s != "")
+            //        {
+            //            string[] sptfield = s.Split(":".ToCharArray());
+            //            string nextop = null;
+            //            if (sptfield[3] != "")
+            //            {
+            //                nextop = sptfield[3];
+            //            }
+            //            Search sd = new Search
+            //            {
+            //                Column = sptfield[0],
+            //                SearchValue = sptfield[1],
+            //                SearhOperator = sptfield[2],
+            //                NextSearchOperator = nextop
+            //            };
+            //            searchdata.Add(sd);
+            //        }
+
+            //    }
+
+            //}
+
+            var searchService = new SearchService();
+            // Filter items based on the search criteria
+            var filteredItems = FRS;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(FRS, searchCriterias.SearchCriteria.ToList());
+            }
+
+            //if (searchdata.Count > 0)
+            //{
+            //    FRS = FilterData.Filter(FRS, searchdata);
+            //}
+
+
+            //IPagedList<FeedbackReportSummery> vwtc = null;
+            //if (pageno != 0)
+            //{
+            //    vwtc = FRS.ToPagedList(pageno, pagesize);
+            //}
+            //else
+            //{
+            //    if (FRS.ToList().Count() == 0)
+            //    {
+            //        vwtc = FRS.ToPagedList(1, 1);
+            //    }
+            //    else
+            //    {
+            //        vwtc = FRS.ToPagedList(1, FRS.ToList().Count());
+            //    }
+
+            //}
+
+
+
+
+
+            //Paging<FeedbackReportSummery> pl = new Paging<FeedbackReportSummery>();
+            //pl.Count = vwtc.Count;
+            //pl.FirstItemOnPage = vwtc.FirstItemOnPage;
+            //pl.HasNextPage = vwtc.HasNextPage;
+            //pl.HasPreviousPage = vwtc.HasPreviousPage;
+            //pl.IsFirstPage = vwtc.IsFirstPage;
+            //pl.IsLastPage = vwtc.IsLastPage;
+            //pl.LastItemOnPage = vwtc.LastItemOnPage;
+            //pl.PageCount = vwtc.PageCount;
+            //pl.pagedata = vwtc;
+            var pagedList = Paging.GetPagedList(param, filteredItems);
+            var result = Paging.GetPagedData(param, filteredItems);
+
+            return Ok(result);
+
+
+        }
+
+        [HttpPost]
+        [Route("api/Feedback360_Survey_Result")]
+        public IActionResult Feedback360_Survey_Result(string surveyid, string? responsee_mobileno = null, string? responsee_emailid = null)
+        {
+
+
+
+            SurveyResponseResult FRS = new SurveyResponseResult();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            FRS = FBL.Get_Feedback_360_Survey_Result_Structured(surveyid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(FRS);
+
+
+        }
+
+        [HttpGet]
+        [Route("api/Feedback360_Survey_Result_MCQ_Summery_Questionwise")]
+        public IActionResult Feedback360_Survey_Result_MCQ_Summery_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_MCQ_Result ORR = new Question_MCQ_Result();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_MCQ_Result_Summary(surveyid, groupid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+            return Ok(ORR);
+
+
+        }
+
+        [HttpGet]
+        [Route("api/Feedback360_Survey_MCQ_Detail_Questionwise")]
+        public IActionResult Feedback360_Survey_MCQ_Detail_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_MCQ_QUESTIONWISE_DETAIL ORR = new Question_MCQ_QUESTIONWISE_DETAIL();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_MCQ_DETAIL_QUESTIONWISE(surveyid, groupid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
+
+        [HttpGet]
+        [Route("api/Feedback360_Survey_Result_DESC_Summery_Questionwise")]
+        public IActionResult Feedback360_Survey_Result_DESC_Summery_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_MCQ_QUESTIONWISE_DETAIL ORR = new Question_MCQ_QUESTIONWISE_DETAIL();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_MCQ_DETAIL_QUESTIONWISE(surveyid, groupid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
+
+        [HttpGet]
+        [Route("api/Feedback360_Survey_DESC_Detail_Questionwise")]
+        public IActionResult Feedback360_Survey_DESC_Detail_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_DESC_QUESTIONWISE_DETAIL ORR = new Question_DESC_QUESTIONWISE_DETAIL();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_DESC_DETAIL_QUESTIONWISE(surveyid, groupid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
+        [HttpGet]
+        [Route("api/Feedback360_Survey_Result_Rating_Summery_Questionwise")]
+        public IActionResult Feedback360_Survey_Result_Rating_Summery_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_Rating_Result ORR = new Question_Rating_Result();
+            //List<Question_Rating_Result_Summary> FRS = new List<Question_Rating_Result_Summary>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_Rating_Result_Summary(surveyid, groupid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
+
+        [HttpPost]
+        [Route("api/Feedback360_trainingid_Summery")]
+        public IActionResult Feedback360_trainingid_Summery(string? trainigid = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
+        {
+
+            List<FeedbackReportSummery_trainingwise> FRS = new List<FeedbackReportSummery_trainingwise>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            FRS = FBL.Get_Feedback_360_Summery_trainingwise(trainigid);
+
+
+
+            var searchService = new SearchService();
+            // Filter items based on the search criteria
+            var filteredItems = FRS;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(FRS, searchCriterias.SearchCriteria.ToList());
+            }
+
+            
+            var pagedList = Paging.GetPagedList(param, filteredItems);
+            var result = Paging.GetPagedData(param, filteredItems);
+
+            return Ok(result);
+
+
+        }
+
+
+
     }
 }

@@ -325,5 +325,26 @@ namespace LitteraCore.BLContext
             issaved = ABD.Update_Agency_Other_Info(agencyid, agencytypeid, branchid, createdby, OtherXML);
             return issaved;
         }
+
+
+        public bool Update_Mobile_No(string agencyid, string mobileno)
+        {
+
+            AgencyDB ABD = new AgencyDB(_configuration);
+            bool issaved = false;
+
+            issaved = ABD.Update_Mobile_No(agencyid, mobileno);
+            return issaved;
+        }
+        public bool Update_Emailid(string agencyid, string emailid)
+        {
+
+            AgencyDB ABD = new AgencyDB(_configuration);
+            bool issaved = false;
+
+            issaved = ABD.Update_Emailid(agencyid, emailid);
+            return issaved;
+        }
+
     }
 }
