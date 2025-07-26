@@ -61,6 +61,7 @@ namespace LitteraCore.Controllers
         [Route("api/Agency")]
         public IActionResult getAgency(string agencytype = null,string filters = null, string agencyid = null, string tat_type_id = null, [FromQuery] PaginationParam param=null,string filter=null)
         {
+            
             AgencyBL ABL = new AgencyBL(_configuration);
             PagedResult<Agency> AL = new PagedResult<Agency>();
             AL = ABL.Get_Agency(agencytype, agencyid, tat_type_id, param, filter);

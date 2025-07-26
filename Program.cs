@@ -17,6 +17,7 @@ using Newtonsoft.Json.Converters;
 using System.Text.Json.Serialization;
 using Azure.Core;
 using MailKit;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,8 +44,14 @@ Log.Logger = new LoggerConfiguration()
      .WriteTo.File("logs/error.log",
         rollingInterval: RollingInterval.Day,
         restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {NewLine} RequestId: {RequestId} {NewLine} RequestMethod:{RequestMethod} URL: {RequestScheme}://{RequestHost}/{RequestPath}?{RequestParams} {NewLine} BodyParameter : {BodyParam}  {NewLine} {Message:lj}{NewLine}{Exception}")
+        //outputTemplate: "Date - {Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {NewLine} RequestId: {RequestId} {NewLine} RequestMethod:{RequestMethod} URL: {RequestScheme}://{RequestHost}/{RequestPath}?{RequestParams} {NewLine} BodyParameter : {BodyParam}  {NewLine} {Message:lj}{NewLine}{Exception}"
+        outputTemplate: "Date1 - {Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {NewLine}" +
+                "File: {ExceptionFile} | Line: {ExceptionLineNumber}{NewLine}" +
+                "RequestId: {RequestId} {NewLine} RequestMethod:{RequestMethod} " +
+                "URL: {RequestScheme}://{RequestHost}/{RequestPath}?{RequestParams} {NewLine}" +
+                "BodyParameter : {BodyParam}  {NewLine} {Message:lj}{NewLine}{Exception} {NewLine} {Properties:j}  {NewLine}")
     .CreateLogger();
+
 //.WriteTo.MSSqlServer(
 //    connectionString: builder.Configuration.GetConnectionString("LitteraDatabase"),
 //    sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", AutoCreateSqlTable = true },
@@ -126,6 +133,8 @@ app.Use(async (context, next) =>
     LogContext.PushProperty("RequestHost", context.Request.Host.Host);
     LogContext.PushProperty("RequestProtocol", context.Request.Protocol);
     LogContext.PushProperty("RemoteIpAddress", context.Connection.RemoteIpAddress);
+   
+
     string str = "";
     foreach (var queryParam in context.Request.Query)
     {
@@ -136,6 +145,8 @@ app.Use(async (context, next) =>
     LogContext.PushProperty("RequestParams", str);
 
     context.Request.EnableBuffering();
+
+  
 
     // Read the request body to a string
     var bodyparam = "";
@@ -154,11 +165,33 @@ app.Use(async (context, next) =>
     }
 
 
-    await next();
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var frame = new StackTrace(ex, true)
+           .GetFrames()?
+           .FirstOrDefault(f => f.GetFileLineNumber() > 0 && f.GetFileName() != null);
+
+        string fileName = Path.GetFileName(frame?.GetFileName());
+        int? lineNumber = frame?.GetFileLineNumber() ?? 0;
+
+        // Attach props directly to event
+        Log.ForContext("ExceptionFile", fileName)
+           .ForContext("ExceptionLineNumber", lineNumber)
+           .Error(ex, "Unhandled exception in {ExceptionFile} at line {ExceptionLineNumber}");
+
+        throw;
+    }
+
 });
 
 
+
 app.Run();
+
 public class JsonDateTimeConverter : JsonConverter<DateTime>
 {
     private readonly string _format;
@@ -176,4 +209,7 @@ public class JsonDateTimeConverter : JsonConverter<DateTime>
     {
         writer.WriteStringValue(value.ToString(_format));
     }
+   
+
 }
+
