@@ -531,6 +531,7 @@ namespace LitteraCore.Controllers
             completiondata = completiondata.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).ToList();
             if (completiondata.Count > 0)
             {
+               
                 if (completiondata.FirstOrDefault().noofcompletion == 1)
                 {
                     isFeedbackExist = true;

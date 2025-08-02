@@ -19,7 +19,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("eval.GetTestListWithUserType", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@userid", userid);
@@ -143,7 +143,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("eval.proc_ev_get_all_test_result", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@UserID", userid);
@@ -270,7 +270,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("eval.GetTestPrarticipantID", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@TestQuestionId", testquestionid);
@@ -304,7 +304,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select tm.TrainingCategoryId,tq.SkillTag from Eval.TestQuestions tq inner join TrainingPlan.TrainingBasicDetails tm on tm.TrainingId=tq.[Training.TrainingID] where TestID='"+ testis + "' ", con);
             cmd.CommandType = CommandType.Text;
         

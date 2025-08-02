@@ -34,7 +34,7 @@
         public string tdds_status { get; set; }
 
 
-        public int minreadingtime { get { return 2; } set { minreadingtime = 2; } }
+        public int minreadingtime { get; set; }
 
         public contentuserpermission[] contentuserpermission { get; set; }
 

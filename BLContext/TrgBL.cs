@@ -675,5 +675,15 @@ namespace LitteraCore.BLContext
             return Grade;
         }
 
+
+        public Boolean Update_Trg_rating_data()
+        {
+           
+            bool issaved =false;
+            TrainingDB tdb = new TrainingDB(_configuration);
+            issaved = tdb.Update_Training_Rating_Data();
+            return issaved;
+        }
+
     }
 }

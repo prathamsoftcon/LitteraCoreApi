@@ -22,7 +22,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "'", con);
             cmd.CommandType = CommandType.Text;
 
@@ -60,7 +60,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "' and sharefeedbackiD='" + sharefeedbackid + "'", con);
             cmd.CommandType = CommandType.Text;
 
@@ -175,7 +175,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("survey360.proc_su_survey360_template_question_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -215,7 +215,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("survey360.proc_su_survey360_rating_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -253,7 +253,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("survey360.proc_su_survey360_template_mcq_answer", con);
             cmd.CommandType = CommandType.StoredProcedure;
 
@@ -294,7 +294,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("survey360.proc_su_survey360_template_desc_answer", con);
             cmd.CommandType = CommandType.StoredProcedure;
 

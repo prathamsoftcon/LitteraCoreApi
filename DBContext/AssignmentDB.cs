@@ -19,7 +19,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_get_assignment_list_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if (assignmentid != null)
@@ -136,7 +136,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_valuation", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@AssignmentID", assignmentid);
@@ -177,7 +177,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_comment_for_participant", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -220,7 +220,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_upload", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -265,7 +265,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_update_assignment_upload_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -288,7 +288,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_insert_assignment_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -313,7 +313,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_inupd_assignment_upload", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -345,7 +345,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_participant_assignment_uploads", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@Participantid", participantid);
@@ -394,7 +394,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_question_valuation", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -450,7 +450,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_ins_upd_question_valuation", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -477,7 +477,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_get_assignment_summery", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if (assignmentid != null)
@@ -513,7 +513,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_question_valuation", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;

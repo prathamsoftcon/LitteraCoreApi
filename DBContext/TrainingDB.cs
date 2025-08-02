@@ -21,7 +21,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' order by T_StartDate desc", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -181,7 +181,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
 
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from [TrainingPlan].[Ft_tp_get_trgid_for_usertype]('" + usertype + "','" + userid + "','" + fromdate.ToString("yyyy/MM/dd") + "','" + todate.ToString("yyyy/MM/dd") + "')", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -294,7 +294,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Trainingplan.TP_GetTrainingCategory", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -351,7 +351,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("select  *  from [trainingplan].[ft_tp_get_week_day_count]('" + fromdate + "','" + todate + "')", con);
             cmd.CommandType = CommandType.Text;
@@ -389,7 +389,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId = @TrainingId", con);
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
@@ -535,7 +535,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where trainingno ='"+ trainingcode + "'", con);
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
@@ -682,7 +682,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_get_certificate_signatory", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -719,7 +719,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlTransaction st = con.BeginTransaction();
             try
             {
@@ -810,7 +810,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.TP_GetTRainingSponsors", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -846,7 +846,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_training_type", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -881,7 +881,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.TP_GetCourse", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -916,7 +916,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("TrainingPlan.TP_UpdTrainingStatus", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -950,7 +950,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_training_update_participant_status", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -986,7 +986,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("trainingplan.proc_tp_get_certificate_details", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -1019,7 +1019,22 @@ namespace LitteraCore.DBContext
 
             return c;
         }
+        public bool Update_Training_Rating_Data()
+        {
 
-    
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[trainingplan].[proc_tp_insert_avg_rating_per_training]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
+
+
     }
 }

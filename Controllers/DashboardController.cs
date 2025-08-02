@@ -719,6 +719,11 @@ namespace LitteraCore.Controllers
             param.PageNumber = 1;
             param.PageSize = 100;
             DateTime dtcurrent = DateTime.Now;
+            DashboardBL dbl = new DashboardBL(_configuration);
+            List<TRG_FEEDBACK_DATA> rating = new List<TRG_FEEDBACK_DATA>();
+            string finyear = DashboardBL.GetFinancialYear(startdate, enddate);
+
+            rating = dbl.Get_Trg_Feedback_Data(finyear);
 
             TrainingDB WDB = new TrainingDB(_configuration);
 
@@ -792,6 +797,17 @@ namespace LitteraCore.Controllers
                         t.is_reg_open = false;
                     }
                 }
+
+
+                List<TRG_FEEDBACK_DATA> ratelist = rating
+     .Where(o => o.trainingid.ToString().ToUpper() == t.TrainingId.ToString().ToUpper())
+     .ToList();
+                if (ratelist.Count() > 0)
+                {
+                    t.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);
+                    t.no_of_response = ratelist.FirstOrDefault().no_of_response;
+                }
+
             }
 
 

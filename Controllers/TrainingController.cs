@@ -160,7 +160,23 @@ namespace LitteraCore.Controllers
 
             sl = filteredItems;
 
-            var pagedList = Paging.GetPagedList(param, sl);
+
+
+            //******************Order 
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    sl = CommonEnum.OrderSessionData(trgdetail.trg_Setting.Session.SessionOrder, sl);
+                }
+            }
+
+               
+
+                var pagedList = Paging.GetPagedList(param, sl);
             var result = Paging.GetPagedData(param, sl);
             //*********
 
@@ -410,6 +426,16 @@ namespace LitteraCore.Controllers
             return Ok(grade);
         }
 
+        [HttpPost]
+        [Route("api/update_trg_rating_data")]
+        public IActionResult update_trg_rating_data()
+        {
+            bool isupdated = false;
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            isupdated = tbl.Update_Trg_rating_data();
+            return Ok(isupdated);
+        }
 
     }
 }

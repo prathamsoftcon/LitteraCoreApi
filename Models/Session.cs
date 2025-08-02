@@ -87,6 +87,8 @@ namespace LitteraCore.Models
 
         public string display_txt { get; set; }
 
+        public string notes_download_file_name { get; set; }
+
         public bool is_Session_Restricted { get; set; }
 
         public int is_feedback_Required { get; set; } = 1;

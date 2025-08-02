@@ -23,7 +23,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.HR_GetDesignation", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -88,7 +88,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
 
 
             using (con)
@@ -345,7 +345,7 @@ namespace LitteraCore.DBContext
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 // Open the connection
-                 if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
 
                 // Create the SqlCommand for the stored procedure
                 using (SqlCommand cmd = new SqlCommand("yuser.proc_tp_get_salutation", con))
@@ -383,7 +383,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_vr1", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@agencytype", "00053");
@@ -549,7 +549,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
 
 
             using (con)
@@ -630,7 +630,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
 
 
             using (con)
@@ -701,7 +701,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.proc_get_person_cast", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -733,7 +733,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Assessment.proc_ass_get_assignment_comment_for_participant", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -778,7 +778,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.proc_yuser_upd_profile_data", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -832,7 +832,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_user_branch_roles", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -913,7 +913,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.GetAgencyType", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -947,7 +947,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_firebase_token", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -979,7 +979,7 @@ namespace LitteraCore.DBContext
 
         //    string connectionString = _configuration.GetConnectionString("LitteraDatabase");
         //    SqlConnection con = new SqlConnection(connectionString);
-        //     if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+        //    if (con.State != ConnectionState.Open) { con.Open(); }
 
 
         //    using (con)
@@ -1205,7 +1205,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_personal_info_vr1]", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1254,7 +1254,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_address_info_vr1]", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1317,7 +1317,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_additional_info_vr1", con);
             cmd.Parameters.AddWithValue("@agencyid", agencyid);
             cmd.Parameters.AddWithValue("@agencytype", agencytypeid);
@@ -1390,7 +1390,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("[YUser].[proc_yuser_ins_upd_agency_Other_info_vr1]", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1448,7 +1448,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State == ConnectionState.Open) { con.Close(); }
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_update_agency_email_mobile", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -1470,7 +1470,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State == ConnectionState.Open) { con.Close(); }
-             if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_update_agency_email_mobile", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;

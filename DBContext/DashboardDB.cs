@@ -33,7 +33,7 @@ namespace LitteraCore.DBContext
 
                     cmd.Connection = con;
                     cmd.CommandTimeout = 5000;
-                     if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -92,7 +92,7 @@ namespace LitteraCore.DBContext
 
                     cmd.Connection = con;
                     cmd.CommandTimeout = 5000;
-                     if (con.State == ConnectionState.Open) { con.Close();}con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
