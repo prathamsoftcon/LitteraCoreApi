@@ -12,7 +12,7 @@ namespace LitteraCore.Common
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
             var endpoint = context.ApiDescription.ActionDescriptor.RouteValues["action"];
-            if (!endpoint.Contains("Get_Activity_Token_Info"))
+            if (!endpoint.Contains("Get_Activity_Token_Info") && !endpoint.Contains("Littera_Events") && !endpoint.Contains("User_Session_Details"))
             {
                 if (operation.Parameters == null)
                     operation.Parameters = new List<OpenApiParameter>();

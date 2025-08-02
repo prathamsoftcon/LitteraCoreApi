@@ -558,7 +558,7 @@ namespace LitteraCore.BLContext
             certificateHtml = certificateHtml.Replace("style.css", APPURL + "/css/certificate_style.css");
             certificateHtml = certificateHtml.Replace("##PrintDate##", System.DateTime.Now.ToString("dd-MM-yyyy"));
             certificateHtml = certificateHtml.Replace("##certtext##", f_cert_text);
-            certificateHtml = certificateHtml.Replace("##Sinatory##", signatorytext);
+           // certificateHtml = certificateHtml.Replace("##Sinatory##", signatorytext);
 
 
 
@@ -602,6 +602,86 @@ namespace LitteraCore.BLContext
 
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
 
+            return issaved;
+        }
+
+        public Certificate_Details Get_Certificate_Details(string ttpai_id)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            Certificate_Details c = new Certificate_Details();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            c = tdb.Get_Certificate_details(ttpai_id);
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return c;
+        }
+
+        public string Calculate_Certificate_grade(string trainingid,string participantid)
+        {
+            string Grade = "D";
+            List<Learning_Report_Data> ld = new List<Learning_Report_Data>();
+            SupportBL SBL = new SupportBL(_configuration);
+            ld = SBL.Learning_Report_Data(trainingid, participantid, null, null, 2);
+            if (ld.Count > 0)
+            {
+                if (ld.FirstOrDefault().learningtime != null)
+                {
+
+                    if (ld.FirstOrDefault().learningtime > 0)
+                    {
+                        decimal totalmin = ld.FirstOrDefault().learningtime / 60;
+                        decimal totalhours = ld.FirstOrDefault().learningtime / 3600;
+                        if (totalhours >= 20)
+                        {
+                            Grade = "A";
+
+                        }
+                        else if (totalhours >= 10 && totalhours < 20)
+                        {
+                            Grade = "B";
+
+                        }
+                        else if (totalhours >= 2 && totalhours < 10)
+                        {
+                            Grade = "C";
+                        }
+                        else if (totalmin > 59 && totalhours < 2)
+                        {
+                            Grade = "D";
+                        }
+                        else if(totalmin <= 59)
+                        {
+                            Grade = "";
+                        }
+
+
+                    }
+                    else
+                    {
+                        Grade = "";
+                    }
+                }
+                else
+                {
+                    Grade = "";
+                }
+            }
+            else
+            {
+                Grade = "";
+            }
+            return Grade;
+        }
+
+
+        public Boolean Update_Trg_rating_data()
+        {
+           
+            bool issaved =false;
+            TrainingDB tdb = new TrainingDB(_configuration);
+            issaved = tdb.Update_Training_Rating_Data();
             return issaved;
         }
 

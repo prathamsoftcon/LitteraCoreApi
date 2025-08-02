@@ -34,7 +34,7 @@
         public string tdds_status { get; set; }
 
 
-        public int minreadingtime { get { return 2; } set { minreadingtime = 2; } }
+        public int minreadingtime { get; set; }
 
         public contentuserpermission[] contentuserpermission { get; set; }
 
@@ -77,6 +77,18 @@
 
         public Session Session { get; set; }
     }
-  
-  
+
+
+    public class activity_data
+    {
+        public string tpad_id { get; set; }
+        public string tpad_activity_id { get; set; }
+        public string tpad_ttpai_id { get; set; }
+        public string tpad_ttsam_id { get; set; }
+        public string tpad_activity_data { get; set; }
+        public string tpad_createdon { get; set; }
+      
+    }
+
+
 }

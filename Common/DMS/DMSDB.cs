@@ -25,10 +25,10 @@ namespace LitteraCore.Common.DMS
             }
            
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            //if (con.State != ConnectionState.Open) { con.Open(); }
             if (con.State == ConnectionState.Closed)
             {
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
             }
             SqlCommand cmd = new SqlCommand("DMS.proc_dms_Ins_upd_doc_status", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -87,7 +87,7 @@ namespace LitteraCore.Common.DMS
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
           
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             string docno = "";
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no]('" + docdate + "','" + branchid + "','" + tat_type_id + "','" + prefix + "','" + repeaton + "') ", con);
@@ -102,7 +102,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("DMS.proc_dms_get_doc_ref_no", con);
@@ -129,7 +129,7 @@ namespace LitteraCore.Common.DMS
             string codeno = "";
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("DMS.proc_dms_get_doc_ref_no", con);
@@ -155,7 +155,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)
@@ -196,7 +196,7 @@ namespace LitteraCore.Common.DMS
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             string docno = "";
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("dms.proc_get_tbl_dms_default_doc_user", con);
@@ -215,7 +215,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             string docno = "";
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no_for_agency]('" + docdate + "','" + branchid + "','" + prefix + "','" + repeaton + "') ", con);
@@ -231,7 +231,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("YUser.proc_yuser_get_agency_vr1", con);
@@ -250,7 +250,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("dms.proc_dms_get_sam_formfees_vr1", con);
@@ -282,7 +282,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("TrainingPlan.proc_tp_get_doc_remark_vr_1", con);
@@ -348,7 +348,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("TrainingPlan.proc_tp_get_dash_board_details", con);
@@ -436,7 +436,7 @@ namespace LitteraCore.Common.DMS
         //{
         //    string connectionString = _configuration.GetConnectionString("LitteraDatabase");
         //    SqlConnection con = new SqlConnection(connectionString);
-        //    con.Open();
+        //    if (con.State != ConnectionState.Open) { con.Open(); }
         //    DataTable dt = new DataTable();
         //    List<Agency> a = new List<Agency>();
         //    AgencyBL abl = new AgencyBL();
@@ -536,7 +536,7 @@ namespace LitteraCore.Common.DMS
         //public List<Charges> GET_CHARGES()
         //{
         //    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-        //    con.Open();
+        //    if (con.State != ConnectionState.Open) { con.Open(); }
         //    DataTable dt = new DataTable();
         //    SqlCommand cmd = new SqlCommand();
         //    cmd = new SqlCommand("yuser.proc_hr_tbl_charge_master", con);
@@ -569,7 +569,7 @@ namespace LitteraCore.Common.DMS
         //public List<Charges> GET_EMP_CHARGES(string employeeid)
         //{
         //    SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-        //    con.Open();
+        //    if (con.State != ConnectionState.Open) { con.Open(); }
         //    DataTable dt = new DataTable();
         //    SqlCommand cmd = new SqlCommand();
         //    cmd = new SqlCommand("yuser.proc_yuser_get_hr_delegated_department", con);
@@ -604,7 +604,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("select * from dms.VW_dms_doc_all_status where tdds_doc_id='"+ tdds_doc_id + "' and tdds_tat_type_id='"+ tdds_tat_type_id + "' order by tdds_process_id asc", con);
@@ -656,7 +656,7 @@ namespace LitteraCore.Common.DMS
         public List<DMS_DASHBOARD> GET_DMS_LAST_STATUS_DATA(string fromdate, string todate, string documentno, string applicationtypeid, string employeeid)
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); con.Open();
+            SqlConnection con = new SqlConnection(connectionString); if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             List<Agency> a = new List<Agency>();
             AgencyDB ADB = new AgencyDB(_configuration);
@@ -754,7 +754,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("yuser.proc_hr_tbl_charge_master", con);
@@ -788,7 +788,7 @@ namespace LitteraCore.Common.DMS
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)

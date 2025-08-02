@@ -6,6 +6,7 @@ namespace LitteraCore.Models
     public class Session
     {
         public string trainingid { get; set; }
+        public string? trainingcategoryid { get; set; }
         public string? trainingcode { get; set; }
 
         public string? training_title { get; set; }
@@ -85,6 +86,8 @@ namespace LitteraCore.Models
         public string DisplayOrder { get; set; }
 
         public string display_txt { get; set; }
+
+        public string notes_download_file_name { get; set; }
 
         public bool is_Session_Restricted { get; set; }
 

@@ -7,6 +7,11 @@ using static LitteraCore.Common.CommonEnum;
 using System.Text;
 using Microsoft.Extensions.Primitives;
 using LitteraCore.BLContext;
+using Newtonsoft.Json.Linq;
+using System.Linq;
+using Newtonsoft.Json;
+using LitteraCore.Common.Token;
+using System.Collections.Generic;
 
 namespace LitteraCore.Controllers
 {
@@ -24,71 +29,100 @@ namespace LitteraCore.Controllers
         [Route("api/Dashboard_analytics")]
         public IActionResult Dashboard_analytics(string usertype, string userid, DateTime startdate, DateTime enddate,string? banchid=null)
         {
-            TrainingDB WDB = new TrainingDB(_configuration);
-
-            List<Training> lwtc = new List<Training>();
-            List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
-
-            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
-            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
-            UserTypeTrg usertrg = new UserTypeTrg();
-
-            //***************
-            List<FilterUserTrg> FL = new List<FilterUserTrg>();
-            FL = lwtc.ConvertAll(x => new FilterUserTrg { trainingid = x.TrainingId.ToString() });
-            //**********
-            userwise_lwtc = WDB.Get_Users_Trg_Data(FL, usertype, userid, startdate, enddate);
-            lwtc = lwtc.Where(x => userwise_lwtc.Any(y => y.trainingid.ToString() == x.TrainingId.ToString())).ToList();
-            TrainingAnalytics t = new TrainingAnalytics();
-            t = WDB.Get_StatusWise_Trg_Count(lwtc, startdate, enddate);
-
-            DBAnalytics d=new DBAnalytics();
-            d.upcoming_trg=t.trg_upcoming;
-            d.trg_in_progress=t.trg_in_prog;
-            d.trg_completed=t.trg_completed;
-            d.trg_time = Convert.ToDecimal(t.trg_time);
-
-            //*************Get Enrollment 
-            List<Participant> p = new List<Participant>();
-            ParticipantDB tdb = new ParticipantDB(_configuration);
-            p = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, null, null, 1, 1);
-            if (p.Count() > 0)
+            DBAnalytics d = new DBAnalytics();
+            if (usertype == "5")
             {
-                d.total_enrollments = p.FirstOrDefault().totalrecords;
+                TrainingDB WDB = new TrainingDB(_configuration);
+
+                List<Training> lwtc = new List<Training>();
+                List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
+
+                lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
+                //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
+                UserTypeTrg usertrg = new UserTypeTrg();
+
+                //***************
+                List<FilterUserTrg> FL = new List<FilterUserTrg>();
+                FL = lwtc.ConvertAll(x => new FilterUserTrg { trainingid = x.TrainingId.ToString() });
+                //**********
+                userwise_lwtc = WDB.Get_Users_Trg_Data(FL, usertype, userid, startdate, enddate);
+                lwtc = lwtc.Where(x => userwise_lwtc.Any(y => y.trainingid.ToString() == x.TrainingId.ToString())).ToList();
+                TrainingAnalytics t = new TrainingAnalytics();
+                t = WDB.Get_StatusWise_Trg_Count(lwtc, startdate, enddate);
+
+                
+                d.upcoming_trg = t.trg_upcoming;
+                d.trg_in_progress = t.trg_in_prog;
+               // d.trg_completed = t.trg_completed;
+                d.trg_time = Convert.ToDecimal(t.trg_time);
+
+
+                SessionDB sdb = new SessionDB(_configuration);
+                List<SessionCompletionStatus> cd = new List<SessionCompletionStatus>();
+                cd = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
+                d.trg_completed = cd
+                                        .GroupBy(s => s.tttttm_training_id)
+                                        .Where(g => g.All(s => s.iscompleted == 1))
+                                        .Select(g => g.Key)
+                                        .ToList().Count;
+
+                //*************Get Enrollment 
+                List <Participant> p = new List<Participant>();
+                ParticipantDB tdb = new ParticipantDB(_configuration);
+                p = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, null, null, 1, 1);
+                if (p.Count() > 0)
+                {
+                    d.total_enrollments = p.FirstOrDefault().totalrecords;
+                }
+
+                List<Participant> p1 = new List<Participant>();
+                ParticipantDB tdb1 = new ParticipantDB(_configuration);
+                p1 = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, "Status", "4", 1, 1);
+                if (p1.Count() > 0)
+                {
+                    d.consent_received = p1.FirstOrDefault().totalrecords;
+                    d.Pending_for_Approval = p1.FirstOrDefault().totalrecords;
+                }
+
             }
-
-            List<Participant> p1 = new List<Participant>();
-            ParticipantDB tdb1 = new ParticipantDB(_configuration);
-            p1 = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, "Status", "4", 1, 1);
-            if (p1.Count() > 0)
+            else
             {
-                d.consent_received = p1.FirstOrDefault().totalrecords;
-                d.Pending_for_Approval = p1.FirstOrDefault().totalrecords;
+                DashboardDB dbd = new DashboardDB(_configuration);
+                DBAnalytics aba = new DBAnalytics();
+                aba = dbd.Get_Admin_DB_Analytics(usertype, userid, startdate, enddate, Branchid);
+
+                d.total_participant = aba.total_participant;
+                d.active_learners = aba.active_learners;
+                d.avg_learning_time_practical = aba.avg_learning_time_practical;
+                d.avg_learning_time_therory = aba.avg_learning_time_therory;
             }
+           
 
+            //List<Learning_Report_Data> s = new List<Learning_Report_Data>();
+            //SupportBL SBL = new SupportBL(_configuration);
+            //s = SBL.Learning_Report_Data(null, null, null, banchid,2, null, null, 1, 1, null, null, null, null);
+            //if (s.Count() > 0)
+            //{
+            //    d.Course_started = s.FirstOrDefault().totalrecord;
+            //}
 
-            List<Learning_Report_Data> s = new List<Learning_Report_Data>();
-            SupportBL SBL = new SupportBL(_configuration);
-            s = SBL.Learning_Report_Data(null, null, null, banchid,2, null, null, 1, 1, null, null, null, null);
-            if (s.Count() > 0)
-            {
-                d.Course_started = s.FirstOrDefault().totalrecord;
-            }
-
-            List<Participant> p2 = new List<Participant>();
-            ParticipantDB tdb2 = new ParticipantDB(_configuration);
-            p2 = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, "Status", "1", 1, 1);
-            if (p2.Count() > 0)
-            {
-                d.approved = p2.FirstOrDefault().totalrecords;
+            //List<Participant> p2 = new List<Participant>();
+            //ParticipantDB tdb2 = new ParticipantDB(_configuration);
+            //p2 = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, "Status", "1", 1, 1);
+            //if (p2.Count() > 0)
+            //{
+            //    d.approved = p2.FirstOrDefault().totalrecords;
               
-            }
+            //}
 
+
+            //**********
+          
             return Ok(d);
         }
         [HttpPost]
         [Route("api/Dashboard_Data")]
-        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias)
+        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status=null,string filter_cd=null,string filter_acd=null)
         {
 
             var Authtoken = Request.Cookies["Auth_token"];
@@ -100,7 +134,38 @@ namespace LitteraCore.Controllers
             List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
 
             lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
-            lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
+
+
+            //***********Code to get Rating data***********
+            DashboardBL dbl = new DashboardBL(_configuration);
+            List<TRG_FEEDBACK_DATA> rating = new List<TRG_FEEDBACK_DATA>();
+            string finyear = DashboardBL.GetFinancialYear(startdate, enddate);
+
+            rating = dbl.Get_Trg_Feedback_Data(finyear);
+
+            //************
+
+            //**********Filter by status
+            if (filter_status != null)
+            {
+                var filter_statuses = filter_status.Split(',').Select(s => s.Trim()).ToList();
+                lwtc = lwtc.Where(o => filter_statuses.Contains(o.TrainingStatus.ToString())).ToList();
+            }
+            else
+            {
+                lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
+            }
+            if (filter_cd != null)
+            {
+                lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
+            }
+            if (filter_acd != null)
+            {
+                lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
+            }
+
+            //**********
+           // lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
             UserTypeTrg usertrg = new UserTypeTrg();
 
@@ -324,11 +389,18 @@ namespace LitteraCore.Controllers
                 }
 
 
+                //*********Get Rating Data
+                List<TRG_FEEDBACK_DATA> ratelist = rating
+      .Where(o => o.trainingid.ToString().ToUpper() == item.TrainingId.ToString().ToUpper())
+      .ToList();
+                if (ratelist.Count() > 0)
+                {
+                    item.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);  
+                    item.no_of_response= ratelist.FirstOrDefault().no_of_response;
+                }
 
 
-
-
-
+                //*******************************
 
 
 
@@ -346,7 +418,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Dashboard_All_Trg_Data")]
-        public IActionResult Dashboard_All_Trg_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        public IActionResult Dashboard_All_Trg_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string filter_status = null, string filter_cd = null, string filter_acd = null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
 
@@ -354,6 +426,35 @@ namespace LitteraCore.Controllers
             List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
 
             lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
+
+            //***********Code to get Rating data***********
+            DashboardBL dbl = new DashboardBL(_configuration);
+            List<TRG_FEEDBACK_DATA> rating = new List<TRG_FEEDBACK_DATA>();
+            string finyear = DashboardBL.GetFinancialYear(startdate, enddate);
+
+            rating = dbl.Get_Trg_Feedback_Data(finyear);
+
+            //************
+
+            //**********Filter by status
+            if (filter_status != null)
+            {
+                var filter_statuses = filter_status.Split(',').Select(s => s.Trim()).ToList();
+                lwtc = lwtc.Where(o => filter_statuses.Contains(o.TrainingStatus.ToString())).ToList();
+            }
+            else
+            {
+                lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
+            }
+            if (filter_cd != null)
+            {
+                lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
+            }
+            if (filter_acd != null)
+            {
+                lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
+            }
+
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
             //UserTypeTrg usertrg = new UserTypeTrg();
 
@@ -588,6 +689,18 @@ namespace LitteraCore.Controllers
 
                 }
 
+                //*********Get Rating Data
+                List<TRG_FEEDBACK_DATA> ratelist = rating
+      .Where(o => o.trainingid.ToString().ToUpper() == item.TrainingId.ToString().ToUpper())
+      .ToList();
+                if (ratelist.Count() > 0)
+                {
+                    item.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);
+                    item.no_of_response = ratelist.FirstOrDefault().no_of_response;
+                }
+
+
+                //*******************************
 
 
             }
@@ -606,6 +719,11 @@ namespace LitteraCore.Controllers
             param.PageNumber = 1;
             param.PageSize = 100;
             DateTime dtcurrent = DateTime.Now;
+            DashboardBL dbl = new DashboardBL(_configuration);
+            List<TRG_FEEDBACK_DATA> rating = new List<TRG_FEEDBACK_DATA>();
+            string finyear = DashboardBL.GetFinancialYear(startdate, enddate);
+
+            rating = dbl.Get_Trg_Feedback_Data(finyear);
 
             TrainingDB WDB = new TrainingDB(_configuration);
 
@@ -679,6 +797,17 @@ namespace LitteraCore.Controllers
                         t.is_reg_open = false;
                     }
                 }
+
+
+                List<TRG_FEEDBACK_DATA> ratelist = rating
+     .Where(o => o.trainingid.ToString().ToUpper() == t.TrainingId.ToString().ToUpper())
+     .ToList();
+                if (ratelist.Count() > 0)
+                {
+                    t.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);
+                    t.no_of_response = ratelist.FirstOrDefault().no_of_response;
+                }
+
             }
 
 
@@ -1062,8 +1191,15 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Littera_Events")]
-        public IActionResult Littera_Events(DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param)
+        public IActionResult Littera_Events(string SecretKey, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param)
         {
+            DashboardBL dbl = new DashboardBL(_configuration);
+            if(dbl.validate_external_user_key(SecretKey) != true)
+            {
+                return Unauthorized();
+            }
+
+
             param.PageNumber = 1;
             param.PageSize = 100;
             DateTime dtcurrent = DateTime.Now;
@@ -1138,10 +1274,17 @@ namespace LitteraCore.Controllers
                 }
             }
 
-          
 
-            List<Littera_Events> flist=new List<Littera_Events> ();
-              foreach (Training t in lwtc_final)
+
+            List<Littera_Events> flist = new List<Littera_Events>();
+
+            REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
+
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Config.json"));
+            RAC = JsonConvert.DeserializeObject<REACT_APP_CONFIGURATION>(jsontxt);
+
+            foreach (Training t in lwtc_final)
             {
                 t.trg_Setting.displaycontrols = t.trg_Setting.displaycontrols.Where(o => o.isdisplay == 1).ToArray();
                 flist.Add(new Littera_Events
@@ -1153,8 +1296,8 @@ namespace LitteraCore.Controllers
                     trainingStatus = t.TrainingStatus,
                     trg_type = t.trg_type?.ToString(),
                     trg_Setting = t.trg_Setting,
-                    img_path = Environment.UserDomainName.ToString() + "/Training_Upload/" + t.img_path,
-                    redirection_link = Environment.UserDomainName.ToString() + "/frm_read_course_details.aspx?q=" + t.TrainingId
+                    img_path = RAC.LITTERA_CDN_BASE_URL + "/Training_Upload/" + t.img_path,
+                    redirection_link = RAC.LITTERA_CDN_BASE_URL + "/frm_read_course_details.aspx?q=" + t.TrainingId
 
                 });
             }
@@ -1169,6 +1312,10 @@ namespace LitteraCore.Controllers
 
             return Ok(result);
         }
+
+
+
+     
 
 
 

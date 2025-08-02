@@ -182,4 +182,18 @@
 
         public bool dispay { get; set; }
     }
+
+    public class User_Agency_Detail
+    {
+        public string userid { get;set;}
+        public string agencyid { get;set; }
+        public int usertype { get; set; }
+    }
+
+    public class Trg_User_Details
+    {
+        public string trainingid { get; set; }
+        public string agencyid { get; set; }
+        public string userid { get; set; }
+    }
 }

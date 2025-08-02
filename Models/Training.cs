@@ -105,8 +105,10 @@ namespace LitteraCore.Models
 
         public bool is_reg_open { get; set; }
 
-        public decimal trg_rating { get; set; } = 3.5M;
+        public decimal trg_rating { get; set; } = 0.0M;
         public int no_of_response { get; set; }
+
+        public string trg_setting_search { get; set; }
     }
 
     public class FB_Share_Data
@@ -145,7 +147,9 @@ namespace LitteraCore.Models
         public int isdisplay { get; set; }
         public string displaytext { get; set; }
 
+        public string feedback_rating { get; set; }
 
+        public string feedback_responsee { get; set; }
     }
     public class session_setting
     {
@@ -331,6 +335,19 @@ namespace LitteraCore.Models
         public string trg_type { get; set; }
         public string redirection_link { get; set; }
         public Trg_Setting? trg_Setting { get; set; }
+
+    }
+    public class Certificate_Details
+    {
+        public string name { get; set; }
+        public string enrollmentno { get; set; }
+        public string grade { get; set; }
+        public string printdate { get; set; }
+        public string trainingid { get;set; }
+        public string participantid { get; set; }
+        public string ttpai_id { get; set; }
+
+        public string mobileno { get; set; }
 
     }
 }

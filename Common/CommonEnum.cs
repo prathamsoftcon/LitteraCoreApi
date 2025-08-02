@@ -11,7 +11,13 @@ namespace LitteraCore.Common
         public static string Agencytype_Staff = "00008";
         public static string Discount_Ledgerid = "417119B3-18B6-43A1-8A52-064E99B6880E";
         public static string Branchid = "dff7c661-5b84-4a7e-8250-31c420dd9fcd";
-        public static DateTime content_expiry = Convert.ToDateTime("2025/06/30");
+
+        public static string default_admin = "admin@prathamsoft.com";
+        public static string default_cd = "cd@prathamsoft.com";
+        public static string default_faulty = "faculty@prathamsoft.com";
+        public static string default_participant = "participant@prathamsoft.com";
+        public static string default_org = "org@prathamsoft.com";
+        //public static DateTime content_expiry = Convert.ToDateTime("2025/06/30");
         public enum UserType
         {
             Admin = 1,
@@ -217,6 +223,7 @@ namespace LitteraCore.Common
             Female = 0,
             Not_to_disclose = 2,
         }
+       
         public enum Participant_Enroll_Status
         {
             Pending = 0,
@@ -343,7 +350,8 @@ namespace LitteraCore.Common
             CONTENT_LIBRARY = 11,
             RUN_TEST = 12,
             View_TEST_RESULT = 13,
-            Complete_Session = 14
+            Complete_Session = 14,
+            Connect_to_mentor = 15
 
         }
 

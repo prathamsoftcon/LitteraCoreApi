@@ -95,6 +95,26 @@
 
     }
 
+
+
+    public class user_session_test
+    {
+        public string branchid { get; set; }
+        public string agencyid { get; set; }
+        public int usertype { get; set; }
+
+        public string skilltags { get; set; }
+
+        public string trainingcategoryid { get; set; }
+
+        public string ttpai_id { get; set; }
+
+        public string trainingid { get; set; }
+
+        public Test test { get; set; }
+
+    }
+
    
 }
 

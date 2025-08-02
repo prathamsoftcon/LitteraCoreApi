@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace LitteraCore.Controllers
@@ -217,6 +218,56 @@ namespace LitteraCore.Controllers
             EvalDB ebl = new EvalDB(_configuration);
             string id = ebl.Get_test_Participantid(testquestionid, userid);
             return Ok(id);
+        }
+
+
+        [Route("api/get_user_session_test_details")]
+        [HttpGet]
+        public IActionResult get_user_session_test_details(string userid, string testid)
+        {
+
+            UserDB udb = new UserDB(_configuration);
+            User_Agency_Detail uad =new User_Agency_Detail();
+            uad = udb.Get_User_Detail_by_userid(userid);
+
+            AgencyBL abl=new AgencyBL(_configuration);
+            UserBranch ub =new UserBranch();
+            ub = abl.Get_User_Branche(userid);
+
+            EvalDB tbd = new EvalDB(_configuration);
+            List<user_session_test> ss = tbd.Get_Test_Detail(testid);
+
+
+            ParticipantDB PDB = new ParticipantDB(_configuration);
+            //List of training all participant
+            List<Participant> PL = new List<Participant>();
+            // PL = PDB.Get_TRG_PARTICIPANT_Data(s.trainingid, uad.agencyid,null);
+
+
+
+
+            List<Test> TESTS = new List<Test>();
+            EvalDB tbl = new EvalDB(_configuration);
+            TESTS = tbl.Get_test_List("1", userid);
+
+            user_session_test ust = new user_session_test
+            {
+                agencyid = uad.agencyid,
+                branchid = ub.branches.FirstOrDefault().branchid,
+               trainingcategoryid = ss.FirstOrDefault().trainingcategoryid,
+               skilltags = ss.FirstOrDefault().skilltags,
+                usertype = uad.usertype,
+                test= TESTS.Where(o=>o.testid.ToString().ToUpper() == testid.ToString().ToUpper()).FirstOrDefault()
+                //ttpai_id= PL.FirstOrDefault().ttpai_id,
+                // trainingid= s.trainingid
+            };
+
+
+            //At present this data is hardcode in modal need to change by config file
+            //CompetencyConfiguration c = new CompetencyConfiguration();
+            //EvalDB ebl = new EvalDB(_configuration);
+            //string id = ebl.Get_test_Participantid(testquestionid, userid);
+            return Ok(ust);
         }
 
 

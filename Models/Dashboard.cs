@@ -1,4 +1,9 @@
-﻿namespace LitteraCore.Models
+﻿using LitteraCore.Common.DMS;
+using LitteraCore.Models;
+using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
+using System.Data;
+namespace LitteraCore.Models
 {
     public class Dashboard
     {
@@ -30,10 +35,21 @@
 
         public int Course_completed { get; set; }
 
+        public int total_participant { get; set; }
+        public int active_learners { get; set; }
+        public int avg_learning_time_therory { get; set; }
+        public int avg_learning_time_practical { get; set; }
+
     }
     public class Mock_Test_Tag
     {
         public string displayname { get; set; }
         public string tag { get; set; }
+    }
+    public class TRG_FEEDBACK_DATA
+    {
+        public string trainingid { get; set; }
+        public decimal trg_rating { get; set; }
+        public int no_of_response { get; set; }
     }
 }

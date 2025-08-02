@@ -22,7 +22,7 @@ namespace LitteraCore.DBContext
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlTransaction st = con.BeginTransaction();
             try
             {
@@ -138,7 +138,7 @@ namespace LitteraCore.DBContext
             Agency a = new Agency();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_chk_user_exists_vr1", con);
             cmd.Parameters.AddWithValue("@UserID", userid);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -154,7 +154,7 @@ namespace LitteraCore.DBContext
             {
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_upd_user_vr1", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -187,7 +187,7 @@ namespace LitteraCore.DBContext
                 return false;
             }
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            //if (con.State != ConnectionState.Open) { con.Open(); }
 
         }
         public bool Save_User_Roles(LoginUser user, SqlConnection con, SqlTransaction transaction = null)
@@ -197,7 +197,7 @@ namespace LitteraCore.DBContext
             {
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_upd_user_roles_vr1", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -230,7 +230,7 @@ namespace LitteraCore.DBContext
                 return false;
             }
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            //if (con.State != ConnectionState.Open) { con.Open(); }
 
         }
         public bool Save_User_Branches(user_branches branches, SqlConnection con, LoginUser user, SqlTransaction transaction)
@@ -245,7 +245,7 @@ namespace LitteraCore.DBContext
             {
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_upd_user_branch_roles_vr1", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -280,7 +280,7 @@ namespace LitteraCore.DBContext
                 return false;
             }
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            //if (con.State != ConnectionState.Open) { con.Open(); }
 
         }
 
@@ -289,10 +289,10 @@ namespace LitteraCore.DBContext
             try
             {
                 //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-                //con.Open();
+                //if (con.State != ConnectionState.Open) { con.Open(); }
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_upd_agency_signup_info_vr1", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -351,10 +351,10 @@ namespace LitteraCore.DBContext
                 DMSBL dbl = new DMSBL(_configuration);
                 //string usercode = dbl.Get_doc_no(System.DateTime.Now.ToString("yyyy/MM/dd"), user.branchid, Convert.ToInt16(Common.CommonEnum.Get_Default_USER_TAT_TYPE(Convert.ToInt32(user.usertype), user.agency.AgencyTypeId)), "$$", "YEAR");
                 //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-                //con.Open();
+                //if (con.State != ConnectionState.Open) { con.Open(); }
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_user_agency_mapping_vr1", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -396,7 +396,7 @@ namespace LitteraCore.DBContext
             {
                 if (con.State == ConnectionState.Closed)
                 {
-                    con.Open();
+                    if (con.State != ConnectionState.Open) { con.Open(); }
                 }
                 SqlCommand cmd = new SqlCommand("yuser.proc_yuser_ins_hr_delegated_department", con);
                 cmd.CommandType = CommandType.StoredProcedure;
@@ -431,7 +431,7 @@ namespace LitteraCore.DBContext
                 return false;
             }
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
-            //con.Open();
+            //if (con.State != ConnectionState.Open) { con.Open(); }
 
         }
 
@@ -442,7 +442,7 @@ namespace LitteraCore.DBContext
             Agency a = new Agency();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_check_value_in_agency_master", con);
             cmd.Parameters.AddWithValue("@value", mobileno);
             cmd.Parameters.AddWithValue("@type", type);
@@ -701,7 +701,7 @@ namespace LitteraCore.DBContext
             Agency a = new Agency();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_check_value_in_agency_master", con);
             cmd.Parameters.AddWithValue("@value", mobileno);
             cmd.Parameters.AddWithValue("@type", type);
@@ -739,6 +739,50 @@ namespace LitteraCore.DBContext
 
             return u;
         }
+
+        public User_Agency_Detail Get_User_Detail_by_userid(string userid)
+        {
+            DataTable dt = new DataTable();
+            Agency a = new Agency();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_user_detail", con);
+            cmd.Parameters.AddWithValue("@userid", userid);
+            cmd.CommandType = CommandType.StoredProcedure;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            User_Agency_Detail uad = new User_Agency_Detail();
+            if (dt.Rows.Count > 0)
+            {
+                uad.userid= Convert.ToString(dt.Rows[0]["tyuam_userid"]);
+                uad.agencyid= Convert.ToString(dt.Rows[0]["tyuam_agency_id"]);
+                uad.usertype= Convert.ToInt16(dt.Rows[0]["tyuam_user_type_id"]);
+            }
+          return uad;
+        }
+
+        public Trg_User_Details Get_Trg_User_Details(string userocde,string trainingid)
+        {
+            DataTable dt = new DataTable();
+            Agency a = new Agency();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("select * from TrainingPlan.Vw_tp_trg_all_user vtpu inner join YUser.AgencyMaster am on vtpu.Agencyid=am.AgencyId where UserCode='"+ userocde + "' and trainingid='"+trainingid+"'", con);
+            cmd.CommandType = CommandType.Text;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            Trg_User_Details uad = new Trg_User_Details();
+            if (dt.Rows.Count > 0)
+            {
+                uad.userid = Convert.ToString(dt.Rows[0]["userid"]);
+                uad.agencyid = Convert.ToString(dt.Rows[0]["Agencyid"]);
+                uad.trainingid = Convert.ToString(dt.Rows[0]["trainingid"]);
+            }
+            return uad;
+        }
+
 
 
 

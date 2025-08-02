@@ -60,13 +60,15 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SupportQuery")]
-        public IActionResult SupportQuery(string? fromdate=null,string? todate=null,string appurl=null)
+        public IActionResult SupportQuery(string? fromdate=null,string? todate=null,string appurl=null, [FromQuery] PaginationParam? param = null)
         {
             List<Support> s = new List<Support>();
             SupportBL SBL = new SupportBL(_configuration);
             s = SBL.GetSupportQuery();
-            s = s.Where(o => o.clienturl.ToString().ToUpper().Contains(appurl.ToString().ToUpper())).ToList(); 
-            return Ok(s);
+            s = s.Where(o => o.clienturl.ToString().ToUpper().Contains(appurl.ToString().ToUpper())).ToList();
+            var result = Paging.GetPagedData(param, s);
+          
+            return Ok(result);
 
         }
 

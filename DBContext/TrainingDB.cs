@@ -21,7 +21,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' order by T_StartDate desc", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -81,6 +81,8 @@ namespace LitteraCore.DBContext
                 vw.objective = Convert.ToString(row["objective"]);
                 vw.prerequiste = Convert.ToString(row["prerequiste"]);
                 vw.img_path = Convert.ToString(row["img_path"]);
+
+                vw.trg_setting_search = Convert.ToString(row["trg_setting"]);
 
                 if (vw.img_path != "")
                 {
@@ -179,7 +181,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
 
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("select * from [TrainingPlan].[Ft_tp_get_trgid_for_usertype]('" + usertype + "','" + userid + "','" + fromdate.ToString("yyyy/MM/dd") + "','" + todate.ToString("yyyy/MM/dd") + "')", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -292,7 +294,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("Trainingplan.TP_GetTrainingCategory", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -349,7 +351,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("select  *  from [trainingplan].[ft_tp_get_week_day_count]('" + fromdate + "','" + todate + "')", con);
             cmd.CommandType = CommandType.Text;
@@ -387,13 +389,159 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId = @TrainingId", con);
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
 
                 // Add the parameter to avoid SQL injection
                 cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Training vw = new Training
+                        {
+                            TrainingId = (Guid)(reader["TrainingId"]),
+                            TrainingNo = Convert.ToString(reader["TrainingNo"]),
+                            Trainingcode = Convert.ToString(reader["Trainingcode"]),
+                            CourseCode = Convert.ToString(reader["CourseCode"]),
+                            T_Name = Convert.ToString(reader["T_Name"]),
+                            T_Details = Convert.ToString(reader["T_Details"]),
+                            SPONSOR_AG_ID = (Guid)(reader["SPONSOR_AG_ID"]),
+                            DueFees = Convert.ToDecimal(reader["DueFees"]),
+                            ReceivedFees = Convert.ToInt32(reader["ReceivedFees"]),
+                            SponsorName = Convert.ToString(reader["SponsorName"]),
+                            HSponsorName = Convert.ToString(reader["HSponsorName"]),
+                            ParticipantLevel = Convert.ToString(reader["ParticipantLevel"]),
+                            LevelId = Convert.ToInt32(reader["LevelId"]),
+                            LevelDescription = Convert.ToString(reader["LevelDescription"]),
+                            HLevelDescription = Convert.ToString(reader["HLevelDescription"]),
+                            CourseDirector = (Guid)(reader["CourseDirector"]),
+                            CourseDirectorName = Convert.ToString(reader["CourseDirectorName"]),
+                            HCourseDirectorName = Convert.ToString(reader["HCourseDirectorName"]),
+                            AssociateDirector = (Guid)(reader["AssociateDirector"]),
+                            AssociateDirectorName = Convert.ToString(reader["AssociateDirectorName"]),
+                            HAssociateDirectorName = Convert.ToString(reader["HAssociateDirectorName"]),
+                            Duration = Convert.ToInt32(reader["Duration"]),
+                            DurationType = Convert.ToString(reader["DurationType"]),
+                            T_StartDate = Convert.ToDateTime(reader["T_StartDate"]),
+                            T_EndDate = Convert.ToDateTime(reader["T_EndDate"]),
+                            NoOfParticipants = Convert.ToInt32(reader["NoOfParticipants"]),
+                            T_ClosingDate = Convert.ToDateTime(reader["T_ClosingDate"]),
+                            NoOfParticipants_Registered = Convert.ToInt32(reader["NoOfParticipants_Registered"]),
+                            TrainingCategoryId = (Guid)(reader["TrainingCategoryId"]),
+                            TrainingCategoryName = Convert.ToString(reader["TrainingCategoryName"]),
+                            HTrainingCategoryName = Convert.ToString(reader["HTrainingCategoryName"]),
+                            TrainingStatus = Convert.ToString(reader["TrainingStatus"]),
+                            StatusUpdateDate = Convert.ToDateTime(reader["StatusUpdateDate"]),
+                            StatusReason = Convert.ToString(reader["StatusReason"]),
+                            HallName = Convert.ToString(reader["HallName"]),
+                            HHallName = Convert.ToString(reader["HHallName"]),
+                            financialyear = Convert.ToString(reader["financialyear"]),
+                            Training_SponsorType = Convert.ToInt32(reader["Training_SponsorType"]),
+                            StartDate = Convert.ToDateTime(reader["StartDate"]),
+                            CourseId = (Guid)(reader["CourseId"]),
+                            benefitted = Convert.ToString(reader["benefitted"]),
+                            objective = Convert.ToString(reader["objective"]),
+                            prerequiste = Convert.ToString(reader["prerequiste"]),
+                            img_path = Convert.ToString(reader["img_path"]),
+                            img_path_absolute = string.IsNullOrEmpty(Convert.ToString(reader["img_path"])) ? null : Convert.ToString(reader["img_path"])
+                        };
+
+                        // Handle the optional fields
+                        if (reader["tttf_id"] != DBNull.Value)
+                        {
+                            vw.tttf_id = (Guid)(reader["tttf_id"]);
+                        }
+
+                        vw.trg_type = Convert.ToByte(reader["trg_type"]);
+                        vw.trg_validity = Convert.ToString(reader["trg_validity"]);
+                        vw.tttt_name = Convert.ToString(reader["tttt_name"]);
+                        vw.tttt_hname = Convert.ToString(reader["tttt_hname"]);
+                        vw.exptype = Convert.ToInt32(reader["exptype"]);
+                        vw.resident_status = Convert.ToByte(reader["resident_status"]);
+                        vw.CourseName = Convert.ToString(reader["CourseName"]);
+                        vw.HCourseName = Convert.ToString(reader["HCourseName"]);
+                        vw.DepartmentReferenceNo = Convert.ToString(reader["DepartmentReferenceNo"]);
+                        vw.participation_type = Convert.ToInt32(reader["participation_type"]);
+                        vw.proposed_amt = Convert.ToDecimal(reader["proposed_amt"]);
+                        vw.participant_type = Convert.ToInt32(reader["participant_type"]);
+
+                        if (reader["ChcekListType"] != DBNull.Value)
+                        {
+                            vw.ChcekListType = (Guid)(reader["ChcekListType"]);
+                        }
+
+                        if (reader["FeedbackType"] != DBNull.Value)
+                        {
+                            vw.FeedbackType = (Guid)(reader["FeedbackType"]);
+                        }
+
+                        // Calculate is self-paced bit
+                        vw.isSelfPaced = Common.CommonEnum.Get_Self_Paced_Trg(Convert.ToString(reader["trg_type"]));
+
+                        vw.Participant_type_name = Enum.GetName(typeof(Common.CommonEnum.ParticipantType), Convert.ToInt32(reader["participant_type"]));
+                        vw.Participantion_type_name = Enum.GetName(typeof(Common.CommonEnum.ParticipationType), Convert.ToInt32(reader["participation_type"]));
+
+                        vw.participant_type_txt = Enum.GetName(typeof(Common.CommonEnum.ParticipantType), Convert.ToInt32(reader["participant_type"]));
+                        vw.status_txt = Enum.GetName(typeof(Common.CommonEnum.TrainingStatus), Convert.ToInt32(reader["TrainingStatus"]));
+
+                        // Deserialize trg_setting if not empty
+                        if (reader["trg_setting"] != DBNull.Value)
+                        {
+                            try
+                            {
+                                Trg_Setting p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(reader["trg_setting"]));
+                                vw.trg_Setting = p;
+                                if (p.displaycontrols != null)
+                                {
+                                    if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
+                                    {
+                                        if (p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext != "")
+                                        {
+                                            vw.Trainingcode = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                            vw.TrainingNo = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
+                                        }
+                                    }
+                                }
+
+
+
+                            }
+                            catch
+                            {
+                                vw.trg_Setting = null;
+                            }
+                        }
+                        else
+                        {
+                            vw.trg_Setting = null;
+                        }
+
+                        trgdata.Add(vw);
+                    }
+                }
+            }
+
+            return trgdata.FirstOrDefault();
+
+        }
+        public Training Get_Particular_Training_Detail_By_Code(string trainingcode)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<Training> trgdata = new List<Training>();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                if (con.State != ConnectionState.Open) { con.Open(); }
+                SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where trainingno ='"+ trainingcode + "'", con);
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandTimeout = 5000;
+
+                // Add the parameter to avoid SQL injection
+               // cmd.Parameters.AddWithValue("@TrainingId", trainingid);
 
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -534,7 +682,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_get_certificate_signatory", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -571,7 +719,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlTransaction st = con.BeginTransaction();
             try
             {
@@ -662,7 +810,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.TP_GetTRainingSponsors", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -698,7 +846,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_training_type", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -733,7 +881,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.TP_GetCourse", con);
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -768,7 +916,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("TrainingPlan.TP_UpdTrainingStatus", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -802,7 +950,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_training_update_participant_status", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -830,5 +978,63 @@ namespace LitteraCore.DBContext
 
             return true;
         }
+
+
+        public Certificate_Details Get_Certificate_details(string ttpai_id)
+        {
+            Certificate_Details c = new Certificate_Details();
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand();
+            cmd = new SqlCommand("trainingplan.proc_tp_get_certificate_details", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@ttpai_id", ttpai_id);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            DataTable dt = new DataTable();
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+
+                c = new Certificate_Details
+                {
+                    name =  Convert.ToString(row["name"]),
+                    enrollmentno = Convert.ToString(row["enrollment_no"]),
+                    grade = Convert.ToString(row["grade"]),
+                    printdate = System.DateTime.Now.ToString("dd-MM-yyyy"),
+                    trainingid= Convert.ToString(row["trainingid"]),
+                    participantid= Convert.ToString(row["participantid"]),
+                    ttpai_id= Convert.ToString(row["ttpai_id"]),
+                    mobileno= Convert.ToString(row["ag_mobileno"]).Replace("91-","") 
+                    
+                };
+                
+            }
+
+            return c;
+        }
+        public bool Update_Training_Rating_Data()
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[trainingplan].[proc_tp_insert_avg_rating_per_training]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
+
+
     }
 }

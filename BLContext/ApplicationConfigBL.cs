@@ -132,6 +132,14 @@ namespace LitteraCore.BLContext
             return pd;
 
         }
+        public DateTime Get_Content_Expiry()
+        {
+            DateTime Server_secretKey = Convert.ToDateTime(_configuration["contentExpiry"]);
+
+            return Server_secretKey;
+
+
+        }
 
 
     }

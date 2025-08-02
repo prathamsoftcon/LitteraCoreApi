@@ -74,6 +74,11 @@ namespace LitteraCore.Controllers
             //********
             UserDB UBL = new UserDB(_configuration);
             User amob = new User();
+            if(cd.mobileno == null)
+            {
+                throw new Exception("You are not eligible to access this training.");
+            }
+
             amob = UBL.GET_MOBILE_NO_DATA(cd.mobileno, 2);
             if(amob != null)
             {
@@ -148,6 +153,17 @@ namespace LitteraCore.Controllers
 
             return clientIp;
         }
+
+
+        [HttpPost]
+        [Route("api/Activity_Data")]    
+        public IActionResult Activity_Data([FromBody]activity_data a)
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            bool issaved = CBL.Save_Activity_Data(a);
+            return Ok(issaved);
+        }
+
 
     }
 }

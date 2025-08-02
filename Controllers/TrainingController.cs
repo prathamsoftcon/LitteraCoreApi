@@ -77,6 +77,33 @@ namespace LitteraCore.Controllers
             return Ok(trgdetail);
         }
         [HttpGet]
+        [Route("api/Training_Details_by_Code")]
+        public IActionResult Training_Details_by_Code(string trainingcode)
+        {
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail_By_Code(trainingcode);
+
+
+            if (trgdetail.TrainingStatus == "4")
+            {
+                trgdetail.is_reg_open = false;
+            }
+            else
+            {
+                if (trgdetail.T_EndDate >= System.DateTime.Now)
+                {
+                    trgdetail.is_reg_open = true;
+                }
+                else
+                {
+                    trgdetail.is_reg_open = false;
+                }
+            }
+
+            return Ok(trgdetail);
+        }
+        [HttpGet]
         [Route("api/TrainingStatus")]
         public IActionResult TrainingStatus()
         {
@@ -133,7 +160,23 @@ namespace LitteraCore.Controllers
 
             sl = filteredItems;
 
-            var pagedList = Paging.GetPagedList(param, sl);
+
+
+            //******************Order 
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    sl = CommonEnum.OrderSessionData(trgdetail.trg_Setting.Session.SessionOrder, sl);
+                }
+            }
+
+               
+
+                var pagedList = Paging.GetPagedList(param, sl);
             var result = Paging.GetPagedData(param, sl);
             //*********
 
@@ -337,6 +380,62 @@ namespace LitteraCore.Controllers
 
         }
 
+
+        [HttpGet]
+        [Route("api/Certificate_Details")]
+        public IActionResult Certificate_Details(string ttpai_id)
+        {
+            TrgBL tbl=new TrgBL(_configuration);
+            Certificate_Details c = new Certificate_Details();
+            c=tbl.Get_Certificate_Details(ttpai_id);
+            string grade= tbl.Calculate_Certificate_grade(c.trainingid, c.participantid);
+            if(grade != "")
+            {
+                c.grade = grade;
+            }
+            else
+            {
+                return NotFound("आपकी अध्ययन अवधि सर्टिफिकेट प्राप्त करने के लिए अभी पर्याप्त नहीं है। कृपया कोर्स कंटेंट का अध्ययन करें और कोर्स में दी सभी प्रेक्टिकल गतिविधियों को करें। जब निर्धारित अध्ययन अवधि पूर्ण हो जाएगी, तब आप सर्टिफिकेट जनरेट कर सकेंगे और अपना ग्रेड देख सकेंगे।\r\nकोर्स कंटेंट Link - https://learningplatform.mpbou.in/view_more_content1.html");
+            }
+            
+            
+            return Ok(c);
+        }
+
+
+        [HttpGet]
+        [Route("api/Verify_Certificate")]
+        public IActionResult Verify_Certificate(string usercode,string trainingid)
+        {
+            string grade = "";
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            Trg_User_Details tud=new Trg_User_Details();
+            tud=udb.Get_Trg_User_Details(usercode, trainingid);
+           
+            if(tud.agencyid != null)
+            {
+               grade = tbl.Calculate_Certificate_grade(tud.trainingid, tud.agencyid);
+            }
+            else
+            {
+                grade = "";
+            }
+            
+
+            return Ok(grade);
+        }
+
+        [HttpPost]
+        [Route("api/update_trg_rating_data")]
+        public IActionResult update_trg_rating_data()
+        {
+            bool isupdated = false;
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            isupdated = tbl.Update_Trg_rating_data();
+            return Ok(isupdated);
+        }
 
     }
 }

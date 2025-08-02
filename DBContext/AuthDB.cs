@@ -25,7 +25,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.UserValidate", con);
             cmd.Parameters.AddWithValue("@username", username);
             if (loginattempt != null)
@@ -80,7 +80,7 @@ namespace LitteraCore.DBContext
                 List<User> user = new List<User>();
                 DataTable dt = new DataTable();
                 SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("yuser.proc_check_and_login_user", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Connection = con;
@@ -115,7 +115,7 @@ namespace LitteraCore.DBContext
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.ChangePassword", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -135,7 +135,7 @@ namespace LitteraCore.DBContext
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.proc_yuser_unblock_user", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -154,7 +154,7 @@ namespace LitteraCore.DBContext
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("yuser.InsUpdUserLog", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -193,7 +193,7 @@ namespace LitteraCore.DBContext
                 List<User> user = new List<User>();
                 DataTable dt = new DataTable();
                 SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("yuser.proc_get_user_agency_details_importdata", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Connection = con;
@@ -218,7 +218,7 @@ namespace LitteraCore.DBContext
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.update_bulk_password", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -239,7 +239,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.proc_yuser_check_password_changed", con);
             cmd.Parameters.AddWithValue("@userid", userid);
 
@@ -272,7 +272,7 @@ namespace LitteraCore.DBContext
             List<User> user = new List<User>();
             DataTable dt = new DataTable();
             SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("YUser.proc_yuser_update_password_changed", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;

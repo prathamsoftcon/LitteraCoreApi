@@ -3,7 +3,6 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Data;
-using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using static Azure.Core.HttpHeader;
@@ -24,7 +23,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
 
             cmd = new SqlCommand("select * from  trainingplan.Vw_tp_trg_time_table where TrainingId='" + trainingid + "' and ttttt_status=0", con);
@@ -242,7 +241,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("[trainingplan].[proc_tp_ins_upd_session_notes]", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -265,7 +264,7 @@ namespace LitteraCore.DBContext
             List<Notes> notes = new List<Notes>();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("[trainingplan].[proc_tp_get_session_notes]", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -307,7 +306,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_trg_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -363,7 +362,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_trg_comment", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -392,7 +391,7 @@ namespace LitteraCore.DBContext
 
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString); con.Open();
+            SqlConnection con = new SqlConnection(connectionString); if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_insert_trg_comment_reply", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -413,7 +412,7 @@ namespace LitteraCore.DBContext
             bool issaved = false;
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             if (transaction != null)
             {
@@ -441,7 +440,7 @@ namespace LitteraCore.DBContext
             bool issaved = false;
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             if (transaction != null)
             {
@@ -468,7 +467,7 @@ namespace LitteraCore.DBContext
         {
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlTransaction st = con.BeginTransaction();
             try
             {
@@ -501,7 +500,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
 
             cmd = new SqlCommand("Trainingplan.proc_update_participant_session_status", con);
@@ -529,7 +528,7 @@ namespace LitteraCore.DBContext
             bool isexist = false;
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("trainingplan.proc_tp_chk_content_feedback", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -566,7 +565,7 @@ namespace LitteraCore.DBContext
             bool isexist = false;
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             cmd = new SqlCommand("trainingplan.proc_tp_chk_faculty_feedback", con);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -592,7 +591,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("TrainingPlan.proc_get_participant_session_status", con);
             cmd.CommandType = CommandType.StoredProcedure;
             if (trainingid != null)
@@ -649,7 +648,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_lms_get_meeting", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
@@ -771,44 +770,45 @@ namespace LitteraCore.DBContext
         public List<Session> Get_Trg_Progress_Data(string trainingid, string participantid, string branchid)
         {
 
-            List<Session> sessiondata = new List<Session>();
-            DataTable dt = new DataTable();
-            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand();
+            //List<Session> sessiondata = new List<Session>();
+            //DataTable dt = new DataTable();
+            //string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            //SqlConnection con = new SqlConnection(connectionString);
+            //if (con.State != ConnectionState.Open) { con.Open(); }
+            //SqlCommand cmd = new SqlCommand();
 
-            cmd = new SqlCommand("trainingplan.proc_session_completion_report", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@trainingid", trainingid);
-            if (participantid != null)
-            {
-                cmd.Parameters.AddWithValue("@participantid", participantid);
-            }
-            if (branchid != null)
-            {
-                cmd.Parameters.AddWithValue("@branchid", branchid);
-            }
-
-
-            cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
+            //cmd = new SqlCommand("trainingplan.proc_session_completion_report", con);
+            //cmd.CommandType = CommandType.StoredProcedure;
+            //cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            //if (participantid != null)
+            //{
+            //    cmd.Parameters.AddWithValue("@participantid", participantid);
+            //}
+            //if (branchid != null)
+            //{
+            //    cmd.Parameters.AddWithValue("@branchid", branchid);
+            //}
 
 
+            //cmd.Connection = con;
+            //cmd.CommandTimeout = 5000;
 
 
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            da.Fill(dt);
-            con.Close();
-            dt.DefaultView.RowFilter = "ttttt_session_id is not null";
-            dt = dt.DefaultView.ToTable();
-            dt.Columns.Add("ttttt_session_no_int", typeof(int), "ttttt_session_no");
-            dt.DefaultView.Sort = "ttttt_session_no_int asc";
-            dt = dt.DefaultView.ToTable();
 
-            ParticipantDB WDB = new ParticipantDB(_configuration);
-            List<Participant> trgparticipants = new List<Participant>();
-            trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
+
+            //SqlDataAdapter da = new SqlDataAdapter(cmd);
+
+            //da.Fill(dt);
+            //con.Close();
+            //dt.DefaultView.RowFilter = "ttttt_session_id is not null";
+            //dt = dt.DefaultView.ToTable();
+            //dt.Columns.Add("ttttt_session_no_int", typeof(int), "ttttt_session_no");
+            //dt.DefaultView.Sort = "ttttt_session_no_int asc";
+            //dt = dt.DefaultView.ToTable();
+
+            //ParticipantDB WDB = new ParticipantDB(_configuration);
+            //List<Participant> trgparticipants = new List<Participant>();
+            //trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
 
 
 
@@ -896,59 +896,90 @@ namespace LitteraCore.DBContext
             //    sessiondata.Add(vw);
             //}
 
-            var lookup = new Dictionary<string, HashSet<string>>();
 
-            // Group all matching session_id + agency_id combinations
-            foreach (DataRow row in dt.Rows)
+            //// sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
+
+            //return sessiondata;
+            List<Session> sessiondata = new List<Session>();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+
+            // Load participant list once
+            ParticipantDB WDB = new ParticipantDB(_configuration);
+            List<Participant> trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
+
+            // Create a list to store session-participant pairs for fast lookup
+            HashSet<(string sessionId, string agencyId)> sessionParticipantMap = new HashSet<(string, string)>();
+
+            using (SqlConnection con = new SqlConnection(connectionString))
             {
-                string sessionId = row["ttttt_session_id"].ToString();
-                string agencyId = row["tta_agency_id"].ToString();
-
-                if (!lookup.ContainsKey(sessionId))
+                using (SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con))
                 {
-                    lookup[sessionId] = new HashSet<string>();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@trainingid", trainingid);
+                    if (participantid != null) cmd.Parameters.AddWithValue("@participantid", participantid);
+                    if (branchid != null) cmd.Parameters.AddWithValue("@branchid", branchid);
+                    cmd.CommandTimeout = 5000;
+
+                    if (con.State != ConnectionState.Open) { con.Open(); }
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            // Skip if session ID is null
+                            if (reader["ttttt_session_id"] == DBNull.Value)
+                                continue;
+
+                            string sessionId = reader["ttttt_session_id"].ToString();
+                            string agencyId = reader["tta_agency_id"]?.ToString(); // can be null
+
+                            // Build session-participant lookup for later use
+                            if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(agencyId))
+                            {
+                                sessionParticipantMap.Add((sessionId, agencyId));
+                            }
+
+                            // Only build a session object when it's the first time seeing a session ID
+                            if (!sessiondata.Any(s => s.ttttt_session_id == sessionId))
+                            {
+                                Session vw = new Session
+                                {
+                                    trainingid = reader["trainingid"].ToString(),
+                                    ttttt_session_id = sessionId,
+                                    ttttt_content_desc = reader["ttttt_content_desc"].ToString(),
+                                    ttttt_session_dt = Convert.ToDateTime(reader["ttttt_session_dt"]).ToString("yyyy/MM/dd"),
+                                    ttttt_session_time = reader["ttttt_session_time"].ToString(),
+                                    ttttt_session_duration = reader["ttttt_session_duration"].ToString(),
+                                    ttttt_session_day = Convert.ToInt32(reader["ttttt_session_day"]),
+                                    ttttt_session_end_time = reader["ttttt_session_end_time"].ToString(),
+                                    ttttt_session_no = Convert.ToInt32(reader["ttttt_session_no"]),
+                                    ttttt_session_week = Convert.ToInt32(reader["ttttt_session_week"]),
+                                    module = string.IsNullOrEmpty(reader["ttttt_module_no"]?.ToString()) ? 0 : Convert.ToInt32(reader["ttttt_module_no"]),
+                                    ttttt_type = Convert.ToInt32(reader["ttttt_type"]),
+                                    facultyname = reader["tttttf_status"].ToString() != "9" ? reader["facultyname"].ToString() : "",
+                                    noofcompletion = Convert.ToInt32(reader["noofpersons"]),
+                                    ttttt_complimentory = Convert.ToInt32(reader["ttttt_complimentory"]),
+                                };
+
+                                sessiondata.Add(vw);
+                            }
+                        }
+                    }
                 }
-                lookup[sessionId].Add(agencyId);
             }
 
-
-            foreach (DataRow row in dt.Rows)
+            // Attach completion detail per participant
+            foreach (var session in sessiondata)
             {
-                Session vw = new Session();
-                vw.trainingid = Convert.ToString(row["trainingid"]);
-                vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
-                vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
-                vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
-                vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
-                vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
-                vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
-                vw.ttttt_session_end_time = Convert.ToString(row["ttttt_session_end_time"]);
-                vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
-                vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
-                vw.module = string.IsNullOrEmpty(Convert.ToString(row["ttttt_module_no"])) ? 0 : Convert.ToInt32(row["ttttt_module_no"]);
-                vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
-
-                if (Convert.ToString(row["tttttf_status"]) != "9")
-                    vw.facultyname = Convert.ToString(row["facultyname"]);
-                else
-                    vw.facultyname = "";
-
-                vw.noofcompletion = Convert.ToInt32(row["noofpersons"]);
-                vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
-
-                // Optimized participant completion lookup
-                string currentSessionId = vw.ttttt_session_id;
                 List<completionDetail> cp = new List<completionDetail>();
 
                 foreach (Participant p in trgparticipants)
                 {
-                    string participantId = p.ParticipantId;
-
-                    bool isCompleted = lookup.ContainsKey(currentSessionId) && lookup[currentSessionId].Contains(participantId);
+                    bool isCompleted = sessionParticipantMap.Contains((session.ttttt_session_id, p.ParticipantId));
 
                     cp.Add(new completionDetail
                     {
-                        agencyid = participantId,
+                        agencyid = p.ParticipantId,
                         agencyname = p.ParticipantName,
                         status = isCompleted ? "Completed" : "Pending",
                         emailid = p.email,
@@ -956,13 +987,12 @@ namespace LitteraCore.DBContext
                     });
                 }
 
-                vw.completiondetail = cp.ToArray();
-                sessiondata.Add(vw);
+                session.completiondetail = cp.ToArray();
             }
 
-            // sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
-
             return sessiondata;
+
+
         }
 
         public SessionRestriction GET_SESSION_RESTRICTION_INFO(string trainingid)
@@ -1006,7 +1036,7 @@ namespace LitteraCore.DBContext
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             string sessionstartdate = "";
             if (Sessiondt.HasValue)
@@ -1143,7 +1173,7 @@ namespace LitteraCore.DBContext
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_get_session_completion_status", con)
                 {
                     CommandType = CommandType.StoredProcedure,
@@ -1184,7 +1214,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
             if (transaction != null)
             {
@@ -1282,30 +1312,38 @@ namespace LitteraCore.DBContext
                     // Depend on If Participant is Approved in training or Session is complementory
                     if (iscomplementory == 1)
                     {
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Study_Group)
+                        if (participantstatus != 9)  // Condition to stop action for suspend participant.
                         {
-                            isdisplay = true;
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Study_Group)
+                            {
+                                isdisplay = true;
+                            }
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Breaks_Group)
+                            {
+                                isdisplay = false;
+                            }
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Evaluation_Group)
+                            {
+                                isdisplay = false;
+                            }
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Self_paced)
+                            {
+                                isdisplay = true;
+                            }
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Sport_Group)
+                            {
+                                isdisplay = false;
+                            }
+                            if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Tours_Group)
+                            {
+                                isdisplay = false;
+                            }
                         }
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Breaks_Group)
+                        else
                         {
                             isdisplay = false;
                         }
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Evaluation_Group)
-                        {
-                            isdisplay = false;
-                        }
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Self_paced)
-                        {
-                            isdisplay = true;
-                        }
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Sport_Group)
-                        {
-                            isdisplay = false;
-                        }
-                        if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Tours_Group)
-                        {
-                            isdisplay = false;
-                        }
+                       
 
                     }
                     else
@@ -1989,6 +2027,70 @@ namespace LitteraCore.DBContext
                     isdisplay = false;
                 }
             }
+            else if ((int)ActionFor == (int)CommonEnum.SESSION_LIST_ACTIONS.Connect_to_mentor)
+            {
+                if (Convert.ToInt16(usertype.ToString()) == (int)CommonEnum.usertype.PARTICIPANT)
+                {
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Study_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Breaks_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Evaluation_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Self_paced)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Sport_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Tours_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+
+                 
+                }
+                else
+                {
+                    isdisplay = false;
+                }
+            }
 
             return isdisplay;
         }
@@ -1998,7 +2100,7 @@ namespace LitteraCore.DBContext
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
-            con.Open();
+            if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
 
             cmd = new SqlCommand("Trainingplan.proc_update_participant_session_visit_status", con);
@@ -2029,7 +2131,7 @@ namespace LitteraCore.DBContext
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
-                con.Open();
+                if (con.State != ConnectionState.Open) { con.Open(); }
                 SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con)
                 {
                     CommandType = CommandType.StoredProcedure,
@@ -2082,6 +2184,159 @@ namespace LitteraCore.DBContext
 
         }
 
+        public Session Get_Session_Details(string sessionid)
+        {
+
+            List<Session> sessiondata = new List<Session>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand();
+
+            cmd = new SqlCommand("select * from  trainingplan.Vw_tp_trg_time_table where ttttt_session_id='" + sessionid + "'", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            Session vw = new Session();
+            foreach (DataRow row in dt.Rows)
+            {
+               
+                vw.trainingid = Convert.ToString(row["trainingid"]);
+                vw.trainingcategoryid= Convert.ToString(row["TrainingCategoryId"]);
+                vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
+                vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
+                vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
+                vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
+                vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
+                vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
+                vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+                vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
+                vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
+                vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
+                vw.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]).ToString("yyyy/MM/dd hh:mm:ss");
+                vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
+                vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
+                vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
+                vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
+                vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
+                vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
+                if (row["ttttt_session_duration_type"] != DBNull.Value)
+                {
+                    vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
+                }
+
+                if (Convert.ToString(row["ttttt_complimentory"]) != "")
+                {
+                    vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
+
+                }
+                else
+                {
+                    //Condition added because assignment not can make complementory then we assume that assignment is always complementory
+                    vw.ttttt_complimentory = 0;
+
+                }
+
+                vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
+                vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
+                vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
+
+                vw.facultyname = Convert.ToString(row["facultyname"]);
+                vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
+                if (Convert.ToString(row["ttttt_facultyid"]) != "")
+                {
+                    if (Convert.ToString(row["facultyimgpath"]) != "")
+                    {
+                        vw.facultyimgpath = Convert.ToString(row["facultyimgpath"]);
+                    }
+                    else
+                    {
+                        vw.facultyimgpath = null;
+                    }
+                }
+
+                vw.Attendance = Convert.ToString(row["Attendance"]);
+                if (row["ttttt_session_duration_type"] != DBNull.Value)
+                {
+                    vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
+                }
+                CompletionType sessionconpletiontype = null;
+
+
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
+                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
+                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
+                if (row["ttttt_module_no"].ToString() != "")
+                {
+                    vw.module = Convert.ToInt32(row["ttttt_module_no"].ToString());
+                }
+
+                if (row["ttttt_module_no"].ToString() != "")
+                {
+                    vw.modulename = Get_Session_Module_Name_by_id(row["ttttt_module_no"].ToString());
+                }
+
+
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        vw.completiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
+
+
+
+                DataTable dtfaulties = new DataTable();
+                dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tttttf_status <> 9";
+                dtfaulties = dt.DefaultView.ToTable();
+                List<SessionFaculties> lsf = new List<SessionFaculties>();
+                foreach (DataRow drf1 in dtfaulties.Rows)
+                {
+                    if (Convert.ToString(drf1["ttttt_facultyid"]) != "")
+                    {
+                        string imgpath = "";
+                        if (Convert.ToString(drf1["facultyimgpath"]) != "")
+                        {
+                            imgpath = Convert.ToString(drf1["facultyimgpath"]);
+                        }
+                        else
+                        {
+                            imgpath = null;
+                        }
+                        lsf.Add(new SessionFaculties { facultyid = Convert.ToString(drf1["ttttt_facultyid"]), facultyname = Convert.ToString(drf1["facultyname"]), hfacultyname = Convert.ToString(drf1["hfacultyname"]), facultuimg = imgpath });
+                    }
+
+                }
+
+                vw.sessionFaculties = lsf.ToArray();
+
+             
+            }
+
+
+
+            sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
+
+            return vw;
+        }
+
+
+      
 
     }
 

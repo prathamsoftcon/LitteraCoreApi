@@ -11,7 +11,7 @@
         public async Task Invoke(HttpContext context)
         {
             var endpoint = context.GetEndpoint().ToString();
-            if (!endpoint.Contains("Get_Activity_Token_Info"))
+            if (!endpoint.Contains("Get_Activity_Token_Info") && !endpoint.Contains("Littera_Events") && !endpoint.Contains("User_Session_Details"))
             {
                 string apiKey = context.Request.Headers[ApiKeyName].FirstOrDefault();
 

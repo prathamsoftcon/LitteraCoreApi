@@ -59,6 +59,7 @@ namespace LitteraCore.BLContext
 
 
                 session.display_txt = moduletext + " " + weektext +" "+ daytext + " " + srnotext + " "+session.ttttt_content_desc+"-"+ session.ttttt_subject;
+                session.notes_download_file_name = moduletext + " " + weektext + " " + daytext + " " + srnotext;
 
             }
 

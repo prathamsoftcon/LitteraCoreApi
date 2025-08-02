@@ -4,6 +4,7 @@ using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace LitteraCore.Controllers
 {
@@ -17,7 +18,6 @@ namespace LitteraCore.Controllers
             _configuration = configuration;
             _logger = logger;
         }
-
         [HttpGet]
         [Route("api/TRG_PARTICIPANT_ACTION")]
         public IActionResult TRG_PARTICIPANT_ACTION(string usertype, string userid, string trainingid, string participantid, string branchid = null)
@@ -70,7 +70,7 @@ namespace LitteraCore.Controllers
                 // lu.Add(new OptionsDisplay { id = "4", name = "Enroll Dates", dispay = false });
                 if (usertype == "1" || usertype == "3" || usertype == "4")
                 {
-                   
+
                     if (lwtc.FirstOrDefault().is_approve != 1)
                     {
                         if (lwtc.FirstOrDefault().is_approve == (int)Common.CommonEnum.Participant_Enroll_Status.Consent_Received) //Consent Given
@@ -173,7 +173,7 @@ namespace LitteraCore.Controllers
                 }
                 else if (usertype == "2")
                 {
-                    
+
                     lu.Add(new OptionsDisplay { id = "5", name = "Suspend", dispay = true }); //Chage status
                                                                                               //  lu.Add(new OptionsDisplay { id = "6", name = "Pay Fees", dispay = false }); //Chage status
                                                                                               // lu.Add(new OptionsDisplay { id = "7", name = "Change Sponsor", dispay = false });
@@ -221,8 +221,8 @@ namespace LitteraCore.Controllers
                     lu.Add(new OptionsDisplay { id = "3", name = "Approve", dispay = false }); //Chage status
                     lu.Add(new OptionsDisplay { id = "5", name = "Suspend", dispay = false }); //Chage status
                     lu.Add(new OptionsDisplay { id = "6", name = "Pay Fees", dispay = false }); //Chage status
-                    //lu.Add(new OptionsDisplay { id = "7", name = "Change Sponsor", dispay = false });
-                    //lu.Add(new OptionsDisplay { id = "8", name = "Send Mail", dispay = false }); //Add Participant
+                                                                                                //lu.Add(new OptionsDisplay { id = "7", name = "Change Sponsor", dispay = false });
+                                                                                                //lu.Add(new OptionsDisplay { id = "8", name = "Send Mail", dispay = false }); //Add Participant
                     lu.Add(new OptionsDisplay { id = "9", name = "Approve with Login", dispay = false }); //Chage status
                     lu.Add(new OptionsDisplay { id = "10", name = "Approve Without Login", dispay = false });
 
@@ -308,7 +308,7 @@ namespace LitteraCore.Controllers
                         else
                         {
                             lu.Add(new OptionsDisplay { id = "3", name = "Approve", dispay = true }); //Chage status
-                            //lu.Add(new OptionsDisplay { id = "3", name = "Approve", dispay = true }); //Chage status
+                                                                                                      //lu.Add(new OptionsDisplay { id = "3", name = "Approve", dispay = true }); //Chage status
                         }
 
                     }
@@ -331,6 +331,16 @@ namespace LitteraCore.Controllers
 
 
             return Ok(lu);
+        }
+
+        [HttpGet]
+        [Route("api/Participant_Exist_In_trg")]
+        public IActionResult Validate_User_Training(string participantid, string trainingid)
+        {
+
+            ParticipantDB WDB = new ParticipantDB(_configuration);
+            bool isexist = WDB.Validate_User_Training(participantid, trainingid);
+            return Ok(isexist);
         }
     }
 }

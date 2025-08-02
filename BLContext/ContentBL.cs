@@ -100,7 +100,13 @@ namespace LitteraCore.BLContext
             bool issaved = CDB.save_participant_learning_time(lt);
             return issaved;
         }
+        public bool Save_Activity_Data(activity_data a)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            bool issaved = CDB.Save_Activity_Data(a);
+            return issaved;
 
+        }
 
     }
 }
