@@ -3,6 +3,7 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Data;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using static Azure.Core.HttpHeader;
@@ -811,7 +812,6 @@ namespace LitteraCore.DBContext
             //trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
 
 
-
             //foreach (DataRow row in dt.Rows)
             //{
             //    Session vw = new Session();
@@ -896,102 +896,92 @@ namespace LitteraCore.DBContext
             //    sessiondata.Add(vw);
             //}
 
-
-            //// sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
-
-            //return sessiondata;
-            List<Session> sessiondata = new List<Session>();
-            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-
-            // Load participant list once
-            ParticipantDB WDB = new ParticipantDB(_configuration);
-            List<Participant> trgparticipants = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
-
-            // Create a list to store session-participant pairs for fast lookup
-            HashSet<(string sessionId, string agencyId)> sessionParticipantMap = new HashSet<(string, string)>();
-
-            using (SqlConnection con = new SqlConnection(connectionString))
+            foreach (DataRow row in dt.Rows)
             {
-                using (SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con))
+                Session vw = new Session();
+                vw.trainingid = Convert.ToString(row["trainingid"]);
+                // vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
+                vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
+                // vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
+                // vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
+                vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
+                vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
+                vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+                vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
+                vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
+                // vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
+                vw.ttttt_session_end_time = Convert.ToString(row["ttttt_session_end_time"]);
+                vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
+                //vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
+                //vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
+                //vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
+                vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
+                if (Convert.ToString(row["ttttt_module_no"]) != "")
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@trainingid", trainingid);
-                    if (participantid != null) cmd.Parameters.AddWithValue("@participantid", participantid);
-                    if (branchid != null) cmd.Parameters.AddWithValue("@branchid", branchid);
-                    cmd.CommandTimeout = 5000;
-
-                    if (con.State != ConnectionState.Open) { con.Open(); }
-
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            // Skip if session ID is null
-                            if (reader["ttttt_session_id"] == DBNull.Value)
-                                continue;
-
-                            string sessionId = reader["ttttt_session_id"].ToString();
-                            string agencyId = reader["tta_agency_id"]?.ToString(); // can be null
-
-                            // Build session-participant lookup for later use
-                            if (!string.IsNullOrEmpty(sessionId) && !string.IsNullOrEmpty(agencyId))
-                            {
-                                sessionParticipantMap.Add((sessionId, agencyId));
-                            }
-
-                            // Only build a session object when it's the first time seeing a session ID
-                            if (!sessiondata.Any(s => s.ttttt_session_id == sessionId))
-                            {
-                                Session vw = new Session
-                                {
-                                    trainingid = reader["trainingid"].ToString(),
-                                    ttttt_session_id = sessionId,
-                                    ttttt_content_desc = reader["ttttt_content_desc"].ToString(),
-                                    ttttt_session_dt = Convert.ToDateTime(reader["ttttt_session_dt"]).ToString("yyyy/MM/dd"),
-                                    ttttt_session_time = reader["ttttt_session_time"].ToString(),
-                                    ttttt_session_duration = reader["ttttt_session_duration"].ToString(),
-                                    ttttt_session_day = Convert.ToInt32(reader["ttttt_session_day"]),
-                                    ttttt_session_end_time = reader["ttttt_session_end_time"].ToString(),
-                                    ttttt_session_no = Convert.ToInt32(reader["ttttt_session_no"]),
-                                    ttttt_session_week = Convert.ToInt32(reader["ttttt_session_week"]),
-                                    module = string.IsNullOrEmpty(reader["ttttt_module_no"]?.ToString()) ? 0 : Convert.ToInt32(reader["ttttt_module_no"]),
-                                    ttttt_type = Convert.ToInt32(reader["ttttt_type"]),
-                                    facultyname = reader["tttttf_status"].ToString() != "9" ? reader["facultyname"].ToString() : "",
-                                    noofcompletion = Convert.ToInt32(reader["noofpersons"]),
-                                    ttttt_complimentory = Convert.ToInt32(reader["ttttt_complimentory"]),
-                                };
-
-                                sessiondata.Add(vw);
-                            }
-                        }
-                    }
+                    vw.module = Convert.ToInt32(row["ttttt_module_no"]);
                 }
-            }
+                else
+                {
+                    vw.module = 0;
+                }
 
-            // Attach completion detail per participant
-            foreach (var session in sessiondata)
-            {
+                vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
+                //if (row["ttttt_session_duration_type"] != DBNull.Value)
+                //{
+                //    vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
+                //}
+
+                //vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
+                //vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
+                //vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
+                if (Convert.ToString(row["tttttf_status"]) != "9")
+                {
+                    vw.facultyname = Convert.ToString(row["facultyname"]);
+                }
+                else
+                {
+                    vw.facultyname = "";
+                }
+
+              
+                vw.noofcompletion = Convert.ToInt32(row["noofpersons"]);
+                vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
+                //dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "'";
+                //DataTable dtfilterdata = dt.DefaultView.ToTable();
                 List<completionDetail> cp = new List<completionDetail>();
+                // foreach (DataRow dr1 in dtfilterdata.Rows)
+                //{
+                //    cp.Add(new completionDetail { agencyid = dr1["tta_agency_id"].ToString(), agencyname = dr1["AgencyName"].ToString() });
+                //}
+                //vw.completiondetail = cp.ToArray();
 
                 foreach (Participant p in trgparticipants)
                 {
-                    bool isCompleted = sessionParticipantMap.Contains((session.ttttt_session_id, p.ParticipantId));
-
-                    cp.Add(new completionDetail
+                    dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tta_agency_id='" + p.ParticipantId + "'";
+                    DataTable dtfilterdata1 = dt.DefaultView.ToTable();
+                    if (dtfilterdata1.Rows.Count > 0)
                     {
-                        agencyid = p.ParticipantId,
-                        agencyname = p.ParticipantName,
-                        status = isCompleted ? "Completed" : "Pending",
-                        emailid = p.email,
-                        mobileno = p.mobileno
-                    });
+                        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
+                    }
+                    else
+                    {
+                        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
+                    }
+
+
                 }
+
+                vw.completiondetail = cp.ToArray();
+
+
+
+
 
                 session.completiondetail = cp.ToArray();
             }
 
-            return sessiondata;
 
+            // sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
 
         }
 

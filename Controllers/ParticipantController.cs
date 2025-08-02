@@ -18,6 +18,7 @@ namespace LitteraCore.Controllers
             _configuration = configuration;
             _logger = logger;
         }
+
         [HttpGet]
         [Route("api/TRG_PARTICIPANT_ACTION")]
         public IActionResult TRG_PARTICIPANT_ACTION(string usertype, string userid, string trainingid, string participantid, string branchid = null)
