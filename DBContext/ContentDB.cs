@@ -414,6 +414,58 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
 
         }
 
+        public List<activity_data> Get_Activity_Data(string agencyid, string activityid = null)
+        {
+
+            List<activity_data> AL = new List<activity_data>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand();
+            if (activityid != null)
+            {
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+agencyid+"' and tpad_activity_id='"+activityid+"'", con);
+            }
+            else
+            {
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+ agencyid + "'", con);
+            }
+          
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+         
+
+            foreach (DataRow row in dt.Rows)
+            {
+                activity_data vw = new activity_data();
+                vw.tpad_id = Convert.ToString(row["tpad_id"]);
+                vw.tpad_activity_id = Convert.ToString(row["tpad_activity_id"]);
+                vw.tpad_ttpai_id = Convert.ToString(row["tpad_ttpai_id"]);
+                vw.tpad_ttsam_id    = Convert.ToString(row["tpad_ttsam_id"]);
+
+                vw.tpad_activity_data = Convert.ToString(row["tpad_activity_data"]);
+                vw.tpad_createdon = Convert.ToString(row["tpad_createdon"]);
+                vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
+              
+                AL.Add(vw);
+
+            }
+
+          
+    
+
+            return AL;
+
+        }
 
     }
 }

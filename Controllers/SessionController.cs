@@ -416,10 +416,12 @@ namespace LitteraCore.Controllers
                         sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
                     }
                     //Extra condition in case of bhoj to handle feedback not required for session =1
-                    if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10)
-                    {
-                        sessn.is_feedback_Required = 0;
-                    }
+                    //if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10)
+                    //{
+                    //    sessn.is_feedback_Required = 0;
+                    //}
+                    //Comment above part because as discussion this is not a right way to stop feedback
+                  
                 }
                 else
                 {

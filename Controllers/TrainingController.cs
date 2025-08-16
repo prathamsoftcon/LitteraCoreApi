@@ -1,11 +1,15 @@
 ﻿using LitteraCore.BLContext;
 using LitteraCore.Common;
+using LitteraCore.Common.EmailService;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
 using System.Data;
 using System.Security.Cryptography.Xml;
+using System.Text.Json;
+using System.Text;
 using static LitteraCore.Common.CommonEnum;
 
 namespace LitteraCore.Controllers
@@ -197,18 +201,65 @@ namespace LitteraCore.Controllers
         [Route("api/Check_Signatory_Available")]
         public IActionResult Check_Signatory_Available(string trainingid)
         {
-
+            bool is_signatory_exist = false;
             TrgBL tbl = new TrgBL(_configuration);
-            List<CERTIFICATE_SIGNATORY> signatory = tbl.Get_Signatory(trainingid);
-            if (signatory.Count > 0)
+            TrainingDB tb = new TrainingDB(_configuration);
+            Training training = new Training();
+            training = tb.Get_Particular_Training_Detail(trainingid);
+
+            if(training.trg_Setting != null)
             {
-                return Ok(true);
+                if(training.trg_Setting.certificate_setting != null)
+                {
+                    if (training.trg_Setting.certificate_setting.no_of_signatory_required > 0)
+                    {
+                        List<CERTIFICATE_SIGNATORY> signatory = tbl.Get_Signatory(trainingid);
+                        if (signatory.Count > 0)
+                        {
+                            is_signatory_exist = true;
+                        }
+                        else
+                        {
+                            is_signatory_exist = false;
+                        }
+
+                    }
+                    else
+                    {
+                        is_signatory_exist = true;
+                    }
+                }
+                else
+                {
+                    List<CERTIFICATE_SIGNATORY> signatory = tbl.Get_Signatory(trainingid);
+                    if (signatory.Count > 0)
+                    {
+                        is_signatory_exist = true;
+                    }
+                    else
+                    {
+                        is_signatory_exist = false;
+                    }
+
+                }
             }
             else
             {
-                return Ok(false);
+                List<CERTIFICATE_SIGNATORY> signatory = tbl.Get_Signatory(trainingid);
+                if (signatory.Count > 0)
+                {
+                    is_signatory_exist = true;
+                }
+                else
+                {
+                    is_signatory_exist = false;
+                }
+
             }
-          
+
+
+
+            return Ok(is_signatory_exist);
         }
         [HttpGet]
         [Route("api/Get_Certificate_Signatory")]
@@ -274,7 +325,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_Certificate")]
-        public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path)
+        public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path,string? loginuserid=null)
         {
 
             TrgBL tb = new TrgBL(_configuration);
@@ -284,11 +335,426 @@ namespace LitteraCore.Controllers
             List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
             Trg = tbl.Get_Particular_Training_Detail(trainingid);
 
-            string certificatedata = tb.Geenerate_certificate_text(Trg, dtsignatory, participantid, APPURL, Logo_Path);
+            ParticipantDB pdb=new ParticipantDB(_configuration);
+            List<Participant> p = new List<Participant>();
+            string ttpai_id = "";
+            p = pdb.Get_Trg_Participant_List(trainingid, participantid);
+            if (p.Count > 0)
+            {
+                ttpai_id = p.FirstOrDefault().ttpai_id;
+            }
+
+            string certificateid = Guid.NewGuid().ToString();
+
+            certificate_obj c = new certificate_obj
+            {
+                CertId = certificateid,
+                ttpai_id= ttpai_id,
+                CertInfo= "id="+ certificateid + ",date="+System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss")+",createdby="+ loginuserid + ""
+            };
+
+            string certificatedata = "";
+            List <certificate_obj> lc=new List<certificate_obj>();
+            lc.Add(c);
+            if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
+            {
+                 certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+            }
+
+
 
             return Ok(certificatedata);
         }
 
+
+
+
+        [HttpGet]
+        [Route("api/Generate_ALL_Certificate")]
+        public IActionResult Generate_ALL_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        {
+            Task.Run(async () =>
+            {
+                bool isgenerated = false;
+                TrgBL tb = new TrgBL(_configuration);
+                TrainingDB tbl = new TrainingDB(_configuration);
+                Training Trg = tbl.Get_Particular_Training_Detail(trainingid);
+                List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+
+                ParticipantDB pdb = new ParticipantDB(_configuration);
+                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid);
+              
+
+                List<not_eligible_participant> not_eligible = new List<not_eligible_participant>();
+                List<certificate_obj> lc = new List<certificate_obj>();
+
+                foreach (Participant part in p)
+                {
+                    string certificateid = Guid.NewGuid().ToString();
+                    bool iseligible = tb.is_participant_eligible_for_certificate(part.ttpai_id, trainingid);
+                    if (iseligible)
+                    {
+                        lc.Add(new certificate_obj
+                        {
+                            CertId = certificateid,
+                            ttpai_id = part.ttpai_id,
+                            CertInfo = "id=" + certificateid + ",date=" + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid
+                        });
+                    }
+                    else
+                    {
+                        not_eligible.Add(new not_eligible_participant
+                        {
+                             participantid=part.ParticipantId,
+                             name=part.ParticipantName,
+                             emilid=part.email,
+                             mobileno=part.mobileno
+                               
+                        });
+                    }
+                }
+
+                if (lc.Count > 0)
+                {
+                    if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid))
+                    {
+                        isgenerated = true;
+                    }
+                }
+
+                // Send Email Notification
+                AgencyDB adb = new AgencyDB(_configuration);
+                List<Agency> a = new List<Agency>();
+                a = adb.Get_Agency(null, loginuserid,1,1, null, null, null, null, null);
+                string mailid = a.FirstOrDefault().ag_email;
+                if (a.Count > 0) {
+                    if (not_eligible.Count > 0)
+                    {
+                        //string notEligibleJson = JsonConvert.SerializeObject(not_eligible);
+                        SmtpEmailService s = new SmtpEmailService(_configuration);
+                        //await s.SendEmailAsync(mailid, "Certificate Generated","Your process to generate certificate is completed successfully. These participants are not eligible:\n" + notEligibleJson);
+
+                        string json = JsonConvert.SerializeObject(not_eligible, Formatting.Indented);
+                        byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+                        var jsonStream = new MemoryStream(jsonBytes);
+
+                        var attachments = new List<(string FileName, Stream Content)>
+                            {
+                            ("NotEligibleParticipants.json", jsonStream)
+                            };
+
+                        await s.SendEmailAsync_with_attachment(mailid, "Certificate Generated",
+                            "Certificate generation completed. Please find the not-eligible participant list attached.",
+                            attachments);
+                    }
+                    else
+                    {
+                        SmtpEmailService s = new SmtpEmailService(_configuration);
+                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                    }
+                   
+                }
+              
+            
+
+                // Optionally log or store results (isgenerated, not_eligible) to DB or logs
+
+            });
+
+            return Ok(new {status=true, message = "Certificate generation started in background.We will inform you with your mail id on process completion." });
+        }
+
+
+
+
+        [HttpGet]
+        [Route("api/Generate_And_Download_ALL_Certificate")]
+        public IActionResult Generate_And_Download_ALL_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        {
+            Task.Run(async () =>
+            {
+                bool isgenerated = false;
+                TrgBL tb = new TrgBL(_configuration);
+                TrainingDB tbl = new TrainingDB(_configuration);
+                Training Trg = tbl.Get_Particular_Training_Detail(trainingid);
+                List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+
+                ParticipantDB pdb = new ParticipantDB(_configuration);
+                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid);
+             
+
+                List<not_eligible_participant> not_eligible = new List<not_eligible_participant>();
+                List<certificate_obj> lc = new List<certificate_obj>();
+
+                foreach (Participant part in p)
+                {
+                    string certificateid = Guid.NewGuid().ToString();
+                    bool iseligible = tb.is_participant_eligible_for_certificate(part.ttpai_id, trainingid);
+                    if (iseligible)
+                    {
+                        lc.Add(new certificate_obj
+                        {
+                            participantid=part.ttpai_id,
+                            CertId = certificateid,
+                            ttpai_id = part.ttpai_id,
+                            CertInfo = "id=" + certificateid + ",date=" + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid
+                        });
+                    }
+                    else
+                    {
+                        not_eligible.Add(new not_eligible_participant
+                        {
+                            participantid = part.ParticipantId,
+                            name = part.ParticipantName,
+                            emilid = part.email,
+                            mobileno = part.mobileno
+
+                        });
+                    }
+                }
+                string certificatedata = "";
+                if (lc.Count > 0)
+                {
+                    if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid))
+                    {
+                        foreach(certificate_obj co in lc)
+                        {
+                            certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, co.participantid, APPURL, Logo_Path, co.CertId);
+                        }
+                        //certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+                    }
+                }
+
+                // Send Email Notification
+                AgencyDB adb = new AgencyDB(_configuration);
+                List<Agency> a = new List<Agency>();
+                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null);
+                string mailid = a.FirstOrDefault().ag_email;
+                if (a.Count > 0)
+                {
+                    if (not_eligible.Count > 0)
+                    {
+                        string notEligibleJson = JsonConvert.SerializeObject(not_eligible);
+                        SmtpEmailService s = new SmtpEmailService(_configuration);
+                        //await s.SendEmailAsync(mailid, "Certificate Generated","Your process to generate certificate is completed successfully. These participants are not eligible:\n" + notEligibleJson);
+
+                        byte[] jsonBytes = Encoding.UTF8.GetBytes(notEligibleJson);
+                        var jsonStream = new MemoryStream(jsonBytes);
+
+                        // Attach certificate HTML
+                        byte[] certBytes = Encoding.UTF8.GetBytes(certificatedata);
+                        var certStream = new MemoryStream(certBytes);
+
+                        var attachments = new List<(string FileName, Stream Content)>
+                            {
+                                ("NotEligibleParticipants.json", jsonStream),
+                                ("GeneratedCertificates.html", certStream)
+                            };
+                        await s.SendEmailAsync_with_attachment(mailid, "Certificate Generated",
+                            "Certificate generation completed. Please find the not-eligible participant list attached.",
+                            attachments);
+                    }
+                    else
+                    {
+                        SmtpEmailService s = new SmtpEmailService(_configuration);
+                     
+                        // Attach certificate HTML
+                        byte[] certBytes = Encoding.UTF8.GetBytes(certificatedata);
+                        var certStream = new MemoryStream(certBytes);
+
+                        var attachments = new List<(string FileName, Stream Content)>
+                        {
+                         
+                            ("GeneratedCertificates.html", certStream)
+                        };
+                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                    }
+
+                }
+
+
+
+                // Optionally log or store results (isgenerated, not_eligible) to DB or logs
+
+            });
+
+            return Ok(new { message = "Certificate generation started in background." });
+        }
+
+
+
+        [HttpGet]
+        [Route("api/Download_All_Certificate")]
+        public IActionResult Download_All_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        {
+            Task.Run(async () =>
+            {
+                bool isgenerated = false;
+                TrgBL tb = new TrgBL(_configuration);
+                TrainingDB tbl = new TrainingDB(_configuration);
+                Training Trg = tbl.Get_Particular_Training_Detail(trainingid);
+                List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+
+                ParticipantDB pdb = new ParticipantDB(_configuration);
+                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid);
+
+
+                List<not_eligible_participant> not_eligible = new List<not_eligible_participant>();
+                List<certificate_obj> lc = new List<certificate_obj>();
+                string certificatedata = "";
+                foreach (Participant part in p)
+                {
+                    string certificateid = Guid.NewGuid().ToString();
+                    if(part.ttpai_trg_cert_id != null)
+                    {
+                        if(Convert.ToString(part.ttpai_trg_cert_id) != "")
+                        {
+                            certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, part.ParticipantId, APPURL, Logo_Path, part.ttpai_trg_cert_id);
+                        }
+                       
+                    }
+                   
+                }
+             
+
+                // Send Email Notification
+                AgencyDB adb = new AgencyDB(_configuration);
+                List<Agency> a = new List<Agency>();
+                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null);
+                string mailid = a.FirstOrDefault().ag_email;
+                if (a.Count > 0)
+                {
+                    SmtpEmailService s = new SmtpEmailService(_configuration);
+
+                    // Attach certificate HTML
+                    byte[] certBytes = Encoding.UTF8.GetBytes(certificatedata);
+                    var certStream = new MemoryStream(certBytes);
+
+                    var attachments = new List<(string FileName, Stream Content)>
+                        {
+
+                            ("GeneratedCertificates.html", certStream)
+                        };
+                    await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                }
+
+
+
+                // Optionally log or store results (isgenerated, not_eligible) to DB or logs
+
+            });
+
+            return Ok(new { status = true, message = "Certificate generation started in background.We will inform you with your mail id on process completion." });
+        }
+
+        //public async Task<IActionResult> Generate_ALL_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        //{
+        //    bool isgenerated = false;
+        //    TrgBL tb = new TrgBL(_configuration);
+        //    TrainingDB tbl = new TrainingDB(_configuration);
+
+        //    Training Trg = new Training();
+        //    List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+        //    Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+        //    ParticipantDB pdb = new ParticipantDB(_configuration);
+        //    List<Participant> p = new List<Participant>();
+
+        //    p = pdb.Get_Trg_Participant_List(trainingid,null,branchid);
+
+
+        //    string certificateid = Guid.NewGuid().ToString();
+
+        //    List<Participant> not_eligible = new List<Participant>();
+
+        //    string certificatedata = "";
+        //    List<certificate_obj> lc = new List<certificate_obj>();
+        //    foreach(Participant part in p)
+        //    {
+        //        //Check Eligibility
+        //        bool iseligible = tb.is_participant_eligible_for_certificate(part.ttpai_id, trainingid);
+        //        if (iseligible == true)
+        //        {
+        //            certificate_obj c = new certificate_obj
+        //            {
+        //                CertId = certificateid,
+        //                ttpai_id = part.ttpai_id,
+        //                CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ""
+        //            };
+        //            lc.Add(c);
+
+        //        }
+        //        else
+        //        {
+        //            not_eligible.Add(part);
+        //        }
+
+        //    }
+
+        //    if (lc.Count > 0)
+        //    {
+        //        if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
+        //        {
+        //            isgenerated = true;
+        //        }
+        //    }
+
+
+        //    //Send mail to login user
+        //    SmtpEmailService s = new SmtpEmailService(_configuration);
+        //    await s.SendEmailAsync("mailid@gmail.com","Subject","Message");
+
+
+        //    return Ok(new { isgenerated= isgenerated, not_eligible=not_eligible });
+        //}
+
+
+
+        [HttpGet]
+        [Route("api/Reprint_Certificate")]
+        public IActionResult Reprint_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path,string certificateid)
+        {
+
+            TrgBL tb = new TrgBL(_configuration);
+            TrainingDB tbl = new TrainingDB(_configuration);
+
+            Training Trg = new Training();
+            List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+            string certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+
+            return Ok(certificatedata);
+        }
+
+
+        [HttpGet]
+        [Route("api/QR_Certificate_verification")]
+        public IActionResult QR_Certificate_verification(string certificateid)
+        {
+
+            certificate_obj certificatedata = new certificate_obj();
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+            List<certificate_obj> L = pdb.Get_Certificate_info(null, certificateid);
+            if (L.Count > 0)
+            {
+                return Ok(new  { verified=true,certificate= L.FirstOrDefault() });
+            }
+            else
+            {
+                return Ok(new { verified = false});
+            }
+
+      
+        }
+
+        [HttpGet]
+        [Route("api/Check_Certificate_Eligibility")]
+        public IActionResult Check_Certificate_Eligibility(string ttpai_id,string trainingid)
+        {
+            TrgBL tbl=new TrgBL(_configuration);
+            bool iseligible = tbl.is_participant_eligible_for_certificate(ttpai_id,trainingid);
+            return Ok(new { eligible = true });
+        }
 
 
 
@@ -320,11 +786,11 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Trg_Participant_List")]
-        public IActionResult Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null, string sortcolumn = null, string sortvalue = null,string filtername=null,string filtervalue=null, int pageno = 1, int pagesize = -1)
+        public IActionResult Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null, string sortcolumn = null, string sortvalue = null,string filtername=null,string filtervalue=null, int pageno = 1, int pagesize = -1,int is_certificate_generated=2)
         {
            TrgBL tbl=new TrgBL(_configuration);
             List<Participant> p = new List<Participant>();
-            p = tbl.Get_Trg_Participant_List(trainingid, participantid, branchid, searchcolumn, searchvalue, sortcolumn, sortvalue,filtername,filtervalue, pageno, pagesize);
+            p = tbl.Get_Trg_Participant_List(trainingid, participantid, branchid, searchcolumn, searchvalue, sortcolumn, sortvalue,filtername,filtervalue, pageno, pagesize, is_certificate_generated);
             PaginationParam param= new PaginationParam{ PageNumber = 1, PageSize = pagesize };
             var result = Paging.GetPagedData(param, p);
             if (p.Count > 0)
@@ -436,6 +902,20 @@ namespace LitteraCore.Controllers
             isupdated = tbl.Update_Trg_rating_data();
             return Ok(isupdated);
         }
+
+
+        [HttpPost]
+        [Route("api/update_certificate_signatory")]
+        public IActionResult update_certificate_signatory(string trainingid, string signatoryid, string loginuserid)
+        {
+            bool isupdated = false;
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            isupdated = tbl.Update_Certificate_Signatory(trainingid, signatoryid,loginuserid);
+            return Ok(isupdated);
+        }
+
+
 
     }
 }

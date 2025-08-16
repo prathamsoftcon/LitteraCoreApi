@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
 using System.Xml;
+using static LitteraCore.Common.CommonEnum;
 using static LitteraCore.Models.Firebase;
 
 namespace LitteraCore.DBContext
@@ -1484,6 +1485,96 @@ namespace LitteraCore.DBContext
             cmd.ExecuteNonQuery();
             con.Close();
             return true;
+        }
+
+
+
+        public List<Agency> Search_Agency(string searchval)
+        {
+
+
+            List<Agency> AL = new List<Agency>();
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable();
+            //***********Code to get salutaion data for salutation text
+
+            List<SALUTATION> s = new List<SALUTATION>();
+            s = Get_SALUTATION();
+            //*****************
+            //List<Agency> organisations = new List<Agency>();
+            //organisations = Get_ORGANISATION_LIST_DATA();
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_vr1", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            dt.DefaultView.RowFilter = "AgencyName like '%"+ searchval + "%' or HAgencyName like '%"+ searchval + "%' or ag_mobileno like '%"+ searchval + "%' or ag_email like '%"+ searchval + "%'";
+            dt = dt.DefaultView.ToTable();
+           foreach (DataRow dr in dt.Rows)
+            {
+                Agency vw = new Agency();
+                vw.agencyid = Convert.ToString(dr["agencyid"]);
+                vw.agencyname = Convert.ToString(dr["agencyname"]);
+                vw.hagencyname = Convert.ToString(dr["hagencyname"]);
+                vw.ag_mobileno = Convert.ToString(dr["ag_mobileno"]);
+                vw.ag_email= Convert.ToString(dr["ag_email"]);
+                AL.Add(vw);
+            }
+
+            con.Close();
+
+            return AL;
+        }
+
+        public List<Agency> Get_CD_Charge_Details()
+        {
+
+            List<Agency> AL = new List<Agency>();
+            DataTable dt = new DataTable();
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State == ConnectionState.Open) { con.Close(); }
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_hr_delegated_department", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@procedurefor", "2");
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            dt.DefaultView.RowFilter = "thdd_charge_id ='" + CommonEnum.CDCharge + "' or thdd_charge_id='" + CommonEnum.ACDCharge + "'";
+            dt = dt.DefaultView.ToTable();
+            foreach (DataRow row in dt.Rows)
+            {
+                Agency vw = new Agency();
+                vw.agencyid = Convert.ToString(row["thdd_emp_id"]);
+
+                vw.agencyname    = Convert.ToString(row["agencyname"]);
+                vw.hagencyname = Convert.ToString(row["hagencyname"]);
+                vw.ParentId = Convert.ToString(row["thdd_charge_id"]);
+
+                AL.Add(vw);
+            }
+
+
+
+
+
+            return AL;
         }
 
     }

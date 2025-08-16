@@ -106,6 +106,11 @@
 
         public string scname { get; set; }
 
+        public string ttpai_trg_cert_id { get; set; }
+
+        public Certificate_info ttpai_trg_cert_info { get; set; }
+
+        
         public string get_path(string absouutepath)
         {
             string path = "";
@@ -127,6 +132,39 @@
             public string ttpai_id { get; set; }
 
         }
+    }
+    public class not_eligible_participant
+    {
+        public string participantid { get; set; }
+        public string name { get; set; }
+        public string mobileno { get; set; }
+        public string emilid { get; set; }
+    }
+    public class certificate_obj
+    {
+        public string participantid { get; set; }
+        public string ttpai_id { get; set; }
+        public string CertId { get; set; }
+
+        public string CertInfo { get; set; }
+
+        public string participantname { get; set; }
+        public string trainingcode { get; set; }
+        public string t_name { get; set; }
+
+        public Certificate_info Certificate_Info { get; set;}
+    }
+
+    public class Certificate_info 
+    {
+        public string certificate_id { get; set; }
+        public string certificate_dt { get; set; }
+
+        public string created_by { get; set; }
+    }
+    public class Certificate_info_List
+    {
+        public certificate_obj[] Certificate_info { get; set; }
     }
 
     public class ParticipantAdditionlInfo
@@ -167,4 +205,6 @@
 
         public string tplt_sessionid { get; set; }
     }
+
+
 }

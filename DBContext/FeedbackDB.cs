@@ -23,7 +23,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "'", con);
+            SqlCommand cmd = new SqlCommand("select trainingid,sharefeedbackiD,SurveyID,SurveyName,GroupID,SurveyDescription,tssr_responsdant_mobile,status from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "'", con);
             cmd.CommandType = CommandType.Text;
 
 
@@ -61,7 +61,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "' and sharefeedbackiD='" + sharefeedbackid + "'", con);
+            SqlCommand cmd = new SqlCommand("select trainingid,sharefeedbackiD,SurveyID,SurveyName,GroupID,SurveyDescription,tssr_responsdant_mobile from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "' and sharefeedbackiD='" + sharefeedbackid + "'", con);
             cmd.CommandType = CommandType.Text;
 
 

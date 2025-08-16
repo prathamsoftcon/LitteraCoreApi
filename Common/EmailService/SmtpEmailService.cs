@@ -145,6 +145,31 @@ namespace LitteraCore.Common.EmailService
             smtp.Disconnect(true);
         }
 
+        public async Task SendEmailAsync_with_attachment(string recipientEmail, string subject, string message, List<(string FileName, Stream Content)>? attachments = null)
+        {
+            var email = new MimeMessage();
+            email.Sender = MailboxAddress.Parse(_smtpUsername);
+            email.To.Add(MailboxAddress.Parse(recipientEmail));
+            email.Subject = subject;
+            var builder = new BodyBuilder();
+
+            if (attachments != null)
+            {
+                foreach (var attachment in attachments)
+                {
+                    builder.Attachments.Add(attachment.FileName, attachment.Content);
+                }
+            }
+
+            builder.HtmlBody = message;
+            email.Body = builder.ToMessageBody();
+            using var smtp = new SmtpClient();
+            smtp.Connect(_smtpServer, Convert.ToInt32(_smtpPort), SecureSocketOptions.StartTls);
+            smtp.Authenticate(_smtpUsername, _smtpPassword);
+            await smtp.SendAsync(email);
+            smtp.Disconnect(true);
+        }
+
         public string Get_Email_Conf(string key)
         {
             string clientname = "";

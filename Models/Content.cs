@@ -87,7 +87,8 @@
         public string tpad_ttsam_id { get; set; }
         public string tpad_activity_data { get; set; }
         public string tpad_createdon { get; set; }
-      
+        public string? tpad_upload { get; set; }
+
     }
 
 

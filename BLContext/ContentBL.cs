@@ -107,6 +107,14 @@ namespace LitteraCore.BLContext
             return issaved;
 
         }
+        public List<activity_data> Get_Activity_Data(string agencyid, string activityid = null)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            List<activity_data> lCT = new List<activity_data>();
+            lCT = CDB.Get_Activity_Data(agencyid, activityid);
+            return lCT;
+        }
+
 
     }
 }

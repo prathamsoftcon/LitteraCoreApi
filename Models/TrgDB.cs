@@ -23,7 +23,7 @@ namespace LitteraCore.Models
             {
                 if (con.State != ConnectionState.Open) { con.Open(); }
 
-                using (SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId=@TrainingId", con))
+                using (SqlCommand cmd = new SqlCommand("select Trainingid,TrainingNo,Trainingcode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,T_ClosingDate,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,tttf_id,ChcekListType,FeedbackType,trg_type,trg_setting,participant_type,participation_type from trainingplan.VW_Training_calendar where TrainingId=@TrainingId", con))
                 {
                     cmd.CommandType = CommandType.Text;
                     cmd.Parameters.AddWithValue("@TrainingId", trainingid);

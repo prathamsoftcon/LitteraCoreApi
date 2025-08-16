@@ -182,7 +182,15 @@ namespace LitteraCore.DBContext
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
-            cmd.Parameters.AddWithValue("@taac_AssignmentID", assignmentid);
+            if(assignmentid != null)
+            {
+                cmd.Parameters.AddWithValue("@taac_AssignmentID", assignmentid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@taac_AssignmentID", DBNull.Value);
+            }
+         
             if (participantid != null)
             {
                 cmd.Parameters.AddWithValue("@Participantid", participantid);

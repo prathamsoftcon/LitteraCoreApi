@@ -122,7 +122,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Dashboard_Data")]
-        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status=null,string filter_cd=null,string filter_acd=null)
+        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status = null,string filter_cd=null,string filter_acd=null)
         {
 
             var Authtoken = Request.Cookies["Auth_token"];
@@ -133,7 +133,7 @@ namespace LitteraCore.Controllers
             List<Training> lwtc = new List<Training>();
             List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
 
-            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
+            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate, filter_status, filter_cd, filter_acd);
 
 
             //***********Code to get Rating data***********
@@ -155,14 +155,14 @@ namespace LitteraCore.Controllers
             {
                 lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
             }
-            if (filter_cd != null)
-            {
-                lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
-            }
-            if (filter_acd != null)
-            {
-                lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
-            }
+            //if (filter_cd != null)
+            //{
+            //    lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
+            //}
+            //if (filter_acd != null)
+            //{
+            //    lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
+            //}
 
             //**********
            // lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
@@ -425,7 +425,7 @@ namespace LitteraCore.Controllers
             List<Training> lwtc = new List<Training>();
             List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
 
-            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate);
+            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate, filter_status, filter_cd, filter_acd);
 
             //***********Code to get Rating data***********
             DashboardBL dbl = new DashboardBL(_configuration);
@@ -446,14 +446,14 @@ namespace LitteraCore.Controllers
             {
                 lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
             }
-            if (filter_cd != null)
-            {
-                lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
-            }
-            if (filter_acd != null)
-            {
-                lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
-            }
+            //if (filter_cd != null)
+            //{
+            //    lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
+            //}
+            //if (filter_acd != null)
+            //{
+            //    lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
+            //}
 
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
             //UserTypeTrg usertrg = new UserTypeTrg();

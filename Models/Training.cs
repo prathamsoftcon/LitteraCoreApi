@@ -138,7 +138,13 @@ namespace LitteraCore.Models
         public displaycontrols[] displaycontrols { get; set; }
         public session_setting Session { get; set; }
 
+        public certificate_setting certificate_setting { get; set; }
 
+
+    }
+    public class certificate_setting
+    {
+        public int no_of_signatory_required { get; set; } = 0;
     }
     public class displaycontrols
     {

@@ -2,10 +2,12 @@
 using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.PowerBI.Api;
 using Newtonsoft.Json;
 using System.Data;
 using System.Web;
 using System.Xml;
+using System.Xml.Linq;
 using static LitteraCore.Models.MaskInfo;
 
 namespace LitteraCore.DBContext
@@ -655,7 +657,7 @@ namespace LitteraCore.DBContext
 
 
 
-        public List<Participant> Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null,string sortcolumn=null,string sortvalue=null, string filtername = null, string filtervalue = null,int pageno=1,int pagesize=-1)
+        public List<Participant> Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null,string sortcolumn=null,string sortvalue=null, string filtername = null, string filtervalue = null,int pageno=1,int pagesize=-1, int is_certificate_generated=2)
         {
             if (pagesize == -1)
             {
@@ -817,7 +819,9 @@ namespace LitteraCore.DBContext
                             rcname = Convert.ToString(reader["district_name"]),
                             scname = Convert.ToString(reader["Branchname"]),
                             TrainingCode= Convert.ToString(reader["TrainingCode"]),
-                            t_Name = Convert.ToString(reader["t_Name"])
+                            t_Name = Convert.ToString(reader["t_Name"]),
+                            ttpai_trg_cert_id = reader["ttpai_trg_cert_id"] == DBNull.Value ? null : reader["ttpai_trg_cert_id"].ToString(),
+                            ttpai_trg_cert_info = ParseCertificateInfo(Convert.ToString(reader["ttpai_trg_cert_info"]))
 
 
                         };
@@ -834,7 +838,7 @@ namespace LitteraCore.DBContext
                         if (!string.IsNullOrEmpty(reader["Is_IAS_IPS_Officer"].ToString()))
                         {
                             vw.Is_IAS_IPS_Officer = Convert.ToInt32(reader["Is_IAS_IPS_Officer"]);
-                        }
+                        }   
                         if (!string.IsNullOrEmpty(reader["Is_With_Spouse"].ToString()))
                         {
                             vw.Is_With_Spouse = Convert.ToInt32(reader["Is_With_Spouse"]);
@@ -942,7 +946,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_participant_additional_info where Participantid='"+Participantid+"' and TrainingId='"+trainingid+"'", con);
+            SqlCommand cmd = new SqlCommand("select 1 from TrainingPlan.tbl_tp_participant_additional_info where Participantid='"+Participantid+"' and TrainingId='"+trainingid+"'", con);
             cmd.CommandType = CommandType.Text;
             
 
@@ -961,5 +965,122 @@ namespace LitteraCore.DBContext
 
             return isexist;
         }
+
+        public bool Update_Participant_certificate_info(certificate_obj[] Certificate_info, string trainingid)
+        {
+            bool isexist = false;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_update_tp_participant_cert_info", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+            string p1 = JsonConvert.SerializeObject(Certificate_info);
+            cmd.Parameters.AddWithValue("@JsonData", p1);
+            cmd.ExecuteNonQuery();
+
+           
+
+
+
+            return true;
+        }
+
+
+        public List<certificate_obj> Get_Certificate_info(string trainingid =null,string certificateid=null)
+        {
+
+            List<certificate_obj> trgdata = new List<certificate_obj>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_get_participant_cert_info", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            if (trainingid != null)
+            {
+                cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@trainingid", DBNull.Value);
+            }
+            if (certificateid != null)
+            {
+                cmd.Parameters.AddWithValue("@ttpai_trg_cert_id", certificateid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@ttpai_trg_cert_id", DBNull.Value);
+            }
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                certificate_obj vw = new certificate_obj();
+                vw.ttpai_id = Convert.ToString(row["ttpai_id"]);
+                vw.CertId = Convert.ToString(row["ttpai_trg_cert_id"]);
+                vw.participantname= Convert.ToString(row["AgencyName"]);
+                vw.t_name= Convert.ToString(row["T_Name"]);
+                vw.trainingcode= Convert.ToString(row["TrainingNo"]);
+                if (Convert.ToString(row["ttpai_trg_cert_info"]) != "")
+                {
+                    vw.Certificate_Info = ParseCertificateInfo(Convert.ToString(row["ttpai_trg_cert_info"]));
+                }
+              
+               trgdata.Add(vw);
+            }
+
+
+
+
+
+            return trgdata;
+        }
+
+        public static Certificate_info ParseCertificateInfo(string certInfo)
+        {
+            if (string.IsNullOrWhiteSpace(certInfo))
+                return null;
+
+            var certificate = new Certificate_info();
+            var parts = certInfo.Split(',');
+
+            foreach (var part in parts)
+            {
+                var kv = part.Split('=');
+                if (kv.Length == 2)
+                {
+                    var key = kv[0].Trim().ToLower();
+                    var value = kv[1].Trim();
+
+                    switch (key)
+                    {
+                        case "id":
+                            certificate.certificate_id = value;
+                            break;
+                        case "date":
+                            certificate.certificate_dt = value;
+                            break;
+                        case "createdby":
+                            certificate.created_by = value;
+                            break;
+                    }
+                }
+            }
+
+            return certificate;
+        }
     }
+  
 }

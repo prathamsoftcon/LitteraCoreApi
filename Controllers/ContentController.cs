@@ -163,7 +163,16 @@ namespace LitteraCore.Controllers
             bool issaved = CBL.Save_Activity_Data(a);
             return Ok(issaved);
         }
-
+        [HttpGet("Get_Activity_Data")]
+        public IActionResult Get_Activity_Data(string agencyid, string activityid = null)
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            List<activity_data> lCT = new List<activity_data>();
+            lCT = CBL.Get_Activity_Data(agencyid, activityid);
+            // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
+          
+            return Ok(lCT);
+        }
 
     }
 }

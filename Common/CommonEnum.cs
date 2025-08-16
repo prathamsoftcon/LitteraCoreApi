@@ -1,4 +1,9 @@
 ﻿using LitteraCore.Models;
+using System;
+using QRCoder;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 
 namespace LitteraCore.Common
 {
@@ -17,6 +22,8 @@ namespace LitteraCore.Common
         public static string default_faulty = "faculty@prathamsoft.com";
         public static string default_participant = "participant@prathamsoft.com";
         public static string default_org = "org@prathamsoft.com";
+        public static string CDCharge = "2724EDE6-BE47-4E77-B4F0-B3DF1ED97BF9";
+        public static string ACDCharge = "A4B5CF39-9599-4127-BFAE-AFE439C3286C";
         //public static DateTime content_expiry = Convert.ToDateTime("2025/06/30");
         public enum UserType
         {
@@ -575,7 +582,27 @@ namespace LitteraCore.Common
 
         }
 
-       
+       public static string generate_qr_code(string qrText)
+        {
+            string imgTag = "";
+
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            {
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
+                Base64QRCode qrCode = new Base64QRCode(qrCodeData);
+                string base64Image = qrCode.GetGraphic(20);
+
+                Console.WriteLine("Base64 QR Code:");
+                Console.WriteLine(base64Image);
+
+                // Optional HTML output
+                 imgTag = $"<img style='max-height:100px;' src='data:image/png;base64,{base64Image}' />";
+                Console.WriteLine("\nHTML <img> tag:");
+                Console.WriteLine(imgTag);
+            }
+
+            return imgTag;
+        }
 
     }
 }
