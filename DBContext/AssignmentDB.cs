@@ -1,4 +1,5 @@
-﻿using LitteraCore.Models;
+﻿using LitteraCore.Common.DMS;
+using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System.Data;
@@ -258,6 +259,7 @@ namespace LitteraCore.DBContext
                 cm.assignment = (string)row["assignmentid"].ToString();
                 cm.status = Convert.ToInt16(row["taau_status"]);
                 cm.participant = ss;
+                cm.no_of_uploads = ss.Count();
                 LI.Add(cm);
             }
 
@@ -566,6 +568,72 @@ namespace LitteraCore.DBContext
 
 
             return lav;
+        }
+
+        public assignment_session_mapping_data Get_Assignment_Session_Mapping_Data(string assignmentid)
+        {
+
+            assignment_session_mapping_data assignment = new assignment_session_mapping_data();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Assessment.proc_get_assignment_list_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@assignmentid", assignmentid);
+          
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+             
+                assignment.assignmentid = Convert.ToString(row["AssignmentID"]);
+                assignment.sessionid = Convert.ToString(row["ttttt_session_id"]);
+                assignment.trainingid = Convert.ToString(row["ttttt_trainingid"]);
+             
+
+            }
+
+
+
+
+
+            return assignment;
+        }
+
+        public bool update_Assignment_status(DMS d)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con1 = new SqlConnection(connectionString);
+            DMSDB ddb = new DMSDB(_configuration);
+            ddb.INS_UPD_DMS(d, con1, null);
+
+            assignment_session_mapping_data T = new assignment_session_mapping_data();
+            T = Get_Assignment_Session_Mapping_Data(d.doc_id);
+
+
+            string sessionstatus = "0";
+            if (d.doc_status == 1)
+            {
+                sessionstatus = "0";
+            }
+            else if (d.doc_status == -1)
+            {
+                sessionstatus = "9";
+            }
+            else
+            {
+                sessionstatus = d.doc_status.ToString();
+            }
+            SessionDB sdb = new SessionDB(_configuration);
+            bool isupdated = sdb.Update_session_dms_status(T.trainingid, T.sessionid, d, sessionstatus);
+            return isupdated;
         }
 
 

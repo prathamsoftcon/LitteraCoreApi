@@ -55,7 +55,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Training_Details")]
-        public IActionResult Training_Details (string trainingid)
+        public IActionResult Training_Details (string trainingid,string? usertype=null,string? loginuserid=null,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
@@ -77,6 +77,28 @@ namespace LitteraCore.Controllers
                     trgdetail.is_reg_open = false;
                 }
             }
+
+
+
+            //************Get Completion Percentage
+            if(branchid != null)
+            {
+                List<SessionCompletionStatus> trg_session_status = new List<SessionCompletionStatus>();
+                SessionDB sdb = new SessionDB(_configuration);
+                trg_session_status = sdb.Get_Session_Status_vr1(trainingid, usertype, loginuserid, trgdetail.StartDate?.ToString("yyyy-MM-dd"), trgdetail.T_EndDate?.ToString("yyyy-MM-dd"), branchid);
+                decimal completion = 0;
+                List<SessionCompletionStatus> trg_status = new List<SessionCompletionStatus>();
+                trg_status = trg_session_status.Where(o => o.tttttm_training_id.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
+                if (trg_status.Count() > 0)
+                {
+                    completion = Math.Round(trg_status.Sum(o => o.percentcomplete) / trg_status.Count(), 2);
+                }
+                trgdetail.trg_completionpercentage = completion;
+            }
+         
+
+
+          
 
             return Ok(trgdetail);
         }
@@ -366,6 +388,76 @@ namespace LitteraCore.Controllers
             return Ok(certificatedata);
         }
 
+        [HttpGet]
+        [Route("api/Generate_Certificate_New")]
+        public IActionResult Generate_Certificate_New(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        {
+
+            TrgBL tb = new TrgBL(_configuration);
+            TrainingDB tbl = new TrainingDB(_configuration);
+
+            Training Trg = new Training();
+            List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+            List<Participant> p = new List<Participant>();
+            string ttpai_id = "";
+            p = pdb.Get_Trg_Participant_List(trainingid, participantid);
+            if (p.Count > 0)
+            {
+                ttpai_id = p.FirstOrDefault().ttpai_id;
+            }
+
+            string certificateid = Guid.NewGuid().ToString();
+
+            certificate_obj c = new certificate_obj();
+
+            if (tb.IS_Certificate_Grade_Required() == true)
+            {
+
+             
+                Certificate_Details cd = new Certificate_Details();
+                cd = tb.Get_Certificate_Details(ttpai_id);
+                string grade = tb.Calculate_Certificate_grade(trainingid, participantid);
+                if (grade == "" || grade == null)
+                {
+                    return NotFound("आपकी अध्ययन अवधि सर्टिफिकेट प्राप्त करने के लिए अभी पर्याप्त नहीं है। कृपया कोर्स कंटेंट का अध्ययन करें और कोर्स में दी सभी प्रेक्टिकल गतिविधियों को करें। जब निर्धारित अध्ययन अवधि पूर्ण हो जाएगी, तब आप सर्टिफिकेट जनरेट कर सकेंगे और अपना ग्रेड देख सकेंगे।\r\nकोर्स कंटेंट Link - https://learningplatform.mpbou.in/view_more_content1.html");
+                }
+
+                    c = new certificate_obj
+                {
+                    CertId = certificateid,
+                    ttpai_id = ttpai_id,
+                    CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ",grade="+ grade + ""
+                    };
+            }
+            else
+            {
+                c = new certificate_obj
+                {
+                    CertId = certificateid,
+                    ttpai_id = ttpai_id,
+                    CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ""
+                };
+            }
+
+
+           
+            List<certificate_obj> lc = new List<certificate_obj>();
+            lc.Add(c);
+
+            string certificatedata = "";
+          
+            if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
+            {
+                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+            }
+
+
+
+            return Ok(certificatedata);
+        }
 
 
 
@@ -855,7 +947,7 @@ namespace LitteraCore.Controllers
             Certificate_Details c = new Certificate_Details();
             c=tbl.Get_Certificate_Details(ttpai_id);
             string grade= tbl.Calculate_Certificate_grade(c.trainingid, c.participantid);
-            if(grade != "")
+            if(grade != "" || grade==null)
             {
                 c.grade = grade;
             }
@@ -892,6 +984,20 @@ namespace LitteraCore.Controllers
             return Ok(grade);
         }
 
+        [HttpGet]
+        [Route("api/Get_User_Agency")]
+        public IActionResult Get_User_Agency(string usercode)
+        {
+            string grade = "";
+            string agencyid = "";
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            Trg_User_Details tud = new Trg_User_Details();
+            agencyid = udb.Get_User_agency_by_code(usercode);
+
+            return Ok(agencyid);
+        }
+
         [HttpPost]
         [Route("api/update_trg_rating_data")]
         public IActionResult update_trg_rating_data()
@@ -916,6 +1022,42 @@ namespace LitteraCore.Controllers
         }
 
 
+        [HttpPost]
+        [Route("api/update_certificate_status")]
+        public IActionResult update_certificate_status(string trainingid, string Loginuserid, [FromBody]cert_status_list cert_status)
+        {
+            bool isupdated = false;
+            TrgBL tbl = new TrgBL(_configuration);
+            
+            isupdated = tbl.Update_certificate_status(trainingid, Loginuserid, cert_status);
+            return Ok(isupdated);
+        }
+
+        [HttpGet]
+        [Route("api/Participants_training")]
+        public IActionResult Participants_training(string participantid)
+        {
+            List<usertrainings> ut = new List<usertrainings>();
+            TrgBL tbl = new TrgBL(_configuration);
+          
+            ut = tbl.Get_participant_Trainings(participantid);
+
+            return Ok(ut);
+        }
+
+        [HttpGet]
+        [Route("api/Training_Progress_Report_Participantwise")]
+        public IActionResult Training_Progress_Report_Participantwise(string trainingid, string loginuserid, string loginusertype,string sessionid=null,int status=2, string branchid = null, int pageno = 0, int pagesize = 0, string searchcolumn = null, string searchvalue=null)
+        {
+            List<Session> ut = new List<Session>();
+            TrgBL tbl = new TrgBL(_configuration);
+
+            ut = tbl.Get_Trg_Progress_Data(trainingid, sessionid, loginuserid,loginusertype, status, branchid, pageno, pagesize, searchcolumn, searchvalue);
+
+         
+
+            return Ok(ut);
+        }
 
     }
 }

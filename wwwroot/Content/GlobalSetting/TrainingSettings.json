@@ -53,5 +53,65 @@
         }
       ]
     }
-  ]
+  ],
+  "certificate_setting": {
+    "no_of_signatory_required": 0,
+    "certificate_percentage": [
+      {
+        "from": 0,
+        "to": 3.33,
+        "grade": ""
+      },
+      {
+        "from": 3.34,
+        "to": 10,
+        "grade": "D"
+      },
+      {
+        "from": 10.01,
+        "to": 33.33,
+        "grade": "C"
+      },
+      {
+        "from": 33.34,
+        "to": 66.67,
+        "grade": "B"
+      },
+      {
+        "from": 66.68,
+        "to": 100,
+        "grade": "A"
+      }
+
+    ]
+  }
+ 
+  //"certificate_certificate": [
+  //  {
+  //    "from": 0,
+  //    "to": 1.67,
+  //    "grade": ""
+  //  },
+  //  {
+  //    "from": 1.68,
+  //    "to": 3.33,
+  //    "grade": "D"
+  //  },
+  //  {
+  //    "from": 3.34,
+  //    "to": 16.67,
+  //    "grade": "C"
+  //  },
+  //  
+  //    "from": 16.68,
+  //    "to": 33.33,
+  //    "grade": "B"
+  //  },
+  //  {
+  //    "from":33.34,
+  //    "to": 100,
+  //    "grade": "A"
+  //  }
+
+  //]
 }

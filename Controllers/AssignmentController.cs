@@ -415,5 +415,20 @@ namespace LitteraCore.Controllers
             vw = ADB.Valuation_Summary(assignmentid);
             return Ok(vw);
         }
+
+
+        [Route("api/Update_Assignment_Status")]
+        [HttpPost]
+        public IActionResult Update_Assignment_Status([FromBody] DMS d)
+        {
+
+            bool is_used = false;
+            AssignmentBL ebl = new AssignmentBL(_configuration);
+            is_used = ebl.update_Assignment_status(d);
+
+
+
+            return Ok(is_used);
+        }
     }
 }

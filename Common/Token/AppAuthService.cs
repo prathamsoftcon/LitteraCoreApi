@@ -15,6 +15,8 @@ using System.Data;
 using System.Security.Cryptography;
 using Azure;
 using static Org.BouncyCastle.Math.EC.ECCurve;
+using Org.BouncyCastle.Ocsp;
+using System.IO;
 
 namespace LitteraCore.Common.Token
 {
@@ -214,6 +216,13 @@ namespace LitteraCore.Common.Token
             var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
             var validapiKey = _configuration.GetSection("ApiKey").Value;
 
+            REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
+
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Config.json"));
+            RAC = JsonConvert.DeserializeObject<REACT_APP_CONFIGURATION>(jsontxt);
+
+            string redirect_path = RAC.REACT_APP_LOGOUT_PATH + "/dashboard";
 
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -227,7 +236,8 @@ namespace LitteraCore.Common.Token
                           new Claim("ttpai_id", ttpai_id),
                           new Claim("ttsam_id",ttsam_id),
                           new Claim("baseUrl",baseUrl),
-                          new Claim("Key",validapiKey.ToString())
+                          new Claim("Key",validapiKey.ToString()),
+                          new Claim("redirect_path",redirect_path.ToString())
 
                     }),
                 Expires = DateTime.UtcNow.AddDays(30),

@@ -1,27 +1,34 @@
 ﻿using LitteraCore.Common;
 using LitteraCore.Common.DMS;
+using LitteraCore.Controllers;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.PowerBI.Api;
 using Newtonsoft.Json;
 using Serilog;
 using System.Collections;
 using System.Data;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Text.RegularExpressions;
 using static LitteraCore.Common.CommonEnum;
+using static QRCoder.PayloadGenerator;
 
 namespace LitteraCore.BLContext
 {
     public class TrgBL
     {
         private readonly IConfiguration _configuration;
+       
         public TrgBL(IConfiguration configuration)
         {
             _configuration = configuration;
+           
         }
 
         public Hashtable Calculate_trg_actual_amt(string trainingid, string expensetype, string trg_sponsortype, int noofparticipant_reg)
@@ -476,6 +483,7 @@ namespace LitteraCore.BLContext
 
         public string Geenerate_certificate_text(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid,string APPURL,string Logo_Path)
         {
+           
             string cert = "";
             
             Certificate ct = new Certificate();
@@ -564,7 +572,7 @@ namespace LitteraCore.BLContext
                     </div>";
             }
 
-            certificateHtml = certificateHtml.Replace("certificate.png", APPURL+"/"+ct.certificate_bg_path);
+            certificateHtml = certificateHtml.Replace("certificate.png", (APPURL + "/" + ct.certificate_bg_path).Replace("//","/"));
             certificateHtml = certificateHtml.Replace("style.css", APPURL + "/css/certificate_style.css");
             certificateHtml = certificateHtml.Replace("##PrintDate##", System.DateTime.Now.ToString("dd-MM-yyyy"));
             certificateHtml = certificateHtml.Replace("##certtext##", f_cert_text);
@@ -577,13 +585,17 @@ namespace LitteraCore.BLContext
 
         public string Geenerate_certificate_text_with_QR(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid, string APPURL, string Logo_Path,string? certificateid=null)
         {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log", "Log.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.AppendAllText(path, "Step 1 completed");
+
             certificate_obj certificatedata =new certificate_obj();
             ParticipantDB pdb = new ParticipantDB(_configuration);
-
             certificatedata = pdb.Get_Certificate_info(null, certificateid).FirstOrDefault();
-            
-            
 
+
+
+            File.AppendAllText(path, "Step 2 completed");
 
             REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
 
@@ -591,11 +603,15 @@ namespace LitteraCore.BLContext
             string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Config.json"));
             RAC = JsonConvert.DeserializeObject<REACT_APP_CONFIGURATION>(jsontxt);
 
+            File.AppendAllText(path, "Step 3 completed");
             string cert = "";
             string QRstr = CommonEnum.generate_qr_code(RAC.REACT_APP_LOGOUT_PATH +"/verifycertificate/"+ certificateid);
 
             Certificate ct = new Certificate();
             ct = CommonDB.Get_Certificate_Configuration();
+
+            File.AppendAllText(path, "Step 4 completed");
+
             string certificateHtml = @"
 <!DOCTYPE html>
 <html lang=""en"">
@@ -627,7 +643,7 @@ namespace LitteraCore.BLContext
 </body>
 </html>";
 
-
+            File.AppendAllText(path, "Step 5 completed");
             Agency loginbranchdetail = new Agency();
             AgencyBL abl = new AgencyBL(_configuration);
             Agency ParticpantDetail = new Agency();
@@ -638,35 +654,56 @@ namespace LitteraCore.BLContext
 
             TrainingDB tbl = new TrainingDB(_configuration);
 
+            File.AppendAllText(path, "Step 6 completed");
 
             List<variables> lv = new List<variables>();
             lv = ct.variables.ToList();
             string f_cert_text = "";
             f_cert_text = ct.certificate_text;
+
+            File.AppendAllText(path, "Step 7 completed");
+           // File.AppendAllText(path, JsonConvert.SerializeObject(Trg));
             foreach (variables v in lv)
             {
                 if (ParticpantDetail.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
                 {
+                    File.AppendAllText(path, "Step inside 1 completed");
                     var propInfo = ParticpantDetail.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                     var value = propInfo.GetValue(ParticpantDetail, null)?.ToString() ?? "";
                     f_cert_text = f_cert_text.Replace(v.name, value);
                 }
-                else if (ParticpantDetail.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                else if (ParticpantDetail.additionalInfo !=null)
                 {
-                    var propInfo = ParticpantDetail.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    var value = propInfo.GetValue(ParticpantDetail.additionalInfo, null)?.ToString() ?? "";
-                    f_cert_text = f_cert_text.Replace(v.name, value);
+                    if(ParticpantDetail?.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                    {
+                        var propInfo = ParticpantDetail.additionalInfo.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        var value = propInfo.GetValue(ParticpantDetail.additionalInfo, null)?.ToString() ?? "";
+                        f_cert_text = f_cert_text.Replace(v.name, value);
+                    }
+                    else if (Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
+                    {
+                        File.AppendAllText(path, "Step inside 3 completed");
+                        var propInfo = Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                        File.AppendAllText(path, "Step inside 2 completed");
+                        var value = propInfo.GetValue(Trg, null)?.ToString() ?? "";
+                        File.AppendAllText(path, "Step inside 3 completed");
+                        f_cert_text = f_cert_text.Replace(v.name, value);
+                    }
+
                 }
                 else if (Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance) != null)
                 {
+                    File.AppendAllText(path, "Step inside 3 completed");
                     var propInfo = Trg.GetType().GetProperty(v.replacecolumnvalue, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                    File.AppendAllText(path, "Step inside 2 completed");
                     var value = propInfo.GetValue(Trg, null)?.ToString() ?? "";
+                    File.AppendAllText(path, "Step inside 3 completed");
                     f_cert_text = f_cert_text.Replace(v.name, value);
                 }
 
             }
 
-
+            File.AppendAllText(path, "Step 8 completed");
 
             string signatorytext = "";
 
@@ -674,11 +711,35 @@ namespace LitteraCore.BLContext
             foreach (CERTIFICATE_SIGNATORY sign in dtsignatory)
             {
                 signatoryindex = signatoryindex + 1;
-                signatorytext = signatorytext + @" <div class=""signature signature-@" + signatoryindex + @""">
-                <img src='=" + APPURL + @"/""@""@" + Logo_Path + @"""/""@" + sign.signaturepath + @"' style='width: 130px;height: 50px;visibility:"" + displayimg + ""' />
+                string f_path ="";
+                if (sign.signaturepath != null)
+                {
+                    if (sign.signaturepath != "")
+                    {
+                         f_path = APPURL + "/" + Logo_Path + "/" + sign.signaturepath;
+                        f_path = Regex.Replace(f_path, @"(?<!https:)(?<!http:)/{2,}", "/");
+
+
+                    }
+                }
+                if(f_path != "")
+                {
+                    signatorytext += @"<div class=""signature signature-" + signatoryindex + @""">
+    <img src='" + APPURL + "/" + Logo_Path + "/" + sign.signaturepath +
+       @"' style='width: 130px; height: 50px;' />
+    <p>" + sign.name + @"</p>
+    <p>" + sign.designation + @"</p>
+</div>";
+
+                }
+                else
+                {
+                    signatorytext = signatorytext + @" <div class=""signature signature-@" + signatoryindex + @""">
                         <p>" + sign.name + @"</p>
                         <p>" + sign.designation + @"</p>
                     </div>";
+                }
+              
             }
 
             certificateHtml = certificateHtml.Replace("certificate.png", APPURL + "/" + ct.certificate_bg_path);
@@ -691,14 +752,31 @@ namespace LitteraCore.BLContext
             {
                 certificateHtml = certificateHtml.Replace("##PrintDate##", "");
             }
-           
-        
+            File.AppendAllText(path, "Step 9 completed");
+
             certificateHtml = certificateHtml.Replace("##certtext##", f_cert_text);
             certificateHtml = certificateHtml.Replace("##Sinatory##", signatorytext);
             certificateHtml = certificateHtml.Replace("QRstr", QRstr);
 
 
             return certificateHtml;
+        }
+
+        public bool IS_Certificate_Grade_Required()
+        {
+
+            Certificate ct = new Certificate();
+            ct = CommonDB.Get_Certificate_Configuration();
+            if(ct.certificate_text.Contains("#grade#"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
         }
 
 
@@ -754,8 +832,13 @@ namespace LitteraCore.BLContext
             return c;
         }
 
-        public string Calculate_Certificate_grade(string trainingid,string participantid)
+        public string Calculate_Certificate_grade_old(string trainingid,string participantid)
         {
+            //TrainingDB WDB = new TrainingDB(_configuration);
+            //Training trgdetail = new Training();
+            //trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+
+
             string Grade = "D";
             List<Learning_Report_Data> ld = new List<Learning_Report_Data>();
             SupportBL SBL = new SupportBL(_configuration);
@@ -812,6 +895,46 @@ namespace LitteraCore.BLContext
         }
 
 
+        public string Calculate_Certificate_grade(string trainingid, string participantid)
+        {
+            string Grade = "";
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            SessionDB sdb = new SessionDB(_configuration);
+            List<SessionCompletionStatus> scs = new List<SessionCompletionStatus>();
+            List<certificate_percentage> cpl = new List<certificate_percentage>();
+            if(trgdetail.trg_Setting !=null)
+            {
+                if(trgdetail.trg_Setting.certificate_setting != null)
+                {
+                    if(trgdetail.trg_Setting.certificate_setting.certificate_percentage != null)
+                    {
+                        cpl = trgdetail.trg_Setting.certificate_setting.certificate_percentage.ToList();
+                    }
+                }
+            }
+            if(cpl.Count <=0)
+            {
+                TrainingSettings TS = new TrainingSettings();
+                string Foldername = CommonEnum.GET_JSON_FOLDER();
+                string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
+                TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
+                cpl = TS.certificate_setting.certificate_percentage.ToList();
+
+            }
+            scs = sdb.Get_Session_Status_vr1(trainingid, null, participantid, null, null, null);
+
+            Decimal totalcompletionPercentage = Math.Round((scs.Sum(o => o.percentcomplete) / scs.Count()),2);
+            if(cpl.Where(o => totalcompletionPercentage >= o.from && totalcompletionPercentage <= o.to).ToList().Count > 0)
+            {
+                Grade = cpl.Where(o => totalcompletionPercentage >= o.from && totalcompletionPercentage <= o.to).ToList().FirstOrDefault().grade;
+            }
+           
+            return Grade;
+        }
+
+
         public Boolean Update_Trg_rating_data()
         {
            
@@ -834,6 +957,43 @@ namespace LitteraCore.BLContext
 
             return true;
         }
+        public Boolean Update_certificate_status(string trainingid, string Loginuserid, cert_status_list cert_status)
+        {
 
+            bool issaved = false;
+            TrainingDB tdb = new TrainingDB(_configuration);
+            issaved = tdb.Update_Certificate_status_Data(trainingid, Loginuserid,cert_status);
+            return issaved;
+        }
+
+        public List<certificate_status> Get_certificate_status(string trainingid)
+        {
+            List<certificate_status> cs=new List<certificate_status>();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            cs = tdb.Get_certificate_status(trainingid);
+            return cs;
+        }
+        public int Get_Participant_Certificates(string agencyid)
+        {
+            int certificates = 0;
+            TrainingDB tdb = new TrainingDB(_configuration);
+            certificates = tdb.Get_Participant_Certificates(agencyid);
+            return certificates;
+        }
+        public List<usertrainings> Get_participant_Trainings(string participantid)
+        {
+            List<usertrainings> cs = new List<usertrainings>();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            cs = tdb.Get_participants_Training(participantid);
+            return cs;
+        }
+
+        public List<Session> Get_Trg_Progress_Data(string trainingid,string sessionid, string loginuserid,string loginusertype, int status, string branchid = null, int pageno = 0, int pagesize = 0, string searchcolumn = null, string searchvalue = null)
+        {
+            List<Session> cs = new List<Session>();
+            TrainingDB tdb = new TrainingDB(_configuration);
+            cs = tdb.Get_Trg_Progress_Data(trainingid,sessionid, loginuserid, loginusertype, status,branchid, pageno, pagesize,0,null,searchcolumn,searchvalue);
+            return cs;
+        }
     }
 }

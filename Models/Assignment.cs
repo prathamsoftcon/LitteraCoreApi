@@ -136,6 +136,7 @@
     public class proc_ass_get_assignment_upload
     {
         public string assignment { get; set; }
+        public int no_of_uploads { get; set; }
 
         public assignmentparticipant[] participant { get; set; }
 
@@ -296,5 +297,11 @@
         public int valuation_completed { get; set; }
       
 
+    }
+    public class assignment_session_mapping_data
+    {
+        public string assignmentid { get; set; }
+        public string trainingid { get; set; }
+        public string sessionid { get; set; }
     }
 }

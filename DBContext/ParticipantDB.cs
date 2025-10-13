@@ -756,8 +756,12 @@ namespace LitteraCore.DBContext
                 {
                     cmd.Parameters.AddWithValue("@filtervalue", DBNull.Value);
                 }
-                cmd.Parameters.AddWithValue("@pageno", pageno);
-                cmd.Parameters.AddWithValue("@pagesize", pagesize);
+                if (pageno != null & pageno != 0)
+                {
+                    cmd.Parameters.AddWithValue("@pageno", pageno);
+                    cmd.Parameters.AddWithValue("@pagesize", pagesize);
+                }
+               
 
                 cmd.CommandTimeout = 5000;
 

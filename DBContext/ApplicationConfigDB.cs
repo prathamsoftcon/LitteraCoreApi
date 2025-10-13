@@ -65,6 +65,18 @@ namespace LitteraCore.DBContext
                     dr["SettingValue"] = "{'data_masking_required':'0'}";
                     dt.Rows.Add(dr);
                 }
+                if (settinguniqueid == "11")
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["SettingValue"] = "{'PASSWORD_CHANGE_REQUIRED':'0','PASSWORD_CHANGE_MANDATORY':'0'}";
+                    dt.Rows.Add(dr);
+                }
+                if (settinguniqueid == "3")
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["SettingValue"] = "{'PASSWORD_ON_REGISTRATION':'0','CONFIRMATION_MESSAGE_ON_REGISTRATION':'0','MOBILE_REQUIRED':'1','EMAIL_REQUIRED':'0'}";
+                    dt.Rows.Add(dr);
+                }
 
             }
             return dt;

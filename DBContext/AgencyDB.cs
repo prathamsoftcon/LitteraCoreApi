@@ -1252,6 +1252,10 @@ namespace LitteraCore.DBContext
 
         public bool Update_Agency_Address_Info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_Participant_AddressInfo pi)
         {
+            if (pi.pincode == "")
+            {
+                pi.pincode = null;
+            }
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);

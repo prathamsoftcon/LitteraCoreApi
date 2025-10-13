@@ -129,6 +129,13 @@ namespace LitteraCore.Controllers
                 return Ok(ml);
 
             }
+            else if (settingtype == 11)
+            {
+                FIRST_LOGIN_CHANGE_PASSWORD_SETTING ml = new FIRST_LOGIN_CHANGE_PASSWORD_SETTING();
+                ml = JsonConvert.DeserializeObject<FIRST_LOGIN_CHANGE_PASSWORD_SETTING>(a.Get_Application_Setting(settingtype.ToString()).Rows[0]["SettingValue"].ToString());
+                return Ok(ml);
+
+            }
 
             return Ok(response);
         }

@@ -88,7 +88,7 @@ namespace LitteraCore.BLContext
             }
             foreach (notes_detail nd in note.ttsn_notes)
             {
-                finale_notes.Add(new notes_detail { createdon = nd.createdon, notes = nd.notes });
+                finale_notes.Add(new notes_detail { note_id=Guid.NewGuid().ToString(), createdon = nd.createdon, notes = nd.notes });
             }
 
             note.ttsn_notes = finale_notes.ToArray();
@@ -103,6 +103,48 @@ namespace LitteraCore.BLContext
             SessionDB sdb = new SessionDB(_configuration);
             notes =  sdb.Get_Session_Notes(userid, trainingid, sessionid);   
             notes = notes.OrderByDescending(o => o.ttsn_createdon).ToList();
+
+
+
+
+            Training T = new Training();
+            TrgBL TBL = new TrgBL(_configuration);
+            T = TBL.Get_Particular_Training(trainingid);
+            int trainingtype = Convert.ToInt32(T.trg_type);
+
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = T;
+
+            foreach (Notes N in notes)
+            {
+                string moduletext = "";
+                string srnotext = "";
+                string daytext = "";
+                string weektext = "";
+                if (SESSION_DISPLAY_INFO(trainingtype, N.ttttt_type, Convert.ToInt32(N.ttttt_status), (int)CommonEnum.SESSION_LIST_DISPLAY_OPTIONS.Module, trgdetail.trg_Setting) == true)
+                {
+                    moduletext = SessionDB.Get_Session_Module_Name_by_id(N.ttttt_module_no.ToString());
+                }
+
+                if (SESSION_DISPLAY_INFO(trainingtype, N.ttttt_type, Convert.ToInt32(N.ttttt_status), (int)CommonEnum.SESSION_LIST_DISPLAY_OPTIONS.Session_No, trgdetail.trg_Setting) == true)
+                {
+                    srnotext = "#Sr - " + N.ttttt_session_no.ToString();
+                }
+                if (SESSION_DISPLAY_INFO(trainingtype, N.ttttt_type, Convert.ToInt32(N.ttttt_status), (int)CommonEnum.SESSION_LIST_DISPLAY_OPTIONS.Day, trgdetail.trg_Setting) == true)
+                {
+                    daytext = "Unit - " + N.ttttt_session_day.ToString();
+                }
+                if (SESSION_DISPLAY_INFO(trainingtype, N.ttttt_type, Convert.ToInt32(N.ttttt_status), (int)CommonEnum.SESSION_LIST_DISPLAY_OPTIONS.Week, trgdetail.trg_Setting) == true)
+                {
+                    weektext = "week - " + N.ttttt_session_week.ToString();
+                }
+
+
+                N.display_session_txt = moduletext + " " + weektext + " " + daytext + " " + srnotext + " " + N.ttttt_content_desc;
+              
+
+            }
             return notes;
 
         }
@@ -140,11 +182,11 @@ namespace LitteraCore.BLContext
             return issaved;
 
         }
-        public bool Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status)
+        public bool Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status, Session_Content_Status[] cs=null)
         {
             List<TrgComment> notes = new List<TrgComment>();
             SessionDB sdb = new SessionDB(_configuration);
-            bool issaved = sdb.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid, status);
+            bool issaved = sdb.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid, status, cs);
             return issaved;
 
         }
@@ -392,7 +434,7 @@ namespace LitteraCore.BLContext
             return isdisplay;
         }
 
-        public List<Session> Get_User_Session(string usertype, string userid, DateTime trg_startdate, DateTime trg_enddate, DateTime? SessionDate = null)
+        public List<Session> Get_User_Session(string usertype, string userid, DateTime trg_startdate, DateTime trg_enddate, DateTime? SessionDate = null,string branchid=null)
         {
 
             List<Session> sessiondata_all = new List<Session>();
@@ -411,7 +453,7 @@ namespace LitteraCore.BLContext
 
             SessionDB SDB = new SessionDB(_configuration);
             List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
-            status = SDB.Get_Session_Status(null, usertype, userid, trg_startdate.ToString("yyyy/MM/dd"), trg_enddate.ToString("yyyy/MM/dd"));
+            status = SDB.Get_Session_Status_vr1(null, usertype, userid, trg_startdate.ToString("yyyy/MM/dd"), trg_enddate.ToString("yyyy/MM/dd"), branchid);
             foreach (Session S in sessiondata_all)
             {
 
@@ -721,6 +763,57 @@ namespace LitteraCore.BLContext
             return issaved;
 
         }
+
+
+
+        public bool update_session_notes(Notes note)
+        {
+            bool issaved = false;
+            SessionDB ABD = new SessionDB(_configuration);
+            List<Notes> N = new List<Notes>();
+            N = ABD.Get_Session_Notes(note.ttsn_created_by, note.ttsn_training_id, note.ttsn_session_id);
+            Notes NS = new Notes();
+            List<notes_detail> finale_notes = new List<notes_detail>();
+            if (N.Count() > 0)
+            {
+                NS = N.FirstOrDefault();
+                finale_notes = NS.ttsn_notes.ToList();
+            }
+          
+
+            foreach (notes_detail nd in finale_notes)
+            {
+              if(nd.note_id.ToString().ToUpper() == note.ttsn_notes.FirstOrDefault().note_id.ToString().ToUpper())
+                {
+                    nd.notes = note.ttsn_notes.FirstOrDefault().notes;
+                }
+            }
+
+            //if (N.Count > 0)
+            //{
+            //    note.ttsn_id = N.FirstOrDefault().ttsn_id;
+            //    finale_notes = N.FirstOrDefault().ttsn_notes.ToList();
+
+            //}
+            //foreach (notes_detail nd in note.ttsn_notes)
+            //{
+            //    finale_notes.Add(new notes_detail { createdon = nd.createdon, notes = nd.notes });
+            //}
+
+            //note.ttsn_notes = finale_notes.ToArray();
+            NS.ttsn_notes = finale_notes.ToArray();
+            issaved = ABD.Save_Session_Notes(NS);
+            return issaved;
+        }
+
+        public session_completion_rule session_completion_rule()
+        {
+
+            session_completion_rule rule = new session_completion_rule();
+            rule.all_content_completion_mandatory = 0;
+            return rule;
+        }
+
 
     }
 }

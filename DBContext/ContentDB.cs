@@ -151,7 +151,11 @@ namespace LitteraCore.DBContext
                 vw.GlobalContentFolderID = Convert.ToString(row["GlobalContentFolderID"]);
                 if(row["tcm_content_reading_time"] != null)
                 {
-                    vw.minreadingtime = Convert.ToInt32(row["tcm_content_reading_time"]);
+                    if(Convert.ToString(row["tcm_content_reading_time"]) != "")
+                    {
+                        vw.minreadingtime = Convert.ToInt32(row["tcm_content_reading_time"]);
+                    }
+                  
                 }
               
 
@@ -453,8 +457,8 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
                 vw.tpad_ttsam_id    = Convert.ToString(row["tpad_ttsam_id"]);
 
                 vw.tpad_activity_data = Convert.ToString(row["tpad_activity_data"]);
-                vw.tpad_createdon = Convert.ToString(row["tpad_createdon"]);
-                vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
+                vw.tpad_createdon = Convert.ToDateTime(row["tpad_createdon"]);
+                //vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
               
                 AL.Add(vw);
 
@@ -466,6 +470,58 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             return AL;
 
         }
+
+
+
+        public List<activity_data> Get_Activity_Data_by_id(string tpad_id)
+        {
+
+            List<activity_data> AL = new List<activity_data>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand();
+            cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data where tpad_id='" + tpad_id + "'", con);
+
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                activity_data vw = new activity_data();
+                vw.tpad_id = Convert.ToString(row["tpad_id"]);
+                vw.tpad_activity_id = Convert.ToString(row["tpad_activity_id"]);
+                vw.tpad_ttpai_id = Convert.ToString(row["tpad_ttpai_id"]);
+                vw.tpad_ttsam_id = Convert.ToString(row["tpad_ttsam_id"]);
+
+                vw.tpad_activity_data = Convert.ToString(row["tpad_activity_data"]);
+                vw.tpad_createdon = Convert.ToDateTime(row["tpad_createdon"]);
+                //vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
+
+                AL.Add(vw);
+
+            }
+
+
+
+
+            return AL;
+
+        }
+
+
+
+     
 
     }
 }

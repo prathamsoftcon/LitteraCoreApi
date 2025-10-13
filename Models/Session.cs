@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using LitteraCore.Common;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LitteraCore.Models
@@ -64,7 +65,7 @@ namespace LitteraCore.Models
 
         public decimal completionpercentage { get; set; } = 0;
 
-        public completionDetail[] completiondetail { get; set; }
+        public PagedResult<completionDetail> completiondetail { get; set; }
 
         public SessionFaculties[] sessionFaculties { get; set; }
 
@@ -93,7 +94,9 @@ namespace LitteraCore.Models
 
         public int is_feedback_Required { get; set; } = 1;
 
+        public Item sessioncontent { get;set; }
 
+        public int participant_trg_status { get; set; }
 
 
         public static string Get_Session_Icon(int sessiontype, CompletionType completiontype)
@@ -287,6 +290,13 @@ namespace LitteraCore.Models
 
         }
     }
+
+    public class Item
+    {
+        public Content[] Items { get; set; }
+        public int totalRecords { get;set; }
+    }
+
     public class completionDetail
     {
         public string agencyid { get; set; }
@@ -327,14 +337,27 @@ namespace LitteraCore.Models
 
     public class Notes {
         public string ttsn_id { get; set; }
+      
         public string ttsn_training_id { get; set; }
         public string ttsn_session_id { get; set; }
+        public string ttsn_session_title { get; set; }
+        public int ttttt_type { get; set; }
+        public int ttttt_status { get; set; }
+        public int ttttt_session_no { get; set; }
+        public int ttttt_session_week { get; set; }
+        public int ttttt_session_day { get; set; }
+        public string display_session_txt { get; set; }
+        public string ttttt_subject { get; set; }
+        public string ttttt_content_desc { get; set; }
+        public int ttttt_module_no { get; set; }
         public notes_detail[] ttsn_notes { get; set; }
         public string ttsn_created_by { get; set; }
         public string ttsn_createdon { get; set; }
     }
     public class notes_detail
     {
+        public string ttsn_id { get; set; }
+        public string note_id { get; set; }
         public string notes { get; set; }
         public string createdon { get; set; }
     }
@@ -414,7 +437,9 @@ namespace LitteraCore.Models
         public string sessionid { get; set; }
         public string userid { get; set; }
         public string status { get; set; }
-       
+
+        public Session_Content_Status[] contentstatus { get; set; }
+
     }
 
     public class SessionCompletionStatus
@@ -427,6 +452,7 @@ namespace LitteraCore.Models
 
         public int totalparticipant { get; set; }
     }
+
     public class Sessiontype
     {
         public string id { get; set; }
@@ -485,4 +511,38 @@ namespace LitteraCore.Models
 
         public string durationtype { get; set; }
     }
+
+    public class SessionCompletionStatus_summary
+    {
+        public string tttttm_training_id { get; set; }
+        public string ttttt_session_id { get; set; }
+        public string agencyid { get; set; }
+       
+        public decimal percentcomplete { get; set; }
+
+        
+    }
+    public class Session_Content_Status
+    {
+        public string sessionid { get; set; }
+        public string ttsam_id { get; set; }
+        public int is_completed { get; set; }
+        
+
+
+    }
+    public class contents_status_list
+    {
+        public Session_Content_Status[] Session_Content_Status { get; set; }
+    }
+
+    public class session_completion_rule
+    {
+        public  int all_content_completion_mandatory { get; set; }
+     
+
+
+
+    }
+
 }

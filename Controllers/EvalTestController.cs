@@ -9,6 +9,8 @@ using System.Data;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
+using LitteraCore.Models;
+using LitteraCore.Common.DMS;
 
 namespace LitteraCore.Controllers
 {
@@ -202,7 +204,7 @@ namespace LitteraCore.Controllers
             {
                 filteredItems = searchService.FilterItems(TESTS, searchCriterias.SearchCriteria.ToList());
             }
-            filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
+            //filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
             //TESTS = TESTS.Where(o => o.type == "1").ToList();
             var pagedList = Paging.GetPagedList(param, filteredItems);
             var result = Paging.GetPagedData(param, filteredItems);
@@ -271,6 +273,67 @@ namespace LitteraCore.Controllers
         }
 
 
+        [Route("api/Get_Participant_test_Result")]
+        [HttpGet]
+        public IActionResult Get_Participant_test_Result(string testquestionid, string participantid = null, int pageno = 1, int pagesize = 0, string searchcolumn = null, string searchvalue = null)
+        {
+            //At present this data is hardcode in modal need to change by config file
+            EvalBL ebl=new EvalBL(_configuration);
+            List<participant_test_result> ptr = new List<participant_test_result>();
+
+            ptr = ebl.Get_Participant_Test_Result(testquestionid,participantid,pageno,pagesize,searchcolumn,searchvalue);
+
+            var searchService = new SearchService();
+            if (searchvalue != null)
+            {
+                SearchParam searchparam = new SearchParam();
+                List<SearchCriteria> searchcriteria = new List<SearchCriteria>();
+                searchcriteria.Add(new SearchCriteria { Column = searchcolumn, Value = searchvalue, Condition = "Like", NextOperator = "OR" });
+                searchparam.SearchCriteria = searchcriteria.ToArray();
+
+                ptr = searchService.FilterItems(ptr, searchparam.SearchCriteria.ToList());
+            }
+
+
+
+            PaginationParam param = new PaginationParam { PageNumber = 1, PageSize = pagesize };
+            var result = Paging.GetPagedData(param, ptr);
+            if (ptr.Count > 0)
+            {
+                result.TotalRecords = ptr.FirstOrDefault().totalrecored;
+                result.TotalPages = (int)Math.Ceiling((double)ptr.FirstOrDefault().totalrecored / param.PageSize);
+            }
+            return Ok(result);
+
+        }
+
+        [Route("api/check_test_in_use")]
+        [HttpGet]
+        public IActionResult check_test_in_use(string testid)
+        {
+
+            bool is_used = false;
+            EvalBL ebl = new EvalBL(_configuration);
+            is_used = ebl.check_test_in_use(testid);
+
+
+
+            return Ok(new { is_used = is_used });
+        }
+
+        [Route("api/Update_Test_Status")]
+        [HttpPost]
+        public IActionResult Update_Test_Status([FromBody] DMS d)
+        {
+
+            bool is_used = false;
+            EvalBL ebl = new EvalBL(_configuration);
+            is_used = ebl.update_test_status(d);
+
+
+
+            return Ok(is_used);
+        }
     }
 
 }

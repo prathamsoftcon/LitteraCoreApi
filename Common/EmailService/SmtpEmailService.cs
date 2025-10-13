@@ -6,11 +6,23 @@ using System.Xml;
 using Microsoft.AspNetCore.Components.Routing;
 using System.Text;
 using LitteraCore.Models;
+using LitteraCore.Common.OTP;
+using LitteraCore.Common.SmsService;
+using LitteraCore.Models.SmsSettings;
+using static System.Net.WebRequestMethods;
+using System.Security.Cryptography;
+using LitteraCore.DBContext;
+using Microsoft.Extensions.Configuration;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace LitteraCore.Common.EmailService
 {
     public class SmtpEmailService : IEmailService
     {
+
+
+        private readonly IConfiguration _configuration;
+
         private readonly string _smtpServer;
         private readonly string _smtpPort;
         private readonly string _smtpUsername;
@@ -21,6 +33,7 @@ namespace LitteraCore.Common.EmailService
         private readonly string _footer;
         public SmtpEmailService(IConfiguration config)
         {
+          
             _smtpServer = Get_Email_Conf("host");   //config["SmtpSettings:Server"];
             _smtpPort = Get_Email_Conf("portno");  //int.Parse(config["SmtpSettings:Port"]);
             _smtpUsername = Get_Email_Conf("login");//config["SmtpSettings:smtpUsername"];
@@ -29,6 +42,8 @@ namespace LitteraCore.Common.EmailService
             _clienturl = Get_Email_Conf("clienturl");
             _header = Get_Email_Conf("header");
             _footer = Get_Email_Conf("footer");
+
+            _configuration = config;
         }
 
         //public async Task SendEmailAsync(string recipientEmail, string subject, string message)
@@ -115,34 +130,54 @@ namespace LitteraCore.Common.EmailService
 
         public async Task SendEmailAsync(string recipientEmail, string subject, string message)
         {
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(_smtpUsername);
-            email.To.Add(MailboxAddress.Parse(recipientEmail));
-            email.Subject = subject;
-            var builder = new BodyBuilder();
-            //if (mailRequest.Attachments != null)
-            //{
-            //    byte[] fileBytes;
-            //    foreach (var file in mailRequest.Attachments)
-            //    {
-            //        if (file.Length > 0)
-            //        {
-            //            using (var ms = new MemoryStream())
-            //            {
-            //                file.CopyTo(ms);
-            //                fileBytes = ms.ToArray();
-            //            }
-            //            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
-            //        }
-            //    }
-            //}
-            builder.HtmlBody = message;
-            email.Body = builder.ToMessageBody();
-            using var smtp = new SmtpClient();
-            smtp.Connect(_smtpServer,Convert.ToInt32(_smtpPort), SecureSocketOptions.StartTls);
-            smtp.Authenticate(_smtpUsername, _smtpPassword);
-            await smtp.SendAsync(email);
-            smtp.Disconnect(true);
+            try
+            {
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_smtpUsername);
+                email.To.Add(MailboxAddress.Parse(recipientEmail));
+                email.Subject = subject;
+                var builder = new BodyBuilder();
+                //if (mailRequest.Attachments != null)
+                //{
+                //    byte[] fileBytes;
+                //    foreach (var file in mailRequest.Attachments)
+                //    {
+                //        if (file.Length > 0)
+                //        {
+                //            using (var ms = new MemoryStream())
+                //            {
+                //                file.CopyTo(ms);
+                //                fileBytes = ms.ToArray();
+                //            }
+                //            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
+                //        }
+                //    }
+                //}
+                builder.HtmlBody = message;
+                email.Body = builder.ToMessageBody();
+                using var smtp = new SmtpClient();
+                smtp.Connect(_smtpServer, Convert.ToInt32(_smtpPort), SecureSocketOptions.StartTls);
+                smtp.Authenticate(_smtpUsername, _smtpPassword);
+                await smtp.SendAsync(email);
+                smtp.Disconnect(true);
+            }
+            catch (Exception e)
+            {
+                ApplicationConfigDB ADB = new ApplicationConfigDB(_configuration);
+                Error_Log a=new Error_Log();
+                a.tyel_userid = "00002";
+                a.tyel_page_name = "Sending Email";
+                a.tyel_event_name = "Send";
+                a.tyel_error = e.Message;
+                a.tyel_createdon = System.DateTime.Now;
+                
+                ADB.Save_Error_Log(a);
+                Common.SmsService.SmsService s =new Common.SmsService.SmsService(_configuration);
+                SmsTemplate template = new SmsTemplate();
+                template = s.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                string msg = template.Message.Replace("(#otp#)", "Error").Replace("(#otpid#)", "Mail");
+                await s.SendSmsAsync("7566845855", msg, template.TemplateID);
+            }
         }
 
         public async Task SendEmailAsync_with_attachment(string recipientEmail, string subject, string message, List<(string FileName, Stream Content)>? attachments = null)

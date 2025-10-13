@@ -784,6 +784,57 @@ namespace LitteraCore.DBContext
         }
 
 
+        public string Get_User_agency_by_code(string userocde)
+        {
+            string agencyid = "";
+            DataTable dt = new DataTable();
+            Agency a = new Agency();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("SELECT Agencyid FROM YUser.AgencyMaster WHERE UserCode = @UserCode", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@UserCode", userocde);
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            Trg_User_Details uad = new Trg_User_Details();
+            if (dt.Rows.Count > 0)
+            {
+                agencyid = Convert.ToString(dt.Rows[0]["Agencyid"]);
+              
+            }
+            return agencyid;
+        }
+
+        public string get_user_id_by_agencyid(string agencyid)
+        {
+            string userid = "";
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand(@"SELECT * FROM YUser.tbl_yuser_user_agency_mapping WHERE tyuam_agency_id = @AgencyId", con);
+            cmd.Parameters.AddWithValue("@AgencyId", agencyid);
+
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            if (dt.Rows.Count > 0)
+            {
+                userid = Convert.ToString(dt.Rows[0]["tyuam_userid"]);
+
+            }
+
+            return userid;
+
+        }
+
 
 
     }

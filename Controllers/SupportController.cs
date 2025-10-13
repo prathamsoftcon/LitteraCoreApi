@@ -202,6 +202,10 @@ namespace LitteraCore.Controllers
         [Route("api/Learning_Report_Summary")]
         public IActionResult Learning_Report_Summary(string? trainingid = null, string? participantid = null, string? ttsam_id = null, string? branchid = null, int reporttype = 1, string? fromdate = null, string? todate = null, int pageno = 1, int pagesize = -1, string? SearchColumn = null, string? searchvalue = null, string? sortcolumn = null, string? sortdirection = null)
         {
+           if(trainingid != null)
+            {
+                trainingid = trainingid.Split(",".ToCharArray())[0].ToString();
+            }
             string unitname = "";
             decimal learning = 0;
             List<Learning_Report_Data> s = new List<Learning_Report_Data>();

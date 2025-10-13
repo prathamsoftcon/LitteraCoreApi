@@ -33,6 +33,8 @@ namespace LitteraCore.Models
     {
         public int PASSWORD_ON_REGISTRATION { get; set; }
         public int OTP_REQUIRED_ON_OUTSIDE_REGISTRATION { get; set; } = 1;
+        public int MOBILE_REQUIRED {  get; set; }
+        public int EMAIL_REQUIRED { get; set; }
     }
     public class OTP_LOGIN_REQUIRED_SETTING
     {
@@ -136,9 +138,9 @@ namespace LitteraCore.Models
         public string REACT_CDN_PDF_URL_KEY { get; set; }
 
         public string REACT_APP_LOGOUT_PATH { get; set; }
+        public string REACT_PYTHON_API_BASE_PATH { get; set; }
 
-
-
+      
     }
     public class maildetails
     {
@@ -188,6 +190,12 @@ namespace LitteraCore.Models
         public int data_masking_required { get; set; }
 
     }
-    
 
+    public class FIRST_LOGIN_CHANGE_PASSWORD_SETTING
+    {
+       
+        public int PASSWORD_CHANGE_REQUIRED { get; set; }
+        public int PASSWORD_CHANGE_MANDATORY { get; set; }
+
+    }
 }

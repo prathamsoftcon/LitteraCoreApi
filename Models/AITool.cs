@@ -10,4 +10,10 @@
         public string tttadc_remark { get; set; }
 
     }
+    public class EmbeddingResponse
+    {
+        public List<double> Embedding { get; set; }
+        public int PromptTokens { get; set; }
+        public int TotalTokens { get; set; }
+    }
 }

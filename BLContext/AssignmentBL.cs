@@ -1,4 +1,5 @@
-﻿using LitteraCore.DBContext;
+﻿using LitteraCore.Common.DMS;
+using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Abstractions;
@@ -177,6 +178,15 @@ namespace LitteraCore.BLContext
             AssignmentDB PDB = new AssignmentDB(_configuration);
             List<Assignment_Question_Valuation> li = PDB.Get_assignment_All_Valuation(assignmentid);
             return li;
+        }
+
+        public bool update_Assignment_status(DMS d)
+        {
+            bool is_saved = false;
+            AssignmentDB edb = new AssignmentDB(_configuration);
+            is_saved = edb.update_Assignment_status(d);
+
+            return is_saved;
         }
     }
 }

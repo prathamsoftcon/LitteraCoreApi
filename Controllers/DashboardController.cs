@@ -12,6 +12,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using LitteraCore.Common.Token;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 
 namespace LitteraCore.Controllers
 {
@@ -27,7 +28,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Dashboard_analytics")]
-        public IActionResult Dashboard_analytics(string usertype, string userid, DateTime startdate, DateTime enddate,string? banchid=null)
+        public IActionResult Dashboard_analytics(string usertype, string userid, DateTime startdate, DateTime enddate,string? branchid=null)
         {
             DBAnalytics d = new DBAnalytics();
             if (usertype == "5")
@@ -59,7 +60,7 @@ namespace LitteraCore.Controllers
 
                 SessionDB sdb = new SessionDB(_configuration);
                 List<SessionCompletionStatus> cd = new List<SessionCompletionStatus>();
-                cd = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
+                cd = sdb.Get_Session_Status_summary(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"), branchid);
                 d.trg_completed = cd
                                         .GroupBy(s => s.tttttm_training_id)
                                         .Where(g => g.All(s => s.iscompleted == 1))
@@ -69,7 +70,7 @@ namespace LitteraCore.Controllers
                 //*************Get Enrollment 
                 List <Participant> p = new List<Participant>();
                 ParticipantDB tdb = new ParticipantDB(_configuration);
-                p = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, null, null, 1, 1);
+                p = tdb.Get_Trg_Participant_List(null, null, branchid, null, null, null, null, null, null, 1, 1);
                 if (p.Count() > 0)
                 {
                     d.total_enrollments = p.FirstOrDefault().totalrecords;
@@ -77,19 +78,24 @@ namespace LitteraCore.Controllers
 
                 List<Participant> p1 = new List<Participant>();
                 ParticipantDB tdb1 = new ParticipantDB(_configuration);
-                p1 = tdb.Get_Trg_Participant_List(null, null, banchid, null, null, null, null, "Status", "4", 1, 1);
+                p1 = tdb.Get_Trg_Participant_List(null, null, branchid, null, null, null, null, "Status", "4", 1, 1);
                 if (p1.Count() > 0)
                 {
                     d.consent_received = p1.FirstOrDefault().totalrecords;
                     d.Pending_for_Approval = p1.FirstOrDefault().totalrecords;
                 }
 
+
+                TrgBL tbl = new TrgBL(_configuration);
+                d.no_of_certificates = tbl.Get_Participant_Certificates(userid);
+
+
             }
             else
             {
                 DashboardDB dbd = new DashboardDB(_configuration);
                 DBAnalytics aba = new DBAnalytics();
-                aba = dbd.Get_Admin_DB_Analytics(usertype, userid, startdate, enddate, Branchid);
+                aba = dbd.Get_Admin_DB_Analytics(usertype, userid, startdate, enddate, branchid);
 
                 d.total_participant = aba.total_participant;
                 d.active_learners = aba.active_learners;
@@ -122,7 +128,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Dashboard_Data")]
-        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status = null,string filter_cd=null,string filter_acd=null)
+        public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status = null,string filter_cd=null,string filter_acd=null,string? branchid=null)
         {
 
             var Authtoken = Request.Cookies["Auth_token"];
@@ -135,6 +141,7 @@ namespace LitteraCore.Controllers
 
             lwtc = WDB.Get_VW_Training_calendar(startdate, enddate, filter_status, filter_cd, filter_acd);
 
+        
 
             //***********Code to get Rating data***********
             DashboardBL dbl = new DashboardBL(_configuration);
@@ -155,18 +162,9 @@ namespace LitteraCore.Controllers
             {
                 lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
             }
-            //if (filter_cd != null)
-            //{
-            //    lwtc = lwtc.Where(o => o.CourseDirector.ToString().ToUpper() == filter_cd.ToString().ToUpper()).ToList();
-            //}
-            //if (filter_acd != null)
-            //{
-            //    lwtc = lwtc.Where(o => o.AssociateDirector.ToString().ToUpper() == filter_acd.ToString().ToUpper()).ToList();
-            //}
+           
 
-            //**********
-           // lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
-            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Get Data Training_calendar" + System.DateTime.Now);
+         
             UserTypeTrg usertrg = new UserTypeTrg();
 
             //***************
@@ -175,6 +173,15 @@ namespace LitteraCore.Controllers
             //**********
             userwise_lwtc = WDB.Get_Users_Trg_Data(FL, usertype, userid, startdate, enddate);
             lwtc = lwtc.Where(x => userwise_lwtc.Any(y => y.trainingid.ToString() == x.TrainingId.ToString())).ToList();
+
+
+            int total_recored = 0;
+            total_recored = lwtc.Count();
+            var pagedList1 = Paging.GetPagedList(param, lwtc);
+            var result1 = Paging.GetPagedData(param, lwtc);
+            lwtc = result1.Items.ToList();
+
+
 
 
             //in case of participant not need to show proposed and cancelled training
@@ -219,11 +226,18 @@ namespace LitteraCore.Controllers
 
             List<SessionCompletionStatus> trg_session_status = new List<SessionCompletionStatus>();
             SessionDB sdb = new SessionDB(_configuration);
-            trg_session_status = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
+            trg_session_status = sdb.Get_Session_Status_summary(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"), branchid);
          
             List<Session> sl = sdb.Get_Session_Data(startdate, enddate);
+
+
+           
             foreach (Training item in lwtc)
             {
+
+
+                sl = CommonEnum.OrderSessionData(item.trg_Setting.Session.SessionOrder, sl);
+
                 decimal completion = 0;
                 List<SessionCompletionStatus> trg_status = new List<SessionCompletionStatus>();
                 trg_status = trg_session_status.Where(o => o.tttttm_training_id.ToString().ToUpper() == item.TrainingId.ToString().ToUpper()).ToList();
@@ -311,7 +325,14 @@ namespace LitteraCore.Controllers
                         }
                         else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Forum)
                         {
-                            DI.value = false;
+                            if (Convert.ToInt32(usertype) == (int)CommonEnum.usertype.Admin || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.CD || Convert.ToInt32(usertype) == (int)CommonEnum.usertype.FACULTY)
+                            {
+                                DI.value = true;
+                            }
+                            else
+                            {
+                                DI.value = false;
+                            }
                         }
                         else if (Convert.ToInt32(value) == (int)CommonEnum.DASHBOARD_TRG_ACTIONS.Litteraroom)
                         {
@@ -397,6 +418,7 @@ namespace LitteraCore.Controllers
                 {
                     item.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);  
                     item.no_of_response= ratelist.FirstOrDefault().no_of_response;
+                   // item.trg_completionpercentage= ratelist.FirstOrDefault().trg_percentage;
                 }
 
 
@@ -409,16 +431,19 @@ namespace LitteraCore.Controllers
 
             }
 
+            PaginationParam prm1 = new PaginationParam { PageNumber = 1, PageSize = param.PageSize };
 
-        var pagedList = Paging.GetPagedList(param, lwtc);
-            var result = Paging.GetPagedData(param, lwtc);
+            var pagedList = Paging.GetPagedList(prm1, lwtc);
+            var result = Paging.GetPagedData(prm1, lwtc);
+            result.TotalRecords= total_recored;
+            result.TotalPages = (int)Math.Ceiling((double)total_recored / pagedList.PageSize);
 
             return Ok(result);
         }
 
         [HttpPost]
         [Route("api/Dashboard_All_Trg_Data")]
-        public IActionResult Dashboard_All_Trg_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string filter_status = null, string filter_cd = null, string filter_acd = null)
+        public IActionResult Dashboard_All_Trg_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string filter_status = null, string filter_cd = null, string filter_acd = null,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
 
@@ -521,7 +546,7 @@ namespace LitteraCore.Controllers
 
             List<SessionCompletionStatus> trg_session_status = new List<SessionCompletionStatus>();
             SessionDB sdb = new SessionDB(_configuration);
-            trg_session_status = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
+            trg_session_status = sdb.Get_Session_Status_summary(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"),branchid);
 
             List<Session> sl = sdb.Get_Session_Data(startdate, enddate);
             foreach (Training item in lwtc)
@@ -697,6 +722,7 @@ namespace LitteraCore.Controllers
                 {
                     item.trg_rating = Math.Round(ratelist.FirstOrDefault().trg_rating, 2);
                     item.no_of_response = ratelist.FirstOrDefault().no_of_response;
+                    //item.trg_completionpercentage = ratelist.FirstOrDefault().trg_percentage;
                 }
 
 
@@ -819,7 +845,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Tour_Config")]
-        public IActionResult Get_Tour_Config(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        public IActionResult Get_Tour_Config(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
 
@@ -849,9 +875,14 @@ namespace LitteraCore.Controllers
                 ParticipantDB PDB = new ParticipantDB(_configuration);
                 DMSBL DBL = new DMSBL(_configuration);
                 List<ParticipantAdditionlInfo> PAI = PDB.Get_Participant_Additional_info(null, userid);
-                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
 
-                List<DMS> DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                var ttpaiIds = string.Join(",", PAI.Select(p => $"'{p.ttpai_id}'"));
+                List<DMS> DS = new List<DMS>();
+                if(ttpaiIds != "")
+                {
+                    DS = DBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID(ttpaiIds, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
+                }
+             
 
 
                 //List<DMS> DS = DBL.Get_DMS_STATUS(null, (int)CommonEnum.DMS_TAT_TYPE_ID.Participant_MAPPING);
@@ -879,7 +910,7 @@ namespace LitteraCore.Controllers
 
             List<SessionCompletionStatus> trg_session_status = new List<SessionCompletionStatus>();
             SessionDB sdb = new SessionDB(_configuration);
-            trg_session_status = sdb.Get_Session_Status(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"));
+            trg_session_status = sdb.Get_Session_Status_summary(null, usertype, userid, startdate.ToString("yyyy-MM-dd"), enddate.ToString("yyyy-MM-dd"), branchid);
 
             List<Session> sl = sdb.Get_Session_Data(startdate, enddate);
             foreach (Training item in lwtc)
