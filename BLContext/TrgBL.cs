@@ -708,39 +708,50 @@ namespace LitteraCore.BLContext
             string signatorytext = "";
 
             int signatoryindex = 0;
-            foreach (CERTIFICATE_SIGNATORY sign in dtsignatory)
+            if(Trg.trg_Setting != null)
             {
-                signatoryindex = signatoryindex + 1;
-                string f_path ="";
-                if (sign.signaturepath != null)
+                if(Trg.trg_Setting.certificate_setting != null)
                 {
-                    if (sign.signaturepath != "")
+                    if(Trg.trg_Setting.certificate_setting.no_of_signatory_required > 0)
                     {
-                         f_path = APPURL + "/" + Logo_Path + "/" + sign.signaturepath;
-                        f_path = Regex.Replace(f_path, @"(?<!https:)(?<!http:)/{2,}", "/");
+                        foreach (CERTIFICATE_SIGNATORY sign in dtsignatory)
+                        {
+                            signatoryindex = signatoryindex + 1;
+                            string f_path = "";
+                            if (sign.signaturepath != null)
+                            {
+                                if (sign.signaturepath != "")
+                                {
+                                    f_path = APPURL + "/" + Logo_Path + "/" + sign.signaturepath;
+                                    f_path = Regex.Replace(f_path, @"(?<!https:)(?<!http:)/{2,}", "/");
 
 
-                    }
-                }
-                if(f_path != "")
-                {
-                    signatorytext += @"<div class=""signature signature-" + signatoryindex + @""">
+                                }
+                            }
+                            if (f_path != "")
+                            {
+                                signatorytext += @"<div class=""signature signature-" + signatoryindex + @""">
     <img src='" + APPURL + "/" + Logo_Path + "/" + sign.signaturepath +
-       @"' style='width: 130px; height: 50px;' />
+                   @"' style='width: 130px; height: 50px;' />
     <p>" + sign.name + @"</p>
     <p>" + sign.designation + @"</p>
 </div>";
 
-                }
-                else
-                {
-                    signatorytext = signatorytext + @" <div class=""signature signature-@" + signatoryindex + @""">
+                            }
+                            else
+                            {
+                                signatorytext = signatorytext + @" <div class=""signature signature-@" + signatoryindex + @""">
                         <p>" + sign.name + @"</p>
                         <p>" + sign.designation + @"</p>
                     </div>";
+                            }
+
+                        }
+                    }
                 }
-              
             }
+
+          
 
             certificateHtml = certificateHtml.Replace("certificate.png", APPURL + "/" + ct.certificate_bg_path);
             certificateHtml = certificateHtml.Replace("style.css", APPURL + "/css/certificate_style.css");
@@ -832,70 +843,70 @@ namespace LitteraCore.BLContext
             return c;
         }
 
-        public string Calculate_Certificate_grade_old(string trainingid,string participantid)
-        {
-            //TrainingDB WDB = new TrainingDB(_configuration);
-            //Training trgdetail = new Training();
-            //trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+        //public string Calculate_Certificate_grade_old(string trainingid,string participantid)
+        //{
+        //    //TrainingDB WDB = new TrainingDB(_configuration);
+        //    //Training trgdetail = new Training();
+        //    //trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
 
 
-            string Grade = "D";
-            List<Learning_Report_Data> ld = new List<Learning_Report_Data>();
-            SupportBL SBL = new SupportBL(_configuration);
-            ld = SBL.Learning_Report_Data(trainingid, participantid, null, null, 2);
-            if (ld.Count > 0)
-            {
-                if (ld.FirstOrDefault().learningtime != null)
-                {
+        //    string Grade = "D";
+        //    List<Learning_Report_Data> ld = new List<Learning_Report_Data>();
+        //    SupportBL SBL = new SupportBL(_configuration);
+        //    ld = SBL.Learning_Report_Data(trainingid, participantid, null, null, 2);
+        //    if (ld.Count > 0)
+        //    {
+        //        if (ld.FirstOrDefault().learningtime != null)
+        //        {
 
-                    if (ld.FirstOrDefault().learningtime > 0)
-                    {
-                        decimal totalmin = ld.FirstOrDefault().learningtime / 60;
-                        decimal totalhours = ld.FirstOrDefault().learningtime / 3600;
-                        if (totalhours >= 20)
-                        {
-                            Grade = "A";
+        //            if (ld.FirstOrDefault().learningtime > 0)
+        //            {
+        //                decimal totalmin = ld.FirstOrDefault().learningtime / 60;
+        //                decimal totalhours = ld.FirstOrDefault().learningtime / 3600;
+        //                if (totalhours >= 20)
+        //                {
+        //                    Grade = "A";
 
-                        }
-                        else if (totalhours >= 10 && totalhours < 20)
-                        {
-                            Grade = "B";
+        //                }
+        //                else if (totalhours >= 10 && totalhours < 20)
+        //                {
+        //                    Grade = "B";
 
-                        }
-                        else if (totalhours >= 2 && totalhours < 10)
-                        {
-                            Grade = "C";
-                        }
-                        else if (totalmin > 59 && totalhours < 2)
-                        {
-                            Grade = "D";
-                        }
-                        else if(totalmin <= 59)
-                        {
-                            Grade = "";
-                        }
-
-
-                    }
-                    else
-                    {
-                        Grade = "";
-                    }
-                }
-                else
-                {
-                    Grade = "";
-                }
-            }
-            else
-            {
-                Grade = "";
-            }
-            return Grade;
-        }
+        //                }
+        //                else if (totalhours >= 2 && totalhours < 10)
+        //                {
+        //                    Grade = "C";
+        //                }
+        //                else if (totalmin > 59 && totalhours < 2)
+        //                {
+        //                    Grade = "D";
+        //                }
+        //                else if(totalmin <= 59)
+        //                {
+        //                    Grade = "";
+        //                }
 
 
-        public string Calculate_Certificate_grade(string trainingid, string participantid)
+        //            }
+        //            else
+        //            {
+        //                Grade = "";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            Grade = "";
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Grade = "";
+        //    }
+        //    return Grade;
+        //}
+
+
+        public string Calculate_Certificate_grade_old(string trainingid, string participantid)
         {
             string Grade = "";
             TrainingDB WDB = new TrainingDB(_configuration);
@@ -931,6 +942,81 @@ namespace LitteraCore.BLContext
                 Grade = cpl.Where(o => totalcompletionPercentage >= o.from && totalcompletionPercentage <= o.to).ToList().FirstOrDefault().grade;
             }
            
+            return Grade;
+        }
+
+        public string Calculate_Certificate_grade(string trainingid, string participantid)
+        {
+            string Grade = "";
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            SessionDB sdb = new SessionDB(_configuration);
+         
+            List<certificate_percentage> cpl = new List<certificate_percentage>();
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.certificate_setting != null)
+                {
+                    if (trgdetail.trg_Setting.certificate_setting.certificate_percentage != null)
+                    {
+                        cpl = trgdetail.trg_Setting.certificate_setting.certificate_percentage.ToList();
+                    }
+                }
+            }
+
+           if (cpl.Count <= 0)
+            {
+                TrainingSettings TS = new TrainingSettings();
+                string Foldername = CommonEnum.GET_JSON_FOLDER();
+                string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
+                TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
+                cpl = TS.certificate_setting.certificate_percentage.ToList();
+
+            }
+
+
+
+        
+            List<Learning_Report_Data> ld = new List<Learning_Report_Data>();
+            SupportBL SBL = new SupportBL(_configuration);
+            ld = SBL.Learning_Report_Data(trainingid, participantid, null, null, 2);
+            decimal trg_session_total_learning_time = 0;
+            decimal participant_total_learning_time = 0;
+            //Calculate total session duration
+           
+            List<Session> sl = sdb.Get_Session_Data_By_Trg(trainingid);
+            sl = sl.Where(o => o.ttttt_status != ((int)CommonEnum.Session_Status.Delete).ToString()).ToList();
+            List<Session> dissession = new List<Session>();
+            //Remove Duplicate
+            foreach (Session s in sl)
+            {
+                if (dissession.Where(o => o.ttttt_session_id.ToString().ToUpper() == s.ttttt_session_id.ToString().ToUpper()).Count() == 0)
+                {
+                    dissession.Add(s);
+                }
+            }
+
+            trg_session_total_learning_time= dissession.Where(o => o.ttttt_type != (int)CommonEnum.SessionType.Break && o.ttttt_type != (int)CommonEnum.SessionType.Test && o.ttttt_type != (int)CommonEnum.SessionType.Assignment).Sum(o => Convert.ToDecimal(o.ttttt_session_duration))*60;
+
+
+
+            if (ld.Count > 0)
+            {
+                if (ld.FirstOrDefault().learningtime != null)
+                {
+                    participant_total_learning_time = ld.FirstOrDefault().learningtime;
+                }
+                
+            }
+        
+
+            Decimal totalcompletionPercentage = Math.Round(participant_total_learning_time/ trg_session_total_learning_time, 2) *100;
+            if (cpl.Where(o => totalcompletionPercentage >= o.from && totalcompletionPercentage <= o.to).ToList().Count > 0)
+            {
+                Grade = cpl.Where(o => totalcompletionPercentage >= o.from && totalcompletionPercentage <= o.to).ToList().FirstOrDefault().grade;
+            }
+
             return Grade;
         }
 

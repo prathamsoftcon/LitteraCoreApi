@@ -835,7 +835,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateActivityToken")]
-        public async Task<IActionResult> GenerateActivityToken(string userid,string ttpai_id,string ttsm_id,string apipath)
+        public async Task<IActionResult> GenerateActivityToken(string ttsm_id,string apipath, string? userid=null, string? ttpai_id=null)
         {
             //Check Valid User
             AppAuthService auth = new AppAuthService(_configuration);
@@ -881,7 +881,11 @@ namespace LitteraCore.Controllers
 
             List<Agency> AL = new List<Agency>();
             AgencyDB ABD = new AgencyDB(_configuration);
-            AL = ABD.Get_Agency(null, user_id, 1, 10, null, null, null, null, null);
+            if(user_id != "")
+            {
+                AL = ABD.Get_Agency(null, user_id, 1, 10, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
+            }
+          
             string user_name = "";
             if (AL.Count > 0)
             {
@@ -901,7 +905,11 @@ namespace LitteraCore.Controllers
 
             AuthDB audb = new AuthDB(_configuration);
             UserInfo a = new UserInfo();
-            a = audb.GetUserInfo(user_name);
+            if(user_name != "")
+            {
+                a = audb.GetUserInfo(user_name);
+            }
+          
 
             //var userIdClaim = simplifiedClaims.FirstOrDefault(c => c.Type == "userid");
             //if (userIdClaim != null)

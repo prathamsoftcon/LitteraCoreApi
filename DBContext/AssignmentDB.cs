@@ -426,6 +426,7 @@ namespace LitteraCore.DBContext
             con.Close();
             Assignment_Question_Valuation av = new Assignment_Question_Valuation();
             List<AssignmentQuestions> LI = new List<AssignmentQuestions>();
+            a = adb.Get_Agency(null, null, 1, 10, null, null, null, null,null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             foreach (DataRow row in dt.Rows)
             {
                 if (row["taaqv_valuation_json"].ToString() != "")
@@ -435,10 +436,11 @@ namespace LitteraCore.DBContext
                     av.taaqv_participantid = Convert.ToString(row["taaqv_participantid"]);
                     av.createdon = Convert.ToString(row["createdon"]);
                     av.createdby = Convert.ToString(row["createdby"]);
-                    a = adb.Get_Agency(null, Convert.ToString(row["createdby"]), 1, 10, null, null, null, null);
-                    if (a.Count > 0)
+                    av.taaqv_status = Convert.ToInt16(row["taaqv_status"]);
+                    
+                    if (a.Where(o=>o.agencyid== Convert.ToString(row["createdby"])).Count() > 0)
                     {
-                        av.createdby_name = a.FirstOrDefault().agencyname;
+                        av.createdby_name = a.Where(o => o.agencyid == Convert.ToString(row["createdby"])).FirstOrDefault().agencyname;
                     }
 
 
@@ -540,6 +542,7 @@ namespace LitteraCore.DBContext
 
 
             List<AssignmentQuestions> LI = new List<AssignmentQuestions>();
+            a = adb.Get_Agency(null, null, 1, 10, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             foreach (DataRow row in dt.Rows)
             {
                 if (row["taaqv_valuation_json"].ToString() != "")
@@ -550,10 +553,10 @@ namespace LitteraCore.DBContext
                     av.taaqv_participantid = Convert.ToString(row["taaqv_participantid"]);
                     av.createdon = Convert.ToString(row["createdon"]);
                     av.createdby = Convert.ToString(row["createdby"]);
-                    a = adb.Get_Agency(null, Convert.ToString(row["createdby"]), 1, 10, null, null, null, null);
-                    if (a.Count > 0)
+                    
+                    if (a.Where(o => o.agencyid == Convert.ToString(row["createdby"])).Count() > 0)
                     {
-                        av.createdby_name = a.FirstOrDefault().agencyname;
+                        av.createdby_name = a.Where(o => o.agencyid == Convert.ToString(row["createdby"])).FirstOrDefault().agencyname;
                     }
 
 
@@ -635,6 +638,9 @@ namespace LitteraCore.DBContext
             bool isupdated = sdb.Update_session_dms_status(T.trainingid, T.sessionid, d, sessionstatus);
             return isupdated;
         }
+
+
+     
 
 
     }

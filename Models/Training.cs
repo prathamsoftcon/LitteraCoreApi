@@ -109,7 +109,22 @@ namespace LitteraCore.Models
         public int no_of_response { get; set; }
 
         public string trg_setting_search { get; set; }
+
+        public int no_of_assignment { get; set; }
+
+        public string assignment_faculties { get; set; }
+
+        public trg_contact_person[] contact_person { get; set; }
+
     }
+
+    public class trg_contact_person
+    {
+        public string person_name { get; set; }
+        public string person_email { get; set; }
+        public string person_mobile { get; set; }
+    }
+
 
     public class FB_Share_Data
     {

@@ -45,4 +45,11 @@
         
 
     }
+
+
+    public class AI_Answer
+    {
+        public string id { get; set; }
+        public string useranswer { get; set; }
+    }
 }

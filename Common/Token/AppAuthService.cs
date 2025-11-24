@@ -188,8 +188,16 @@ namespace LitteraCore.Common.Token
         }
 
 
-        public async Task<UserToken> Activity_Token(string userid,string ttpai_id,string ttsam_id,string baseUrl)
+        public async Task<UserToken> Activity_Token(string? userid,string? ttpai_id,string ttsam_id,string baseUrl)
         {
+            if (userid == null)
+            {
+                userid = "";
+            }
+            if (ttpai_id == null)
+            {
+                ttpai_id = "";
+            }
             // var user = await _userrepository.ValidateUserExitAsync(userlogin.Mobileno, userlogin.Password);
 
             //if (userlogin == null)
@@ -224,6 +232,7 @@ namespace LitteraCore.Common.Token
 
             string redirect_path = RAC.REACT_APP_LOGOUT_PATH + "/dashboard";
 
+           
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {

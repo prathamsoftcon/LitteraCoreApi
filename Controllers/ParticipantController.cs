@@ -46,7 +46,7 @@ namespace LitteraCore.Controllers
             List<Participant> lwtc = new List<Participant>();
 
 
-            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
+            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             lwtc = lwtc.Where(o => o.ParticipantId.ToString().ToUpper() == participantid.ToString().ToUpper()).ToList();
 
 

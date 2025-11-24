@@ -444,6 +444,43 @@ namespace LitteraCore.DBContext
             return T;
         }
 
+        public TEST_SESSION_MAPPING_DATA Get_Test_Session_Mapping_Data_By_Session(string sessionid)
+        {
+
+
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("eval.get_test_session_mapping_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@sessionid", sessionid);
+
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //************Get Data
+
+
+            TEST_SESSION_MAPPING_DATA T = new TEST_SESSION_MAPPING_DATA();
+            foreach (DataRow dr in dt.Rows)
+            {
+
+                T.testid = Convert.ToString(dr["testid"]);
+                T.TestQuestionID = Convert.ToString(dr["TestQuestionID"]);
+                T.trainingid = Convert.ToString(dr["trainingid"]);
+                T.sessionid = Convert.ToString(dr["sessionid"]);
+
+
+            }
+
+
+            return T;
+        }
+
         public bool Check_test_in_use(string testid)
         {
 
@@ -468,6 +505,37 @@ namespace LitteraCore.DBContext
                 is_used = true;
             }
            
+
+
+            return is_used;
+        }
+
+
+        public bool Check_test_participant_status(string testid,string participantid)
+        {
+
+            bool is_used = false;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("eval.proc_eval_get_participant_test_status", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@testid", testid);
+            cmd.Parameters.AddWithValue("@participantid", participantid);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //************Get Data
+
+            if (dt.Rows.Count > 0)
+            {
+                is_used = true;
+            }
+
 
 
             return is_used;

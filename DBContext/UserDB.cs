@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using static Azure.Core.HttpHeader;
 using Newtonsoft.Json;
 using System.Xml;
+using LitteraCore.Controllers;
 
 namespace LitteraCore.DBContext
 {
@@ -19,6 +20,10 @@ namespace LitteraCore.DBContext
         }
         public bool Save_User_Data(LoginUser user)
         {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log", "Log.txt");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+       
+
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
@@ -29,6 +34,7 @@ namespace LitteraCore.DBContext
                 DataTable dtuserdetail = new DataTable();
                 dtuserdetail = Get_User_Details(user.userid);
 
+                File.AppendAllText(path, "save_user start " +System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") +" ");
                 if (dtuserdetail.Rows[0]["isexist"].ToString() == "0")
                 {
                     if (Save_User(user, con, st) == false)
@@ -36,7 +42,9 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save user");
                     }
                 }
+                File.AppendAllText(path, "Save_User end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") +" ");
 
+                File.AppendAllText(path, "Save_User_Roles start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 if (user.agency.AgencyTypeId != "00053")
                 {
                     if (Save_User_Roles(user, con, st) == false)
@@ -44,6 +52,8 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save role");
                     }
                 }
+                File.AppendAllText(path, "Save_User_Roles end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                File.AppendAllText(path, "Save_User_Branches start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 if (user.branches != null)
                 {
                     if (Save_User_Branches(user.branches, con, user, st) == false)
@@ -51,7 +61,7 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save branches");
                     }
                 }
-
+                File.AppendAllText(path, "Save_User_Branches end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
 
 
 
@@ -70,21 +80,22 @@ namespace LitteraCore.DBContext
                 {
                     usercode = dbl.Get_agency_doc_no(System.DateTime.Now.ToString("yyyy/MM/dd"), user.branchid, "$$", "YEAR");
                 }
-
+                File.AppendAllText(path, "Save_SignIn_Info start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 if (Save_SignIn_Info(user, con, usercode, st) == false)
                 {
                     throw new Exception("Error on save Sign In Info");
                 }
+                File.AppendAllText(path, "Save_SignIn_Info end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
 
-             
+                File.AppendAllText(path, "Save_Agency_Mapping_Data start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 if (Save_Agency_Mapping_Data(user, con, st) == false)
                 {
                     throw new Exception("Error on save Mapping data");
                 }
 
-
+                File.AppendAllText(path, "Save_Agency_Mapping_Data end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 //Code to save DMS DATA
-
+             
                 DMS d = new DMS
                 {
                     docno = usercode,
@@ -99,8 +110,9 @@ namespace LitteraCore.DBContext
                     tat_type_id = Convert.ToInt32(Common.CommonEnum.Get_Default_USER_TAT_TYPE(Convert.ToInt32(user.usertype), user.agency.AgencyTypeId)),
                     doc_status = Convert.ToInt32(user.agency.agencystatus),
                 };
+                File.AppendAllText(path, "Save_DMS_DATA start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
                 dbl.Save_DMS_DATA(d, con, st);
-
+                File.AppendAllText(path, "Save_DMS_DATA end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
 
                 //Code to save Delegate department entry in case of Staff
                 if (Convert.ToInt32(user.usertype) == Convert.ToInt32(CommonEnum.UserType.CD))
@@ -270,6 +282,12 @@ namespace LitteraCore.DBContext
 
                 cmd.ExecuteNonQuery();
 
+                if (user.usertype == "5")
+                {
+                    branchstring = branchstring.Replace(",", "");
+                    Save_User_Participant_Branches(user.agency.AgencyId, branchstring,con, transaction);
+                }
+               
 
                 //con.Close();
 
@@ -834,7 +852,50 @@ namespace LitteraCore.DBContext
             return userid;
 
         }
+        public bool Save_User_Participant_Branches(string participantid,string branchid , SqlConnection con,SqlTransaction transaction)
+        {
+            string branchstring = "";
+          
 
+            try
+            {
+                if (con.State == ConnectionState.Closed)
+                {
+                    if (con.State != ConnectionState.Open) { con.Open(); }
+                }
+                SqlCommand cmd = new SqlCommand("yuser.proc_ins_upd_tbl_yuser_branch_participant", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = con;
+                if (transaction != null)
+                {
+                    cmd.Transaction = transaction;
+                }
+                cmd.CommandTimeout = 5000;
+                cmd.Parameters.AddWithValue("@participantID", participantid);
+                cmd.Parameters.AddWithValue("@branchid", branchid);
+              
+
+
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Connection = con;
+                cmd.CommandTimeout = 5000;
+
+                cmd.ExecuteNonQuery();
+
+
+                //con.Close();
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
+            //if (con.State != ConnectionState.Open) { con.Open(); }
+
+        }
 
 
     }

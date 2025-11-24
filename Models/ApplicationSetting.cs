@@ -78,6 +78,7 @@ namespace LitteraCore.Models
         public string PWD { get; set; }
         public string HOST { get; set; }
         public string PORT { get; set; }
+        public string MAIL_CC_TO { get; set; }
 
     }
     public class PaymentGatewaySetting

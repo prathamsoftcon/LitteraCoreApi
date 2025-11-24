@@ -20,10 +20,10 @@
         public string Qualification { get; set; }
         public string DurationInGovtJob { get; set; }
         public string SpecialSkillAreas { get; set; }
-        public Decimal BasicPay { get; set; }
+        public Decimal? BasicPay { get; set; }
 
-        public int Is_IAS_IPS_Officer { get; set; }
-        public int Is_With_Spouse { get; set; }
+        public int? Is_IAS_IPS_Officer { get; set; }
+        public int? Is_With_Spouse { get; set; }
 
         public string BranchId { get; set; }
 
@@ -55,18 +55,18 @@
         public string M_NAME { get; set; }
 
         public string L_NAME { get; set; }
-        public int WITHCHILD { get; set; }
+        public int? WITHCHILD { get; set; }
         public string CURRENTLOCATION { get; set; }
         public string NOOFPERSON { get; set; }
-        public int Is_Bhopal { get; set; }
+        public int? Is_Bhopal { get; set; }
 
         public string ts_hname { get; set; }
         public string ts_name { get; set; }
         public string isnodues { get; set; }
         public string feedbackstatus { get; set; }
 
-        public int is_deleted { get; set; }
-        public int is_approve { get; set; }
+        public int? is_deleted { get; set; }
+        public int? is_approve { get; set; } = 0;
         public string uploadpath { get; set; }
         public string remark { get; set; }
 

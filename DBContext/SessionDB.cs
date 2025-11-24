@@ -2,9 +2,11 @@
 using LitteraCore.Common;
 using LitteraCore.Common.DMS;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.Data.SqlClient;
 using Microsoft.PowerBI.Api;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Data;
 using System.Net;
 using System.Reflection;
@@ -1054,10 +1056,10 @@ namespace LitteraCore.DBContext
                                 if (reader["ttttt_session_id"] == DBNull.Value)
                                     continue;
 
-                                if (Convert.ToInt32(reader["ttttt_type"]) == 6 || Convert.ToInt32(reader["ttttt_type"]) == 7)
-                                {
-                                    continue;
-                                }
+                                //if (Convert.ToInt32(reader["ttttt_type"]) == 6 || Convert.ToInt32(reader["ttttt_type"]) == 7)
+                                //{
+                                //    continue;
+                                //}
                                 CompletionType sessionconpletiontype = null;
                                 if (reader["ttttt_completion_type"] != null)
                                 {
@@ -1422,7 +1424,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public static bool SESSION_DISPLAY_ACTION(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0)
+        public static bool SESSION_DISPLAY_ACTION(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int? participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0,int mentorslot_Count=0)
         {
 
             bool isdisplay = false;
@@ -2218,12 +2220,152 @@ namespace LitteraCore.DBContext
                     isdisplay = false;
                 }
             }
+            else if ((int)ActionFor == (int)CommonEnum.SESSION_LIST_ACTIONS.Add_Mentorship_Slot)
+            {
+          
+
+                if (Convert.ToInt16(usertype.ToString()) == (int)CommonEnum.usertype.FACULTY)
+                {
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Study_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Breaks_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Evaluation_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Self_paced)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Sport_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Tours_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+
+
+                }
+                else
+                {
+                    isdisplay = false;
+                }
+
+                //Extra Condition to manage visiblity according to slot
+                if (mentorslot_Count > 0)
+                {
+                    isdisplay = false;
+                }
+            }
+            else if ((int)ActionFor == (int)CommonEnum.SESSION_LIST_ACTIONS.View_Mentorship_Slot)
+            {
+                if (Convert.ToInt16(usertype.ToString()) == (int)CommonEnum.usertype.FACULTY)
+                {
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Study_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Breaks_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Evaluation_Group)
+                    {
+                        isdisplay = false;
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Self_paced)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Sport_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+                    if (Get_Session_Group(sessiontype) == (int)CommonEnum.SessionGroup.Tours_Group)
+                    {
+                        if (session_completion_type == "2")
+                        {
+                            isdisplay = false;
+                        }
+                        else
+                        {
+                            isdisplay = true;
+                        }
+                    }
+
+
+                }
+                else
+                {
+                    isdisplay = false;
+                }
+                if (mentorslot_Count <= 0)
+                {
+                    isdisplay = false;
+                }
+            }
 
             return isdisplay;
         }
 
-
-        public static bool SESSION_DISPLAY_ACTION_V3(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0)
+     
+        public static bool SESSION_DISPLAY_ACTION_V3(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int? participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0)
         {
 
             bool isdisplay = false;
@@ -3060,52 +3202,57 @@ namespace LitteraCore.DBContext
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 if (con.State != ConnectionState.Open) { con.Open(); }
-                SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con)
+                using (var cmd1 = new SqlCommand("SET ARITHABORT ON;", con))
                 {
-                    CommandType = CommandType.StoredProcedure,
-                    CommandTimeout = 5000
-                };
-
-                // Add parameters with null check
-                cmd.Parameters.AddWithValue("@trainingid", trainingid);
-                cmd.Parameters.AddWithValue("@participantid", participantid ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@branchid", branchid ?? (object)DBNull.Value);
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    List<Session> filteredSessions = new List<Session>();
-
-                    while (reader.Read())
+                    cmd1.ExecuteNonQuery();
+                    using (SqlCommand cmd = new SqlCommand("trainingplan.proc_session_completion_report", con))
                     {
-                        // Filter rows where "ttttt_session_id" is not null
-                        if (reader["ttttt_session_id"] != DBNull.Value)
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandTimeout = 5000;
+                        // Add parameters with null check
+                        cmd.Parameters.AddWithValue("@trainingid", trainingid);
+                        cmd.Parameters.AddWithValue("@participantid", participantid ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@branchid", branchid ?? (object)DBNull.Value);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            Session vw = new Session
-                            {
-                                trainingid = reader["trainingid"].ToString(),
-                                ttttt_session_id = reader["ttttt_session_id"].ToString(),
-                                ttttt_content_desc = reader["ttttt_content_desc"].ToString(),
-                                ttttt_session_dt = Convert.ToDateTime(reader["ttttt_session_dt"]).ToString("yyyy/MM/dd"),
-                                ttttt_session_time = reader["ttttt_session_time"].ToString(),
-                                ttttt_session_duration = reader["ttttt_session_duration"].ToString(),
-                                ttttt_session_day = Convert.ToInt32(reader["ttttt_session_day"]),
-                                ttttt_session_end_time = reader["ttttt_session_end_time"].ToString(),
-                                ttttt_session_no = Convert.ToInt32(reader["ttttt_session_no"]),
-                                ttttt_session_week = Convert.ToInt32(reader["ttttt_session_week"]),
-                                module = reader["ttttt_module_no"] != DBNull.Value ? Convert.ToInt32(reader["ttttt_module_no"]) : 0,
-                                ttttt_type = Convert.ToInt32(reader["ttttt_type"]),
-                                facultyname = reader["tttttf_status"].ToString() != "9" ? reader["facultyname"].ToString() : "",
-                                noofcompletion = Convert.ToInt32(reader["noofpersons"]),
-                                ttttt_complimentory = Convert.ToInt32(reader["ttttt_complimentory"])
-                            };
+                            List<Session> filteredSessions = new List<Session>();
 
-                            filteredSessions.Add(vw);
+                            while (reader.Read())
+                            {
+                                // Filter rows where "ttttt_session_id" is not null
+                                if (reader["ttttt_session_id"] != DBNull.Value)
+                                {
+                                    Session vw = new Session
+                                    {
+                                        trainingid = reader["trainingid"].ToString(),
+                                        ttttt_session_id = reader["ttttt_session_id"].ToString(),
+                                        ttttt_content_desc = reader["ttttt_content_desc"].ToString(),
+                                        ttttt_session_dt = Convert.ToDateTime(reader["ttttt_session_dt"]).ToString("yyyy/MM/dd"),
+                                        ttttt_session_time = reader["ttttt_session_time"].ToString(),
+                                        ttttt_session_duration = reader["ttttt_session_duration"].ToString(),
+                                        ttttt_session_day = Convert.ToInt32(reader["ttttt_session_day"]),
+                                        ttttt_session_end_time = reader["ttttt_session_end_time"].ToString(),
+                                        ttttt_session_no = Convert.ToInt32(reader["ttttt_session_no"]),
+                                        ttttt_session_week = Convert.ToInt32(reader["ttttt_session_week"]),
+                                        module = reader["ttttt_module_no"] != DBNull.Value ? Convert.ToInt32(reader["ttttt_module_no"]) : 0,
+                                        ttttt_type = Convert.ToInt32(reader["ttttt_type"]),
+                                        facultyname = reader["tttttf_status"].ToString() != "9" ? reader["facultyname"].ToString() : "",
+                                        noofcompletion = Convert.ToInt32(reader["noofpersons"]),
+                                        ttttt_complimentory = Convert.ToInt32(reader["ttttt_complimentory"])
+                                    };
+
+                                    filteredSessions.Add(vw);
+                                }
+                            }
+
+                            // Sorting the session data by session number
+                            sessiondata = filteredSessions.OrderBy(o => o.ttttt_session_no).ToList();
                         }
                     }
 
-                    // Sorting the session data by session number
-                    sessiondata = filteredSessions.OrderBy(o => o.ttttt_session_no).ToList();
                 }
+                 
+
             }
 
             return sessiondata;

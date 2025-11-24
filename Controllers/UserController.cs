@@ -12,6 +12,10 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using LitteraCore.Common.EmailService;
 using System.Runtime.ConstrainedExecution;
+using LitteraCore.Common.SmsService;
+using Newtonsoft.Json;
+using System.Data;
+using static QRCoder.PayloadGenerator;
 
 namespace LitteraCore.Controllers
 {
@@ -28,7 +32,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/CreateUser")]
-        public  IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
+        public IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
         {
             UserBL UBL = new UserBL(_configuration);
             if (user.branchid == null)
@@ -84,96 +88,104 @@ namespace LitteraCore.Controllers
 
             bool issaved = false;
             issaved = UBL.Save_User_Data(user);
-            //if (issaved == true)
-            //{
-            //    if (isUserCreationMail == true)
-            //    {
-            //        if (user.emailid != null)
-            //        {
-            //            //Code to send Mail on user creation
+            if (issaved == true)
+            {
+                if (isUserCreationMail == true)
+                {
+                    if (user.emailid != null)
+                    {
+                        //Code to send Mail on user creation
 
-            //            string mailpassword = "";
-            //            if (user.password_enc != null)
-            //            {
-            //                mailpassword = (YEncryptDecryptData.YEncryptDecryptData.Decrypt(user.password_enc, true));
-            //            }
-            //            if (APPURL != null && APPURL != "")
-            //            {
-            //                EmailTemplate es = new EmailTemplate();
-            //                var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_EMAIl_Template?APIKEY=" + Common.StaticData.APPKEY + "&id=USERREGISTRATION");
-            //                var response = (HttpWebResponse)request.GetResponse();
-            //                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                        string mailpassword = "";
+                        if (user.password_enc != null)
+                        {
+                            mailpassword = (YEncryptDecryptData.YEncryptDecryptData.Decrypt(user.password_enc, true));
+                        }
+                        if (APPURL != null && APPURL != "")
+                        {
+                            EmailTemplate es = new EmailTemplate();
+                            
+                            es = SmtpEmailService.Get_EMAIL_TEMPLATE("USERREGISTRATION");
 
-            //                JObject j = JObject.Parse(responseString);
-            //                es = j.ToObject<EmailTemplate>();
+                            string mailsubject = es.subject;
+                            string mailtext = es.text;
+                            mailsubject = mailsubject.Replace("(#name#)", user.agency.ag_first_name);
+                            mailtext = mailtext.Replace("(#name#)", user.agency.ag_first_name);
+                            mailtext = mailtext.Replace("(#regname#)", user.agency.ag_first_name);
+                            mailtext = mailtext.Replace("(#domain#)", APPURL);
+                            mailtext = mailtext.Replace("(#pwd#)", mailpassword);
 
-            //                string mailsubject = es.subject;
-            //                string mailtext = es.text;
-            //                mailsubject = mailsubject.Replace("(#name#)", user.agency.ag_first_name);
-            //                mailtext = mailtext.Replace("(#name#)", user.agency.ag_first_name);
-            //                mailtext = mailtext.Replace("(#regname#)", user.agency.ag_first_name);
-            //                mailtext = mailtext.Replace("(#domain#)", APPURL);
-            //                mailtext = mailtext.Replace("(#pwd#)", mailpassword);
-
-            //                SmtpEmailService s = new SmtpEmailService(_configuration);
-            //                await s.SendEmailAsync(user.emailid, mailsubject, mailtext);
-
-            //            }
-
-            //        }
-
-            //        //********************
-            //        //Code to send SMS
-            //        if (user.mobileno != null)
-            //        {
-            //            if (APPURL != null && APPURL != "")
-            //            {
-            //                var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_TEMPLATE?APIKEY=" + Common.StaticData.APPKEY + "&messageid=11");
-            //                var response = (HttpWebResponse)request.GetResponse();
-            //                var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-
-            //                JObject j = JObject.Parse(responseString);
-            //                SMSTemplate st = j.ToObject<SMSTemplate>();
-
-            //                //  Hashtable td = JsonConvert.SerializeObject(responseString);
-
-            //                string finalmessage = "";
-
-            //                finalmessage = st.text.ToString().Replace("{#var#}", APPURL);
+                         
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            s.SendEmailAsync(user.emailid, mailsubject, mailtext);
 
 
+                            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                            EMAIL_SEND_BY_APPLICATION ems = new EMAIL_SEND_BY_APPLICATION();
+                            DataTable dt = a.Get_Application_Setting("7");
+                            ems = JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
+                            if(ems.EMAILSETTING.MAIL_CC_TO != null)
+                            {
+                                string cctext = "New user" + user.agency.ag_first_name + " has been successfully registered.";
+                                s.SendEmailAsync(ems.EMAILSETTING.MAIL_CC_TO, mailsubject, cctext);
+                            }
 
-            //                SMSSetting s = new SMSSetting();
+                       
+                        }
 
-            //                var request2 = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_SETTING?APIKEY=" + Common.StaticData.APPKEY + "");
-            //                var response2 = (HttpWebResponse)request2.GetResponse();
-            //                var responseString2 = new StreamReader(response2.GetResponseStream()).ReadToEnd();
-            //                // var p = JsonConvert.SerializeObject(responseString);
-            //                JObject j1 = JObject.Parse(responseString2);
-            //                s = j1.ToObject<SMSSetting>();
-            //                CommonDB c = new CommonDB();
-            //                string smsapi = c.Get_SMS_API_URL(0);
-            //                if (smsapi != "")
-            //                {
-            //                    c.sendSMS(user.mobileno, finalmessage, st.DLT_CT_ID.ToString(), smsapi);
-            //                }
+                    }
 
-            //            }
+                    ////********************
+                    ////Code to send SMS
+                    //if (user.mobileno != null)
+                    //{
+                    //    if (APPURL != null && APPURL != "")
+                    //    {
+                    //        var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_TEMPLATE?APIKEY=" + Common.StaticData.APPKEY + "&messageid=11");
+                    //        var response = (HttpWebResponse)request.GetResponse();
+                    //        var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
-            //        }
-            //    }
+                    //        JObject j = JObject.Parse(responseString);
+                    //        SMSTemplate st = j.ToObject<SMSTemplate>();
+
+                    //        //  Hashtable td = JsonConvert.SerializeObject(responseString);
+
+                    //        string finalmessage = "";
+
+                    //        finalmessage = st.text.ToString().Replace("{#var#}", APPURL);
 
 
-            //    //*******************
+
+                    //        SMSSetting s = new SMSSetting();
+
+                    //        var request2 = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_SETTING?APIKEY=" + Common.StaticData.APPKEY + "");
+                    //        var response2 = (HttpWebResponse)request2.GetResponse();
+                    //        var responseString2 = new StreamReader(response2.GetResponseStream()).ReadToEnd();
+                    //        // var p = JsonConvert.SerializeObject(responseString);
+                    //        JObject j1 = JObject.Parse(responseString2);
+                    //        s = j1.ToObject<SMSSetting>();
+                    //        CommonDB c = new CommonDB();
+                    //        string smsapi = c.Get_SMS_API_URL(0);
+                    //        if (smsapi != "")
+                    //        {
+                    //            c.sendSMS(user.mobileno, finalmessage, st.DLT_CT_ID.ToString(), smsapi);
+                    //        }
+
+                    //    }
+
+                    //}
+                }
 
 
-            //    return Ok(true);
-            //}
-            //else
-            //{
-            //    return BadRequest();
-            //}
-            return Ok(true);
+                //*******************
+
+                return Ok(true);
+            }
+            else
+            {
+                return BadRequest(true);
+            }
+            //return Ok(true);
 
 
 

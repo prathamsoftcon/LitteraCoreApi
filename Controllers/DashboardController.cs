@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using LitteraCore.Common.Token;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LitteraCore.Controllers
 {
@@ -70,7 +71,7 @@ namespace LitteraCore.Controllers
                 //*************Get Enrollment 
                 List <Participant> p = new List<Participant>();
                 ParticipantDB tdb = new ParticipantDB(_configuration);
-                p = tdb.Get_Trg_Participant_List(null, null, branchid, null, null, null, null, null, null, 1, 1);
+                p = tdb.Get_Trg_Participant_List(null, null, branchid, null, null, null, null, null, null, 1, 1,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                 if (p.Count() > 0)
                 {
                     d.total_enrollments = p.FirstOrDefault().totalrecords;
@@ -234,9 +235,12 @@ namespace LitteraCore.Controllers
            
             foreach (Training item in lwtc)
             {
+                if(item.trg_Setting != null)
+                {
+                    sl = CommonEnum.OrderSessionData(item.trg_Setting.Session.SessionOrder, sl);
+                }
 
-
-                sl = CommonEnum.OrderSessionData(item.trg_Setting.Session.SessionOrder, sl);
+                
 
                 decimal completion = 0;
                 List<SessionCompletionStatus> trg_status = new List<SessionCompletionStatus>();
@@ -1345,8 +1349,20 @@ namespace LitteraCore.Controllers
         }
 
 
+        [HttpGet]
+        [Route("api/Get_Participant_Pending_Tests")]
+        public IActionResult Get_User_Pending_Tests(string usertype, string userid)
+        {
+           int Pendingtests = 0;
+           List<Test> TESTS = new List<Test>();
+           EvalDB tbl = new EvalDB(_configuration);
+           TESTS = tbl.Get_test_List(usertype, userid);
+           TESTS= TESTS.Where(o=>o.type=="1").ToList();
+           Pendingtests = TESTS.Where(o => o.tdds_status == 1 && (o.participantstatus == null || o.participantstatus == "")).ToList().Count;
 
-     
+            return Ok(new {pendingtest= Pendingtests });
+        }
+
 
 
 

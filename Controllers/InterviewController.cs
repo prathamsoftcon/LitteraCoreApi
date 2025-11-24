@@ -9,6 +9,7 @@ using Microsoft.PowerBI.Api;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Tsp;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LitteraCore.Controllers
 {
@@ -330,6 +331,49 @@ namespace LitteraCore.Controllers
 
 
             return Ok(questions);
+        }
+
+
+
+        [HttpPost]
+        [Route("api/AI_Question_Result")]
+        public async Task<IActionResult> AI_Question_Result([FromBody] AI_Answer a)
+        {
+            InterviewBL IBL = new InterviewBL(_configuration);
+            interviewQuestion q = IBL.GET_AI_QUESTION(a.id);
+            AIBL abl = new AIBL(_configuration);
+
+            double[] candidateanswer_embeddings;
+
+            var embeddingList = await abl.GetEmbeddingsAsync(a.useranswer);
+         
+            candidateanswer_embeddings = embeddingList.Embedding.ToArray(); // Now it's a float[]
+
+
+            interviewAnswers questions = new interviewAnswers();
+          
+            interviewResult r = new interviewResult();
+
+            double sim = AIBL.CosineSimilarity(q.idealanswer_embedings, candidateanswer_embeddings);
+            r.Relevance = Math.Round(((sim + 1) / 2) * 100, 2);
+            r.Completeness = Math.Round(((AIBL.ComputeCompleteness(a.useranswer, q.idealanswer.Split(" ".ToArray()).ToList()) + 1) / 2) * 100, 2);
+            //r.Completeness = Math.Round(((AIBL.completeness(q.idealanswer_embedings, q.candidateanswer_embeddings) + 1) / 2) * 100, 2);
+            r.Accuracy = Math.Round(((AIBL.ComputeAccuracy(a.useranswer, q.idealanswer.Split(" ".ToArray()).ToList()) + 1) / 2) * 100, 2);
+            // r.Accuracy = AIBL.ComputeAccuracy(q., q.candidateanswer_embeddings);
+            r.Clarity = Math.Round(AIBL.ComputeClarity(a.useranswer), 2);
+            if (q.max_length != null)
+            {
+                r.Depth = AIBL.ComputeDepth(a.useranswer, q.idealanswer.Split(" ".ToCharArray()).ToList(), q.max_length);
+            }
+            else
+            {
+                r.Depth = AIBL.ComputeDepth(a.useranswer, q.idealanswer.Split(" ".ToCharArray()).ToList(), 1000);
+            }
+
+
+            q.result = r;
+
+            return Ok(r);
         }
     }
 }

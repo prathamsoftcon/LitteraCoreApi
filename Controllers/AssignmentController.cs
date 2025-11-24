@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace LitteraCore.Controllers
@@ -214,7 +215,7 @@ namespace LitteraCore.Controllers
             List<Participant> PL = new List<Participant>();
             ParticipantDB PDB = new ParticipantDB(_configuration);
             //List of training all participant
-            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
 
             AssignmentBL PBL = new AssignmentBL(_configuration);
             List<proc_ass_get_assignment_comment> assignments = new List<proc_ass_get_assignment_comment>();
@@ -301,6 +302,11 @@ namespace LitteraCore.Controllers
                 {
                     if (lav.Where(o => o.taaqv_participantid.ToString().ToUpper() == p.participantid.ToString().ToUpper()).Count()>0)
                     {
+                        if(lav.FirstOrDefault().taaqv_valuation_json != null)
+                        {
+                            p.marks_allocated = lav.Sum(o => o.taaqv_valuation_json.FirstOrDefault().max_allocated);
+                        }
+                     
                         p.valuation_status = lav.FirstOrDefault().taaqv_status;
                     }
                 }
@@ -429,6 +435,219 @@ namespace LitteraCore.Controllers
 
 
             return Ok(is_used);
+        }
+
+
+        [HttpPost]
+        [Route("api/Get_Assignment_Summary")]
+        public IActionResult Get_Assignment_Summary(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        {
+            var searchService = new SearchService();
+            AssignmentBL ABL = new AssignmentBL(_configuration);
+            List<Assignment> assignments=new List<Assignment>();
+            assignments = ABL.Get_Assignments(null, usertype, userid, startdate, enddate);
+            if (searchCriterias != null && searchCriterias.SearchCriteria.Any())
+            {
+                // Example: get first column name from searchCriteria
+                string column = searchCriterias.SearchCriteria[0].Column;
+                if (column.ToString().ToUpper() == "FACULTYNAME")
+                {
+                    assignments = searchService.FilterItems(assignments, searchCriterias.SearchCriteria.ToList());
+                }
+                // You can now use this to filter the assignments list or log, etc.
+            }
+            TrainingDB WDB = new TrainingDB(_configuration);
+
+            List<Training> lwtc = new List<Training>();
+            List<FilterUserTrg> userwise_lwtc = new List<FilterUserTrg>();
+
+            lwtc = WDB.Get_VW_Training_calendar(startdate, enddate, null, null, null);
+
+            lwtc = lwtc.Where(o => o.TrainingStatus != "3").ToList();
+            UserTypeTrg usertrg = new UserTypeTrg();
+
+            //***************
+            List<FilterUserTrg> FL = new List<FilterUserTrg>();
+            FL = lwtc.ConvertAll(x => new FilterUserTrg { trainingid = x.TrainingId.ToString() });
+            //**********
+            userwise_lwtc = WDB.Get_Users_Trg_Data(FL, usertype, userid, startdate, enddate);
+            lwtc = lwtc.Where(x => userwise_lwtc.Any(y => y.trainingid.ToString() == x.TrainingId.ToString())).ToList();
+
+            foreach(Training t in lwtc)
+            {
+                t.no_of_assignment = assignments.Where(o => o.Trainingid.ToString().ToUpper() == t.TrainingId.ToString().ToUpper()).Count();
+                t.assignment_faculties = string.Join(", ",
+                                                     assignments
+                                                         .Where(o => o.Trainingid.ToString().ToUpper() == t.TrainingId.ToString().ToUpper())
+                                                         .Select(a => a.facultyname)
+                                                         .Distinct());
+            }
+
+            //**********Implement Search
+       
+            var filteredItems = lwtc;
+            if (searchCriterias != null)
+            {
+                string column1 = searchCriterias.SearchCriteria[0].Column;
+                if (column1.ToString().ToUpper() != "FACULTYNAME")
+                {
+                    filteredItems = searchService.FilterItems(lwtc, searchCriterias.SearchCriteria.ToList());
+                    lwtc = filteredItems;
+                }
+                  
+            }
+
+
+            int total_recored = 0;
+            total_recored = lwtc.Count();
+
+            PaginationParam prm1 = new PaginationParam { PageNumber = param.PageNumber, PageSize = param.PageSize };
+            var pagedList = Paging.GetPagedList(prm1, lwtc);
+            var result = Paging.GetPagedData(prm1, lwtc);
+            result.TotalRecords = total_recored;
+            result.TotalPages = (int)Math.Ceiling((double)total_recored / pagedList.PageSize);
+            return Ok(result);
+        }
+
+
+
+        [Route("api/Get_Participant_Marks")]
+        [HttpGet]
+        public IActionResult Get_Participant_Marks(string assignmenid, string participantid, string branchid = null)
+        {
+
+            decimal? marks = 0;
+
+
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            Assignment_Question_Valuation assignments = new Assignment_Question_Valuation();
+            assignments = ADB.Get_assignment_Question_Validation(assignmenid, participantid);
+            if (assignments.taaqv_status == 1)
+            {
+                return Ok(new { marks = assignments.taaqv_valuation_json.Sum(o => o.max_allocated) });
+            }
+            else
+            {
+                return NotFound();
+            }
+
+
+          
+        }
+        [Route("api/Get_Participant_Marks_Detail")]
+        [HttpGet]
+        public IActionResult Get_Participant_Marks_Detail(string assignmenid, string participantid, string branchid = null)
+        {
+
+            decimal? marks = 0;
+
+
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            Assignment_Question_Valuation assignments = new Assignment_Question_Valuation();
+            assignments = ADB.Get_assignment_Question_Validation(assignmenid, participantid);
+            if (assignments.taaqv_status == 1)
+            {
+                return Ok(assignments.taaqv_valuation_json);
+            }
+            else
+            {
+                return NotFound();
+            }
+
+
+
+        }
+
+        [HttpPost]
+        [Route("api/Get_Assignment_Upload_Status")]
+        public IActionResult Get_Assignment_Upload_Status(string trainingid, string assignmentid, PaginationParam param, [FromBody] SearchParam? searchCriterias=null, string branchid = null,int status=2)
+        {
+
+            ParticipantDB PDB = new ParticipantDB(_configuration);
+            //List<Participant> P = PDB.Get_TRG_Participant_Data(trainingid);
+            List<Participant> P = PDB.Get_TRG_PARTICIPANT_Data(trainingid, null, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            AssignmentBL PBL = new AssignmentBL(_configuration);
+            List<proc_ass_get_assignment_upload> assignments = new List<proc_ass_get_assignment_upload>();
+            assignments = PBL.Get_Upload_Data(assignmentid, null);
+
+
+            foreach (Participant p in P)
+            {
+                if (assignments.Count > 0)
+                {
+                    proc_ass_get_assignment_upload a = assignments.FirstOrDefault();
+                    List<assignmentparticipant> lu = a.participant.ToList();
+                    lu = lu.Where(o => o.participantid.ToString().ToUpper() == p.ParticipantId.ToString().ToUpper()).ToList();
+                    if (lu.Count > 0)
+                    {
+                        p.status_txt = "Uploaded";
+                    }
+                    else
+                    {
+                        p.status_txt = "Not Uploaded";
+                    }
+                }
+                else
+                {
+                    p.status_txt = "Not Uploaded";
+                }
+
+
+            }
+
+            if (status == 1)
+            {
+                P = P.Where(o => o.status_txt.ToString().ToUpper() == "UPLOADED").ToList();
+            }
+            else if(status == 0)
+            {
+                P = P.Where(o => o.status_txt.ToString().ToUpper() == "NOT UPLOADED").ToList();
+            }
+            var searchService = new SearchService();
+            var filteredItems = P;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(P, searchCriterias.SearchCriteria.ToList());
+            }
+            //Filter data before
+            //List<SearchCriteria> searchdata = new List<Search>();
+            //if (filters != null && filters.Trim() != "")
+            //{
+            //    string[] sptfilter = filters.Split(";".ToCharArray());
+            //    foreach (string s in sptfilter)
+            //    {
+            //        if (s != "")
+            //        {
+            //            string[] sptfield = s.Split(":".ToCharArray());
+            //            string nextop = null;
+            //            if (sptfield[3] != "")
+            //            {
+            //                nextop = sptfield[3];
+            //            }
+            //            Search sd = new Search
+            //            {
+            //                Column = sptfield[0],
+            //                SearchValue = sptfield[1],
+            //                SearhOperator = sptfield[2],
+            //                NextSearchOperator = nextop
+            //            };
+            //            searchdata.Add(sd);
+            //        }
+
+            //    }
+
+            //}
+
+            //if (searchdata.Count > 0)
+            //{
+            //    P = FilterData.Filter(P, searchdata);
+            //}
+
+
+
+
+            var result = Paging.GetPagedData(param, filteredItems);
+            return Ok(result);
         }
     }
 }

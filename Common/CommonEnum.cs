@@ -4,6 +4,10 @@ using QRCoder;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using LitteraCore.DBContext;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LitteraCore.Common
 {
@@ -358,7 +362,9 @@ namespace LitteraCore.Common
             RUN_TEST = 12,
             View_TEST_RESULT = 13,
             Complete_Session = 14,
-            Connect_to_mentor = 15
+            Connect_to_mentor = 15,
+            Add_Mentorship_Slot = 16,
+            View_Mentorship_Slot = 17
 
         }
 
@@ -602,6 +608,24 @@ namespace LitteraCore.Common
             }
 
             return imgTag;
+        }
+
+
+        public string GET_BR_CONFIGURATION(string rule_name)
+        {
+            string returnstr = null;
+            BR_RULE TS = new BR_RULE();
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "BR_RULES.json"));
+            TS = JsonConvert.DeserializeObject<BR_RULE>(jsontxt);
+
+            JObject obj = JObject.Parse(jsontxt);
+            if (obj.ContainsKey(rule_name))
+            {
+                returnstr = obj[rule_name].ToString(Formatting.None);
+            }
+
+                return returnstr;
         }
 
     }

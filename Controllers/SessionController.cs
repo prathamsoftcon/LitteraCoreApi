@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using static Azure.Core.HttpHeader;
 using static LitteraCore.Common.CommonEnum;
 using static System.Net.Mime.MediaTypeNames;
@@ -157,7 +158,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -168,7 +169,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -208,10 +209,19 @@ namespace LitteraCore.Controllers
                         status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate, branchid);
                     }
                 }
-           
 
 
 
+                //***********Extra condition in case of faculty to get mentors slot count
+              
+                List<Mentor_slot> mss = new List<Mentor_slot>();
+                if (Convert.ToInt16(usertype) == (int)CommonEnum.usertype.FACULTY)
+                {
+                    MentorDB mdb = new MentorDB(_configuration);
+                    mss = mdb.Get_Mentor_Session_Slots(trainingid, null, userid, 1);
+                }
+
+                //***********
 
 
                 foreach (Session sess in s)
@@ -253,13 +263,18 @@ namespace LitteraCore.Controllers
                     {
                         testparticipantid = "";
                     }
+
+
+                    int mentors_session_slots = 0;
+                    mentors_session_slots = mss.Where(o => o.ttsl_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).ToList().Count;
+
                     List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
                     foreach (int value in intActionArray)
                     {
                         DisplayInfo DI = new DisplayInfo();
                         DI.key = value.ToString();
                         DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
-                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage, mentors_session_slots);
                         sessionActiondisplay.Add(DI);
                     }
                     sess.ActionInfos = sessionActiondisplay.ToArray();
@@ -1084,7 +1099,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -1095,7 +1110,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid,branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid,branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1349,13 +1364,28 @@ namespace LitteraCore.Controllers
                         //if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
                         if (sessn.ttttt_type == 7)
                         {
+                                                     
                             if(participantstatus == 1)
                             {
-                                activeSession = sessn;
-                                if (is_session_not_restricted == 1)
+                                // Check extra condition for Attempted
+                                EvalDB edb = new EvalDB(_configuration);
+                                string testid = edb.Get_Test_Session_Mapping_Data_By_Session(sessn.ttttt_session_id).testid;
+                                //Check status
+                                bool is_test_attempted = edb.Check_test_participant_status(testid,participantid);
+                                //If entry not found then run else not
+                                if (is_test_attempted == false)
                                 {
-                                    break;
+                                    activeSession = sessn;
+                                    if (is_session_not_restricted == 1)
+                                    {
+                                        break;
+                                    }
                                 }
+                          
+                       
+
+
+                              
                             }
                             
                         }
@@ -1363,11 +1393,15 @@ namespace LitteraCore.Controllers
                         {
                             if (activeSession == null)
                             {
-                                activeSession = sessn;
-                                if (is_session_not_restricted == 1)
+                                if (participantstatus == 1 || sessn.ttttt_complimentory==1)
                                 {
-                                    break;
+                                    activeSession = sessn;
+                                    if (is_session_not_restricted == 1)
+                                    {
+                                        break;
+                                    }
                                 }
+                               
                             }
                         }
                         else
@@ -1992,7 +2026,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -2003,7 +2037,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -2437,7 +2471,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -2448,7 +2482,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid, userid, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid, userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {

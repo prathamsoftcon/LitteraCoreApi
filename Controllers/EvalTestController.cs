@@ -43,7 +43,7 @@ namespace LitteraCore.Controllers
             int isTestAllowed = 0;
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> lwtc = new List<Participant>();
-            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid);
+            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid,null,null, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             lwtc = lwtc.Where(o => o.ParticipantId.ToString().ToUpper() == userid.ToString().ToUpper()).ToList();
             if (lwtc.Count > 0)
             {
@@ -193,19 +193,29 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/get_user_tests")]
-        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1")
+        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1",string trainingid=null)
         {
            List<Test> TESTS = new List<Test>();
            EvalDB tbl = new EvalDB(_configuration);
            TESTS = tbl.Get_test_List(usertype, userid);
+            if (trainingid != null)
+            {
+                TESTS = TESTS.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
+            }
+            var orderedTests = TESTS
+     .OrderBy(t => t.type == "1" ? 0 : t.type == "2" ? 1 : 2) // custom type order
+     .ThenByDescending(t => t.createdon)                       // order within type by createdon desc
+     .ToList();
+
             var searchService = new SearchService();
-            var filteredItems = TESTS;
+            var filteredItems = orderedTests;
             if (searchCriterias != null)
             {
-                filteredItems = searchService.FilterItems(TESTS, searchCriterias.SearchCriteria.ToList());
+                filteredItems = searchService.FilterItems(orderedTests, searchCriterias.SearchCriteria.ToList());
             }
             //filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
             //TESTS = TESTS.Where(o => o.type == "1").ToList();
+          
             var pagedList = Paging.GetPagedList(param, filteredItems);
             var result = Paging.GetPagedData(param, filteredItems);
             return Ok(result);

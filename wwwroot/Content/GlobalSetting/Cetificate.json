@@ -1,6 +1,6 @@
 ﻿{
   "certificate_bg_path": "/Content/GlobalSetting/Dev/certificatebg.png?1.1",
-  "certificate_text": "This is certify that ##student_name## a student of ##classname## Registration no ##registration_no## has successflly completed the ##coursename## organised by Madhya Pradesh Bhoj(Open) unievrsity under the National Education Policy (NEP) 2020 Vocational education initiative.<br/> We Congratulate ##student_name## on enhancing their personal and professional skills and wish them success ub their future endeavours.",
+  "certificate_text": "This is certify that ##student_name## a student of ##classname## Registration no ##registration_no## has successflly completed the ##coursename## organised by Madhya Pradesh Bhoj(Open) unievrsity under the National Education Policy (NEP) 2020 Vocational education initiative.<br/> We Congratulate ##student_name## on enhancing their personal and professional skills and wish them success ub their future endeavours. and grade is ##grade##",
   "variables": [
 {
 "name":"##student_name##",

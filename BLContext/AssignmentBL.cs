@@ -59,7 +59,7 @@ namespace LitteraCore.BLContext
             List<Participant> PL = new List<Participant>();
             ParticipantDB PDB = new ParticipantDB(_configuration);
             //List of training all participant
-            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid, "\"ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve\"");
 
             List<AssignmentValuation> AV = new List<AssignmentValuation>();
             AV = ADB.Get_Valuation(assignmenid);
@@ -188,5 +188,49 @@ namespace LitteraCore.BLContext
 
             return is_saved;
         }
+
+
+        public decimal? Get_Participant_Marks(string assignmenid, string participantid, string branchid = null)
+        {
+
+            decimal? marks = 0;
+
+            AssignmentDB ADB = new AssignmentDB(_configuration);
+            
+
+            List<AssignmentValuation> AV = new List<AssignmentValuation>();
+            AV = ADB.Get_Valuation(assignmenid);
+
+            List<AssignmentValuation> Final_AV = new List<AssignmentValuation>();
+            string valuationid = null; string createdby = null; DateTime? createdon = null;
+            List<valuation_json> vj = new List<valuation_json>();
+            if (AV.Count > 0)
+            {
+                valuationid = AV.FirstOrDefault().taav_id;
+                createdby = AV.FirstOrDefault().taav_createdby;
+                createdon = AV.FirstOrDefault().taav_createdon;
+                vj = AV.FirstOrDefault().taav_valuation_json;
+
+                vj= vj.Where(o=>o.participantid.ToString().ToUpper()== participantid.ToString().ToUpper()).ToList();
+                if (vj.Count() > 0)
+                {
+                    marks = vj.FirstOrDefault().valuation;
+                }
+            }
+            else
+            {
+                throw new Exception("Marks not Allotted");
+            }
+
+         
+
+
+
+          
+            return marks;
+        }
+
+
+
     }
 }

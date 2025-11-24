@@ -14,6 +14,10 @@ using System.Security.Cryptography;
 using LitteraCore.DBContext;
 using Microsoft.Extensions.Configuration;
 using static Org.BouncyCastle.Math.EC.ECCurve;
+using Newtonsoft.Json.Linq;
+using System.Net;
+using Newtonsoft.Json;
+using System.Data;
 
 namespace LitteraCore.Common.EmailService
 {
@@ -271,8 +275,105 @@ namespace LitteraCore.Common.EmailService
             return returnval;
 
         }
+
+
+
+        public static EmailTemplate Get_EMAIL_TEMPLATE(string id)
+        {
+            List<EmailTemplate> es = new List<EmailTemplate>();
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.Load(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "emailTemplate.xml"));
+            XmlNodeList Nodes = xmldoc.DocumentElement.SelectNodes("/EmailTemplate/Template");
+            foreach (XmlNode node in Nodes)
+            {
+                EmailTemplate temp = new EmailTemplate();
+                foreach (XmlNode node1 in node.ChildNodes)
+                {
+                    if (node1.Name == "ID")
+                        temp.ID = node1.InnerText;
+
+                    if (node1.Name == "subject")
+                        temp.subject = node1.InnerText;
+
+                    if (node1.Name == "text")
+                        temp.text = node1.InnerText;
+                }
+                es.Add(temp);
+            }
+
+            es = es.Where(o => o.ID.ToString().ToUpper() == id.ToString().ToUpper()).ToList();
+
+            return es.FirstOrDefault();
+        }
+
+        public  EmailConfiguration Get_Mail_Setting(short settingforotp = 0)
+        {
+            EmailConfiguration EC = new EmailConfiguration();
+
+
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.Load(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "emailSetting.xml"));
+           
+
+            XmlNodeList Nodes = xmldoc.DocumentElement.SelectNodes("/EmailConfiguration");
+            foreach (XmlNode node in Nodes)
+            {
+                foreach (XmlNode node1 in node.ChildNodes)
+                {
+                    if (node1.Name == "clienturl")
+                        EC.clienturl = node1.InnerText;
+
+                    if (node1.Name == "clientname")
+                        EC.clientname = node1.InnerText;
+
+                  
+                    if (node1.Name == "header")
+                        EC.header = node1.InnerText;
+
+                    if (node1.Name == "footer")
+                        EC.footer = node1.InnerText;
+                }
+            }
+
+            // New code to get setting from Application Setting
+            if (settingforotp == 1)
+            {
+                OTP_LOGIN_REQUIRED_SETTING otpsetting;
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                DataTable dt = a.Get_Application_Setting("6");
+                otpsetting = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                otpsetting.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                EC.host = otpsetting.EMAILSETTING.HOST;
+                EC.login = otpsetting.EMAILSETTING.EMAILID;
+                EC.password = otpsetting.EMAILSETTING.PWD;
+                EC.portno = otpsetting.EMAILSETTING.PORT;
+            }
+            else
+            {
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                EMAIL_SEND_BY_APPLICATION otpsetting;
+
+                EMAIL_SEND_BY_APPLICATION ml = new EMAIL_SEND_BY_APPLICATION();
+                DataTable dt = a.Get_Application_Setting("7");
+                otpsetting = JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
+                otpsetting.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                EC.host = otpsetting.EMAILSETTING.HOST;
+                EC.login = otpsetting.EMAILSETTING.EMAILID;
+                EC.password = otpsetting.EMAILSETTING.PWD;
+                EC.portno = otpsetting.EMAILSETTING.PORT;
+            }
+
+            return EC;
+        }
+
+
+
+
+
     }
 
-    
-    
+
+
 }

@@ -19,5 +19,13 @@ namespace LitteraCore.BLContext
             IQ = IDB.Get_Interview_Questions();
             return IQ;
         }
+        public interviewQuestion GET_AI_QUESTION(string id)
+        {
+
+            InterviewDB IDB = new InterviewDB(_configuration);
+            interviewQuestion IQ = new interviewQuestion();
+            IQ = IDB.Get_AI_Questions(id);
+            return IQ;
+        }
     }
 }

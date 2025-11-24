@@ -311,7 +311,7 @@ namespace LitteraCore.Controllers
             ParticipantDB tdb = new ParticipantDB(_configuration);
             foreach (string trg in trainings.id)
             {
-                p = tdb.Get_Trg_Participant_List(trg, null, branchid, null, null, null, null, null, null, 1, 1);
+                p = tdb.Get_Trg_Participant_List(trg, null, branchid, null, null, null, null, null, null, 1, 1,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve,t_Name,TrainingCode");
                 if (p.Count()  > 0)
                 {
                     li.Add(new Enrollment_Summary {  trainingid = trg, t_code=p.FirstOrDefault().TrainingCode, total_enrollments=p.FirstOrDefault().totalrecords.ToString(), proposed_participants=null, t_name=p.FirstOrDefault().t_Name, no_of_active_lerners="0" });

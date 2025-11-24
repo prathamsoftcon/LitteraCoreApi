@@ -96,7 +96,9 @@ namespace LitteraCore.Models
 
         public Item sessioncontent { get;set; }
 
-        public int participant_trg_status { get; set; }
+        public int? participant_trg_status { get; set; }
+
+        
 
 
         public static string Get_Session_Icon(int sessiontype, CompletionType completiontype)

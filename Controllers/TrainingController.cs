@@ -11,6 +11,7 @@ using System.Security.Cryptography.Xml;
 using System.Text.Json;
 using System.Text;
 using static LitteraCore.Common.CommonEnum;
+using Google.Apis.Logging;
 
 namespace LitteraCore.Controllers
 {
@@ -155,6 +156,17 @@ namespace LitteraCore.Controllers
             SessionDB sdb = new SessionDB(_configuration);
             List<Session> sl = sdb.Get_Trg_Progress_Data(trainingid, participantid, branchid);
 
+            int is_all_completed = 0;
+            if (sl.Where(o => o.noofcompletion == 0).Count() <= 0)
+            {
+                is_all_completed = 1;
+            }
+            else
+            {
+                is_all_completed = 0;
+            }
+
+            sl = sl.Where(o => o.ttttt_type != 6 && o.ttttt_type != 7).ToList();
 
 
             if (sessionid != null)
@@ -199,14 +211,12 @@ namespace LitteraCore.Controllers
                     sl = CommonEnum.OrderSessionData(trgdetail.trg_Setting.Session.SessionOrder, sl);
                 }
             }
-
-               
-
+          
                 var pagedList = Paging.GetPagedList(param, sl);
             var result = Paging.GetPagedData(param, sl);
             //*********
 
-            return Ok(result);
+            return Ok(new {result= result ,is_all_completed= is_all_completed });
         }
 
         //[HttpGet]
@@ -360,7 +370,7 @@ namespace LitteraCore.Controllers
             ParticipantDB pdb=new ParticipantDB(_configuration);
             List<Participant> p = new List<Participant>();
             string ttpai_id = "";
-            p = pdb.Get_Trg_Participant_List(trainingid, participantid);
+            p = pdb.Get_Trg_Participant_List(trainingid, participantid,null,null,null,null,null,null,null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             if (p.Count > 0)
             {
                 ttpai_id = p.FirstOrDefault().ttpai_id;
@@ -403,7 +413,7 @@ namespace LitteraCore.Controllers
             ParticipantDB pdb = new ParticipantDB(_configuration);
             List<Participant> p = new List<Participant>();
             string ttpai_id = "";
-            p = pdb.Get_Trg_Participant_List(trainingid, participantid);
+            p = pdb.Get_Trg_Participant_List(trainingid, participantid,null,null,null,null,null,null,null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             if (p.Count > 0)
             {
                 ttpai_id = p.FirstOrDefault().ttpai_id;
@@ -474,7 +484,7 @@ namespace LitteraCore.Controllers
                 List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
 
                 ParticipantDB pdb = new ParticipantDB(_configuration);
-                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid);
+                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid,null,null,null,null,null,null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
               
 
                 List<not_eligible_participant> not_eligible = new List<not_eligible_participant>();
@@ -517,7 +527,7 @@ namespace LitteraCore.Controllers
                 // Send Email Notification
                 AgencyDB adb = new AgencyDB(_configuration);
                 List<Agency> a = new List<Agency>();
-                a = adb.Get_Agency(null, loginuserid,1,1, null, null, null, null, null);
+                a = adb.Get_Agency(null, loginuserid,1,1, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
                 string mailid = a.FirstOrDefault().ag_email;
                 if (a.Count > 0) {
                     if (not_eligible.Count > 0)
@@ -572,7 +582,7 @@ namespace LitteraCore.Controllers
                 List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
 
                 ParticipantDB pdb = new ParticipantDB(_configuration);
-                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid);
+                List<Participant> p = pdb.Get_Trg_Participant_List(trainingid, null, branchid,null,null,null,null,null,null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
              
 
                 List<not_eligible_participant> not_eligible = new List<not_eligible_participant>();
@@ -620,7 +630,7 @@ namespace LitteraCore.Controllers
                 // Send Email Notification
                 AgencyDB adb = new AgencyDB(_configuration);
                 List<Agency> a = new List<Agency>();
-                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null);
+                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
                 string mailid = a.FirstOrDefault().ag_email;
                 if (a.Count > 0)
                 {
@@ -712,7 +722,7 @@ namespace LitteraCore.Controllers
                 // Send Email Notification
                 AgencyDB adb = new AgencyDB(_configuration);
                 List<Agency> a = new List<Agency>();
-                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null);
+                a = adb.Get_Agency(null, loginuserid, 1, 1, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
                 string mailid = a.FirstOrDefault().ag_email;
                 if (a.Count > 0)
                 {
@@ -864,7 +874,7 @@ namespace LitteraCore.Controllers
 
             List<Participant> p = new List<Participant>();
             ParticipantDB pdb = new ParticipantDB(_configuration);
-            p = pdb.Get_TRG_PARTICIPANT_Data(trainingid);
+            p = pdb.Get_TRG_PARTICIPANT_Data(trainingid,null,null,"ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             string certificatedata = "";
             foreach (Participant pr in p)
             {
@@ -1051,12 +1061,66 @@ namespace LitteraCore.Controllers
         {
             List<Session> ut = new List<Session>();
             TrgBL tbl = new TrgBL(_configuration);
-
+            if(loginusertype != "5")
+            {
+               // loginusertype = null;
+                loginuserid=null;
+            }
             ut = tbl.Get_Trg_Progress_Data(trainingid, sessionid, loginuserid,loginusertype, status, branchid, pageno, pagesize, searchcolumn, searchvalue);
 
          
 
             return Ok(ut);
+        }
+
+
+        [HttpGet]
+        [Route("api/Generate_Certificate_BR")]
+        public IActionResult Generate_Certificate_BR(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
+        {
+            CommonEnum ce=new CommonEnum();
+            string jsostr=ce.GET_BR_CONFIGURATION("Generate_Certificate");
+            Generate_Certificate gc=new Generate_Certificate();
+            if (jsostr != null) {
+                gc = JsonConvert.DeserializeObject<Generate_Certificate>(jsostr);
+            }
+            
+            TrgBL tb = new TrgBL(_configuration);
+            TrainingDB tbl = new TrainingDB(_configuration);
+
+            Training Trg = new Training();
+            List<CERTIFICATE_SIGNATORY> dtsignatory = tbl.Get_Certificate_signatory(trainingid);
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+            List<Participant> p = new List<Participant>();
+            string ttpai_id = "";
+            p = pdb.Get_Trg_Participant_List(trainingid, participantid,null,null,null,null,null,null,null,0,0,2, "\"ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve\"");
+            if (p.Count > 0)
+            {
+                ttpai_id = p.FirstOrDefault().ttpai_id;
+            }
+
+            string certificateid = Guid.NewGuid().ToString();
+
+            certificate_obj c = new certificate_obj
+            {
+                CertId = certificateid,
+                ttpai_id = ttpai_id,
+                CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ""
+            };
+
+            string certificatedata = "";
+            List<certificate_obj> lc = new List<certificate_obj>();
+            lc.Add(c);
+            if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
+            {
+                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+            }
+
+
+
+            return Ok(certificatedata);
         }
 
     }

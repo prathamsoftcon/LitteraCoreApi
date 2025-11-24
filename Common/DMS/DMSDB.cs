@@ -660,7 +660,7 @@ namespace LitteraCore.Common.DMS
             DataTable dt = new DataTable();
             List<Agency> a = new List<Agency>();
             AgencyDB ADB = new AgencyDB(_configuration);
-            List<Agency> agency = ADB.Get_Agency(CommonEnum.Agencytype_Staff, null, 1, 0, null, null, null, null, null);
+            List<Agency> agency = ADB.Get_Agency(CommonEnum.Agencytype_Staff, null, 1, 0, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             a = agency;
 
             SqlCommand cmd = new SqlCommand();

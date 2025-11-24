@@ -1,4 +1,5 @@
-﻿using LitteraCore.Common;
+﻿using LitteraCore.BLContext;
+using LitteraCore.Common;
 using LitteraCore.Common.DMS;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
@@ -449,6 +450,7 @@ namespace LitteraCore.DBContext
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
             List<Training> trgdata = new List<Training>();
+            Training trainingDetail = new Training();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -459,6 +461,8 @@ namespace LitteraCore.DBContext
 
                 // Add the parameter to avoid SQL injection
                 cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+
+
 
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -587,9 +591,26 @@ namespace LitteraCore.DBContext
                         trgdata.Add(vw);
                     }
                 }
+
+
+           
+                trainingDetail = trgdata.FirstOrDefault();
+
+                PaginationParam param = new PaginationParam { PageNumber = 1, PageSize = 10 };
+                AgencyBL abl = new AgencyBL(_configuration);
+                Agency CDdetails = new Agency();
+                CDdetails=abl.Get_Agency(null, trainingDetail.CourseDirector.ToString(), null, param, null).Items.FirstOrDefault();
+                Agency ACDdetails = new Agency();
+                ACDdetails = abl.Get_Agency(null, trainingDetail.AssociateDirector.ToString(), null, param, null).Items.FirstOrDefault();
+                List<trg_contact_person> cp=new List<trg_contact_person>();
+
+                cp.Add(new trg_contact_person { person_name=CDdetails.agencyname, person_email= CDdetails.ag_email, person_mobile= CDdetails.ag_mobileno });
+                cp.Add(new trg_contact_person { person_name = ACDdetails.agencyname, person_email = ACDdetails.ag_email, person_mobile = ACDdetails.ag_mobileno });
+                trainingDetail.contact_person = cp.ToArray();
+
             }
 
-            return trgdata.FirstOrDefault();
+            return trainingDetail;
 
         }
         public Training Get_Particular_Training_Detail_By_Code(string trainingcode)
@@ -1274,8 +1295,23 @@ namespace LitteraCore.DBContext
             cmd = new SqlCommand("trainingplan.proc_tp_get_session_completion_status_participantwise", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@trainingid", trainingid);
-            cmd.Parameters.AddWithValue("@loginuserid", login_user_id);
-            cmd.Parameters.AddWithValue("@loginusertype", login_user_type);
+            if(login_user_id != null)
+            {
+                cmd.Parameters.AddWithValue("@loginuserid", login_user_id);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@loginuserid", DBNull.Value);
+            }
+           if(login_user_type != null)
+            {
+                cmd.Parameters.AddWithValue("@loginusertype", login_user_type);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@loginusertype", DBNull.Value);
+            }
+           
             cmd.Parameters.AddWithValue("@sessionid", sessionid);
           
             if (branchid != null)
@@ -1286,7 +1322,7 @@ namespace LitteraCore.DBContext
 
 
             cmd.Connection = con;
-            cmd.CommandTimeout = 5000;
+            cmd.CommandTimeout = 120;
 
 
 
@@ -1298,7 +1334,15 @@ namespace LitteraCore.DBContext
 
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> trgparticipants = new List<Participant>();
-            trgparticipants = WDB.Get_Trg_Participant_List(trainingid, null, branchid,searchcolumn,searchvalue,null,null,null,null);
+            if (status == 2)
+            {
+                trgparticipants = WDB.Get_Trg_Participant_List(trainingid, null, branchid, searchcolumn, searchvalue, null, null, null, null, pageno, pagesize,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            }
+            else
+            {
+                trgparticipants = WDB.Get_Trg_Participant_List(trainingid, null, branchid, searchcolumn, searchvalue, null, null, null, null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            }
+           
 
             List<Session> LS = new List<Session>();
             Session vw = new Session();
@@ -1310,23 +1354,67 @@ namespace LitteraCore.DBContext
                 vw.noofcompletion = Convert.ToInt32(dt.Rows[0]["iscompleted"]);
             }
 
+            //foreach (Participant p in trgparticipants)
+            //{
+            //    dt.DefaultView.RowFilter = "ttam_session_id='" + Convert.ToString(sessionid) + "' and tta_ttpai_id='" + p.ttpai_id + "'";
+            //    DataTable dtfilterdata1 = dt.DefaultView.ToTable();
+
+            //    if (dtfilterdata1.Rows.Count > 0)
+            //    {
+            //        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
+            //    }
+            //    else
+            //    {
+            //        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
+            //    }
+
+
+            //    //}
+            //    //var filteredDt = dt.AsEnumerable()
+            //    //       .Where(r => r.Field<string>("ttam_session_id") == Convert.ToString(sessionid))
+            //    //       .ToList();
+
+            //    //        var filteredDt = dt.AsEnumerable()
+            //    //.Where(r => r.Field<Guid>("ttam_session_id").ToString() == sessionid.ToString())
+            //    //.ToList();
+
+            //    //        var result1 = from p in trgparticipants
+            //    //                     join r in filteredDt
+            //    //                    on p.ttpai_id.ToString()
+            //    //   equals r.Field<Guid>("tta_ttpai_id").ToString()  into pr
+            //    //                     from r in pr.DefaultIfEmpty()
+            //    //                     select new completionDetail
+            //    //                     {
+            //    //                         agencyid = p.ParticipantId,
+            //    //                         agencyname = p.ParticipantName,
+            //    //                         status = r != null ? "Completed" : "Pending",
+            //    //                         emailid = p.email,
+            //    //                         mobileno = p.mobileno
+            //    //                     };
+
+
+
+            //}
+
+            var completedSet = new HashSet<string>(
+    dt.AsEnumerable()
+      .Select(r => $"{r["ttam_session_id"]}|{r["tta_ttpai_id"]}")
+);
+
             foreach (Participant p in trgparticipants)
             {
-                dt.DefaultView.RowFilter = "ttam_session_id='" + Convert.ToString(dt.Rows[0]["ttam_session_id"]) + "' and tta_ttpai_id='" + p.ttpai_id + "'";
-                DataTable dtfilterdata1 = dt.DefaultView.ToTable();
+                string key = $"{sessionid}|{p.ttpai_id}";
+                bool exists = completedSet.Contains(key);
 
-                if (dtfilterdata1.Rows.Count > 0)
+                cp.Add(new completionDetail
                 {
-                    cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
-                }
-                else
-                {
-                    cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
-                }
-
-
+                    agencyid = p.ParticipantId,
+                    agencyname = p.ParticipantName,
+                    status = exists ? "Completed" : "Pending",
+                    emailid = p.email,
+                    mobileno = p.mobileno
+                });
             }
-           
 
             if (status == 0)
             {
@@ -1337,17 +1425,30 @@ namespace LitteraCore.DBContext
                 cp = cp.Where(o => o.status.ToString().ToUpper() == "COMPLETED").ToList();
             }
 
-            int totalrecord= cp.Count();
+            int totalrecord= trgparticipants.FirstOrDefault().totalrecords;
+            int final_page_no = 0;
+            int final_total_count = 0;
+            if (status == 2)
+            {
+                final_page_no = 1;
+                final_total_count = totalrecord;
+            }
+            else
+            {
+                final_page_no = pageno;
+                final_total_count = cp.Count();
+            }
             PaginationParam param = new PaginationParam
             {
-                PageNumber = pageno,
+                PageNumber = 1,
                 PageSize = pagesize
             };
+            
             var result = Paging.GetPagedData(param, cp);
             if (trgparticipants.Count() > 0)
             {
-                result.TotalRecords = totalrecord;
-                result.TotalPages = (int)Math.Ceiling(totalrecord / (double)param.PageSize);
+                result.TotalRecords = final_total_count;
+                result.TotalPages = (int)Math.Ceiling(final_total_count / (double)param.PageSize);
                 result.CurrentPage = pageno;
 
             }
