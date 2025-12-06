@@ -1627,7 +1627,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public List<Agency> Get_Agency_Data_For_Login(string agencytypeid, string agencyid, int pageno, int pagesize, string search, string tat_type_id = null)
+        public List<Agency> Get_Agency_Data_For_Login(string agencytypeid, string agencyid, int pageno, int pagesize, string search, string tat_type_id = null,string columnlist=null)
         {
             string searchcolumn = null; string searchvalue = null;
             if (search != null)
@@ -1647,7 +1647,7 @@ namespace LitteraCore.DBContext
 
             List<Agency> AL = new List<Agency>();
             AgencyDB ABD = new AgencyDB(_configuration);
-            AL = ABD.Get_Agency(agencytypeid, agencyid, pageno, pagesize, searchcolumn, searchvalue, filtername, filtervalue, tat_type_id);
+            AL = ABD.Get_Agency(agencytypeid, agencyid, pageno, pagesize, searchcolumn, searchvalue, filtername, filtervalue, tat_type_id, columnlist);
             //AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.PortalAdmin_Agencyid.ToString().ToUpper()).ToList();
             //AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.SuperAdmin_Agencyid.ToString().ToUpper()).ToList();
 
@@ -1705,7 +1705,7 @@ namespace LitteraCore.DBContext
 
 
 
-        public List<Agency> Search_Agency(string searchval)
+        public List<Agency> Search_Agency(string searchval,string columnlist=null)
         {
 
 
@@ -1725,6 +1725,11 @@ namespace LitteraCore.DBContext
             if (con.State != ConnectionState.Open) { con.Open(); }
 
             SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_vr1", con);
+            if(columnlist != null)
+            {
+                cmd.Parameters.AddWithValue("@ColumnList", columnlist);
+            }
+            
             cmd.CommandType = CommandType.StoredProcedure;
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);

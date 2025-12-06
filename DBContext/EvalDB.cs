@@ -183,7 +183,7 @@ namespace LitteraCore.DBContext
                 sl = sdb.Get_Session_Data_By_Trg(trainingid);
 
                 ParticipantDB PDB = new ParticipantDB(_configuration);
-                participants = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid);
+                participants = PDB.Get_TRG_PARTICIPANT_Data(trainingid,null, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             }
 
 

@@ -350,7 +350,7 @@ namespace LitteraCore.BLContext
 
             AgencyDB ABD = new AgencyDB(_configuration);
             List<Agency> AL = new List<Agency>();
-            AL= ABD.Search_Agency(searchval);
+            AL= ABD.Search_Agency(searchval, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             return AL;
         }
 
@@ -364,7 +364,7 @@ namespace LitteraCore.BLContext
             List<Agency> AM = new List<Agency>();
 
 
-            AM = ABD.Get_Agency("00008", null, 0, 0, null, null, null, null,null);
+            AM = ABD.Get_Agency("00008", null, 0, 0, null, null, null, null,null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
 
 
             foreach (Agency a in AL)

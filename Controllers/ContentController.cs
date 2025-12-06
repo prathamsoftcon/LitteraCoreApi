@@ -174,5 +174,17 @@ namespace LitteraCore.Controllers
             return Ok(lCT);
         }
 
+        [HttpGet]
+        [Route("api/check_content_learning_exist")]
+        public IActionResult check_content_learning_exist(string ttsam_id, string participantid)
+        {
+            bool isexist=true;
+            ContentBL CBL = new ContentBL(_configuration);
+            isexist = CBL.check_content_learning_exist(ttsam_id, participantid);
+
+
+            return Ok(new {learning_exist= isexist });
+        }
+
     }
 }

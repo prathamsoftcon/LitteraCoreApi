@@ -6,6 +6,7 @@ using Microsoft.PowerBI.Api.Models;
 using System.Data;
 using System.Data.Common;
 using System.Net.NetworkInformation;
+using static LitteraCore.Common.CommonEnum;
 using static System.Reflection.Metadata.BlobBuilder;
 
 namespace LitteraCore.DBContext
@@ -150,7 +151,12 @@ namespace LitteraCore.DBContext
 
         public List<Mentor_slot> Get_Mentor_Session_Slots(string ttsl_training_id, string ttsl_session_id, string ttsl_mentor_id, int status)
         {
-
+            SessionDB sdb = new SessionDB(_configuration);
+            Session s = new Session();
+            if(ttsl_session_id != null)
+            {
+                s=sdb.Get_Session_Details(ttsl_session_id);
+            }
             DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
@@ -200,7 +206,7 @@ namespace LitteraCore.DBContext
 
                 exp.ttsl_createdon = Convert.ToDateTime(row["CreatedOn"]);
                 exp.mentor_name = Convert.ToString(row["mentorname"]);
-
+                exp.slot_title= s.ttttt_content_desc;
 
                 LI.Add(exp);
 
@@ -257,6 +263,7 @@ namespace LitteraCore.DBContext
                 LI.Add(exp);
 
             }
+            LI = LI.Where(o => o.ttsl_status == 1).ToList();
             List<Agency> mentor = new List<Agency>();
             AgencyDB adb=new AgencyDB(_configuration);
             mentor = adb.Get_Agency("00054", null, 0, 0, null, null, null, null, null);
@@ -309,6 +316,7 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@ttmssp_id", m.ttmssp_id);
             cmd.Parameters.AddWithValue("@ttmssp_ttmss_id", m.ttmssp_ttmss_id);
             cmd.Parameters.AddWithValue("@ttmssp_ttpai_id", m.ttmssp_ttpai_id);
+            cmd.Parameters.AddWithValue("@ttmssp_participant_id", m.ttmssp_participant_id);
             cmd.Parameters.AddWithValue("@ttmssp_created_by", m.ttmssp_created_by);
           
 
@@ -361,6 +369,10 @@ namespace LitteraCore.DBContext
             da.Fill(dt);
             con.Close();
 
+            List<Agency> AL = new List<Agency>();
+            AgencyDB ABD = new AgencyDB(_configuration);
+            AL = ABD.Get_Agency("00051",null, 0, 0, null, null, null, null, null);
+
             List<slot_participant> LI = new List<slot_participant>();
             foreach (DataRow row in dt.Rows)
             {
@@ -368,8 +380,17 @@ namespace LitteraCore.DBContext
                 exp.ttmssp_id = Convert.ToString(row["ttmssp_id"]);
                 exp.ttmssp_ttmss_id = Convert.ToString(row["ttmssp_ttmss_id"]);
                 exp.ttmssp_ttpai_id = Convert.ToString(row["ttmssp_ttpai_id"]);
+                exp.ttmssp_participant_id = Convert.ToString(row["ttmssp_participant_id"]);
+                Agency a= new Agency();
+                if(AL.Where(o => o.agencyid.ToString().ToUpper() == Convert.ToString(row["ttmssp_participant_id"]).ToString().ToUpper()).ToList().Count() > 0)
+                {
+                    a = AL.Where(o => o.agencyid.ToString().ToUpper() == Convert.ToString(row["ttmssp_participant_id"]).ToString().ToUpper()).ToList().FirstOrDefault();
+                    exp.participant_name = a.agencyname;
+                    exp.participant_email =a.ag_email;
+                    exp.participant_mobileno = a.ag_mobileno;
+                }
 
-                //exp.participant_name = Convert.ToString(row["participant_name"]);
+
                 exp.ttmssp_created_by = Convert.ToString(row["ttmssp_created_by"]);
 
 

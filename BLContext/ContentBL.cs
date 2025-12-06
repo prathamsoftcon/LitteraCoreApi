@@ -114,8 +114,14 @@ namespace LitteraCore.BLContext
             lCT = CDB.Get_Activity_Data(agencyid, activityid);
             return lCT;
         }
+        public bool check_content_learning_exist(string ttsam_id, string participantid)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            bool isexist = CDB.check_content_learning_exist(ttsam_id, participantid);
+            return isexist;
 
-     
+        }
+
 
     }
 }

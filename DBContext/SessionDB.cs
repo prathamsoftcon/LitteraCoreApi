@@ -1044,9 +1044,9 @@ namespace LitteraCore.DBContext
                         cmd.Parameters.AddWithValue("@trainingid", trainingid);
                         if (participantid != null) cmd.Parameters.AddWithValue("@participantid", participantid);
                         if (branchid != null) cmd.Parameters.AddWithValue("@branchid", branchid);
-                        cmd.CommandTimeout = 5000;
+                        cmd.CommandTimeout = 120;
 
-                     
+
 
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
@@ -2278,8 +2278,8 @@ namespace LitteraCore.DBContext
                             isdisplay = true;
                         }
                     }
-
-
+                    //Hardcode hide till that not completed
+                   // isdisplay = false;
                 }
                 else
                 {
@@ -3287,156 +3287,156 @@ namespace LitteraCore.DBContext
             return true;
         }
 
-        //public Session Get_Session_Details(string sessionid)
-        //{
+        public Session Get_Session_Details(string sessionid)
+        {
 
-        //    List<Session> sessiondata = new List<Session>();
-        //    DataTable dt = new DataTable();
-        //    string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-        //    SqlConnection con = new SqlConnection(connectionString);
-        //    if (con.State != ConnectionState.Open) { con.Open(); }
-        //    SqlCommand cmd = new SqlCommand();
+            List<Session> sessiondata = new List<Session>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand();
 
-        //    cmd = new SqlCommand("select trainingid,TrainingCategoryId,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_complimentory,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,ttttt_facultyid,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,ttttt_module_no,ttttt_completion_type,ttttt_session_id from  trainingplan.Vw_tp_trg_time_table where ttttt_session_id='" + sessionid + "'", con);
-        //    cmd.CommandType = CommandType.Text;
-        //    cmd.Connection = con;
-        //    cmd.CommandTimeout = 5000;
-
-
-
-
-        //    SqlDataAdapter da = new SqlDataAdapter(cmd);
-        //    da.Fill(dt);
-        //    con.Close();
-        //    Session vw = new Session();
-        //    foreach (DataRow row in dt.Rows)
-        //    {
-
-        //        vw.trainingid = Convert.ToString(row["trainingid"]);
-        //        vw.trainingcategoryid= Convert.ToString(row["TrainingCategoryId"]);
-        //        vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
-        //        vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
-        //        vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
-        //        vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
-        //        vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
-        //        vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
-        //        vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
-        //        vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
-        //        vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
-        //        vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
-        //        vw.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]).ToString("yyyy/MM/dd hh:mm:ss");
-        //        vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
-        //        vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
-        //        vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
-        //        vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
-        //        vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
-        //        vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
-        //        if (row["ttttt_session_duration_type"] != DBNull.Value)
-        //        {
-        //            vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
-        //        }
-
-        //        if (Convert.ToString(row["ttttt_complimentory"]) != "")
-        //        {
-        //            vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
-
-        //        }
-        //        else
-        //        {
-        //            //Condition added because assignment not can make complementory then we assume that assignment is always complementory
-        //            vw.ttttt_complimentory = 0;
-
-        //        }
-
-        //        vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
-        //        vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
-        //        vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
-
-        //        vw.facultyname = Convert.ToString(row["facultyname"]);
-        //        vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
-        //        if (Convert.ToString(row["ttttt_facultyid"]) != "")
-        //        {
-        //            if (Convert.ToString(row["facultyimgpath"]) != "")
-        //            {
-        //                vw.facultyimgpath = Convert.ToString(row["facultyimgpath"]);
-        //            }
-        //            else
-        //            {
-        //                vw.facultyimgpath = null;
-        //            }
-        //        }
-
-        //        vw.Attendance = Convert.ToString(row["Attendance"]);
-        //        if (row["ttttt_session_duration_type"] != DBNull.Value)
-        //        {
-        //            vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
-        //        }
-        //        CompletionType sessionconpletiontype = null;
-
-
-        //        if (row["ttttt_completion_type"] != null)
-        //        {
-        //            if (row["ttttt_completion_type"].ToString() != "")
-        //            {
-        //                sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
-        //            }
-        //        }
-        //        vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
-        //        vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
-        //        if (row["ttttt_module_no"].ToString() != "")
-        //        {
-        //            vw.module = Convert.ToInt32(row["ttttt_module_no"].ToString());
-        //        }
-
-        //        if (row["ttttt_module_no"].ToString() != "")
-        //        {
-        //            vw.modulename = Get_Session_Module_Name_by_id(row["ttttt_module_no"].ToString());
-        //        }
-
-
-        //        if (row["ttttt_completion_type"] != null)
-        //        {
-        //            if (row["ttttt_completion_type"].ToString() != "")
-        //            {
-        //                vw.completiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
-        //            }
-        //        }
+            cmd = new SqlCommand("select trainingid,TrainingCategoryId,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_complimentory,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,ttttt_facultyid,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,ttttt_module_no,ttttt_completion_type,ttttt_session_id from  trainingplan.Vw_tp_trg_time_table where ttttt_session_id='" + sessionid + "'", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
 
 
 
-        //        DataTable dtfaulties = new DataTable();
-        //        dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tttttf_status <> 9";
-        //        dtfaulties = dt.DefaultView.ToTable();
-        //        List<SessionFaculties> lsf = new List<SessionFaculties>();
-        //        foreach (DataRow drf1 in dtfaulties.Rows)
-        //        {
-        //            if (Convert.ToString(drf1["ttttt_facultyid"]) != "")
-        //            {
-        //                string imgpath = "";
-        //                if (Convert.ToString(drf1["facultyimgpath"]) != "")
-        //                {
-        //                    imgpath = Convert.ToString(drf1["facultyimgpath"]);
-        //                }
-        //                else
-        //                {
-        //                    imgpath = null;
-        //                }
-        //                lsf.Add(new SessionFaculties { facultyid = Convert.ToString(drf1["ttttt_facultyid"]), facultyname = Convert.ToString(drf1["facultyname"]), hfacultyname = Convert.ToString(drf1["hfacultyname"]), facultuimg = imgpath });
-        //            }
 
-        //        }
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            Session vw = new Session();
+            foreach (DataRow row in dt.Rows)
+            {
 
-        //        vw.sessionFaculties = lsf.ToArray();
+                vw.trainingid = Convert.ToString(row["trainingid"]);
+                vw.trainingcategoryid = Convert.ToString(row["TrainingCategoryId"]);
+                vw.ttttt_session_row_no = Convert.ToString(row["ttttt_session_row_no"]);
+                vw.ttttt_session_id = Convert.ToString(row["ttttt_session_id"]);
+                vw.ttttt_timetableid = Convert.ToString(row["ttttt_timetableid"]);
+                vw.ttttt_facultyid = Convert.ToString(row["ttttt_facultyid"]);
+                vw.ttttt_content_desc = Convert.ToString(row["ttttt_content_desc"]);
+                vw.ttttt_session_dt = Convert.ToDateTime(row["ttttt_session_dt"]).ToString("yyyy/MM/dd");
+                vw.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
+                vw.ttttt_session_duration = Convert.ToString(row["ttttt_session_duration"]);
+                vw.ttttt_session_day = Convert.ToInt32(row["ttttt_session_day"]);
+                vw.ttttt_is_joint_session = Convert.ToString(row["ttttt_is_joint_session"]);
+                vw.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]).ToString("yyyy/MM/dd hh:mm:ss");
+                vw.ttttt_session_no = Convert.ToInt32(row["ttttt_session_no"]);
+                vw.ttttt_status = Convert.ToString(row["ttttt_status"]);
+                vw.tttttf_status = Convert.ToString(row["tttttf_status"]);
+                vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
+                vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
+                vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
+                if (row["ttttt_session_duration_type"] != DBNull.Value)
+                {
+                    vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);
+                }
+
+                if (Convert.ToString(row["ttttt_complimentory"]) != "")
+                {
+                    vw.ttttt_complimentory = Convert.ToInt32(row["ttttt_complimentory"]);
+
+                }
+                else
+                {
+                    //Condition added because assignment not can make complementory then we assume that assignment is always complementory
+                    vw.ttttt_complimentory = 0;
+
+                }
+
+                vw.ttttt_tag = Convert.ToString(row["ttttt_tag"]);
+                vw.ttttt_subject = Convert.ToString(row["ttttt_subject"]);
+                vw.participant_seession_required = Convert.ToString(row["participant_seession_required"]);
+
+                vw.facultyname = Convert.ToString(row["facultyname"]);
+                vw.hfacultyname = Convert.ToString(row["hfacultyname"]);
+                if (Convert.ToString(row["ttttt_facultyid"]) != "")
+                {
+                    if (Convert.ToString(row["facultyimgpath"]) != "")
+                    {
+                        vw.facultyimgpath = Convert.ToString(row["facultyimgpath"]);
+                    }
+                    else
+                    {
+                        vw.facultyimgpath = null;
+                    }
+                }
+
+                vw.Attendance = Convert.ToString(row["Attendance"]);
+                if (row["ttttt_session_duration_type"] != DBNull.Value)
+                {
+                    vw.ttttt_session_duration_type_name = ((Common.CommonEnum.SessionDurationType)Convert.ToInt32(row["ttttt_session_duration_type"])).ToString();
+                }
+                CompletionType sessionconpletiontype = null;
 
 
-        //    }
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        sessionconpletiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
+                vw.Session_type_icon = Session.Get_Session_Icon(vw.ttttt_type, sessionconpletiontype);
+                vw.Session_type_name = Session.Get_Session_Type_Name(vw.ttttt_type, sessionconpletiontype);
+                if (row["ttttt_module_no"].ToString() != "")
+                {
+                    vw.module = Convert.ToInt32(row["ttttt_module_no"].ToString());
+                }
+
+                if (row["ttttt_module_no"].ToString() != "")
+                {
+                    vw.modulename = Get_Session_Module_Name_by_id(row["ttttt_module_no"].ToString());
+                }
+
+
+                if (row["ttttt_completion_type"] != null)
+                {
+                    if (row["ttttt_completion_type"].ToString() != "")
+                    {
+                        vw.completiontype = JsonConvert.DeserializeObject<CompletionType>(row["ttttt_completion_type"].ToString());
+                    }
+                }
 
 
 
-        //    sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
+                DataTable dtfaulties = new DataTable();
+                dt.DefaultView.RowFilter = "ttttt_session_id='" + Convert.ToString(row["ttttt_session_id"]) + "' and tttttf_status <> 9";
+                dtfaulties = dt.DefaultView.ToTable();
+                List<SessionFaculties> lsf = new List<SessionFaculties>();
+                foreach (DataRow drf1 in dtfaulties.Rows)
+                {
+                    if (Convert.ToString(drf1["ttttt_facultyid"]) != "")
+                    {
+                        string imgpath = "";
+                        if (Convert.ToString(drf1["facultyimgpath"]) != "")
+                        {
+                            imgpath = Convert.ToString(drf1["facultyimgpath"]);
+                        }
+                        else
+                        {
+                            imgpath = null;
+                        }
+                        lsf.Add(new SessionFaculties { facultyid = Convert.ToString(drf1["ttttt_facultyid"]), facultyname = Convert.ToString(drf1["facultyname"]), hfacultyname = Convert.ToString(drf1["hfacultyname"]), facultuimg = imgpath });
+                    }
 
-        //    return vw;
-        //}
+                }
+
+                vw.sessionFaculties = lsf.ToArray();
+
+
+            }
+
+
+
+            sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
+
+            return vw;
+        }
 
 
 

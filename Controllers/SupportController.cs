@@ -176,7 +176,7 @@ namespace LitteraCore.Controllers
 
 
             List<Participant> s = new List<Participant>();
-            s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue);
+            s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue, "ParticipantId,ParticipantName,HParticipantName,photopath,totalrecords,ttpai_id,is_approve,email,mobileno,usercode");
             SupportBL SBL = new SupportBL(_configuration);
 
            

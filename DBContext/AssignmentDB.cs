@@ -542,7 +542,7 @@ namespace LitteraCore.DBContext
 
 
             List<AssignmentQuestions> LI = new List<AssignmentQuestions>();
-            a = adb.Get_Agency(null, null, 1, 10, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
+            a = adb.Get_Agency(null, null, 1, 10, null, null, null, null,null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             foreach (DataRow row in dt.Rows)
             {
                 if (row["taaqv_valuation_json"].ToString() != "")

@@ -302,9 +302,16 @@ namespace LitteraCore.Controllers
                 {
                     if (lav.Where(o => o.taaqv_participantid.ToString().ToUpper() == p.participantid.ToString().ToUpper()).Count()>0)
                     {
-                        if(lav.FirstOrDefault().taaqv_valuation_json != null)
+                       try
                         {
-                            p.marks_allocated = lav.Sum(o => o.taaqv_valuation_json.FirstOrDefault().max_allocated);
+                            if (lav.FirstOrDefault().taaqv_valuation_json != null)
+                            {
+                                p.marks_allocated = lav.Sum(o => o.taaqv_valuation_json.FirstOrDefault().max_allocated);
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            p.marks_allocated = 0;
                         }
                      
                         p.valuation_status = lav.FirstOrDefault().taaqv_status;

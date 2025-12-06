@@ -53,11 +53,15 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Session_Slot")]
-        public IActionResult Get_Session_Slots(string sessionid)
+        public IActionResult Get_Session_Slots(string sessionid,string? participantid=null)
         {
             MentorBL UBL = new MentorBL(_configuration);
             List<session_slots> MS = new List<session_slots>();
             MS = UBL.Get_Session_Mentor_Slot(sessionid);
+            if(participantid != null)
+            {
+
+            }
             return Ok(MS);
 
         }

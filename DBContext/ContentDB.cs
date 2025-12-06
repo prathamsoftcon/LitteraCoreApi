@@ -519,9 +519,48 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
 
         }
 
+        public bool check_content_learning_exist(string ttsam_id,string participantid)
+        {
+
+            List<contentType> AL = new List<contentType>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString); if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("SELECT * FROM TrainingPlan.tbl_participant_learning_time WHERE tplt_ttsam_id = @tplt_ttsam_id AND tplt_participantid = @tplt_participantid;", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@tplt_ttsam_id", ttsam_id);
+            cmd.Parameters.AddWithValue("@tplt_participantid", participantid);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
 
 
-     
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            if (dt.Rows.Count > 0) { 
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+            
+
+
+
+
+
+            return true;
+        }
+
+
+
+
 
     }
 }

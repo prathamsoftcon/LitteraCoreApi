@@ -329,7 +329,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public List<Participant> Get_Search_Participant(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn=null, string searchvalue = null)
+        public List<Participant> Get_Search_Participant(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn=null, string searchvalue = null,string columnlist=null)
         {
 
             List<Participant> trgdata = new List<Participant>();
@@ -372,6 +372,7 @@ namespace LitteraCore.DBContext
                     {
                         cmd.Parameters.AddWithValue("@SearchColumn", searchcolumn);
                     }
+
                     //else
                     //{
                     //    cmd.Parameters.AddWithValue("@SearchColumn", DBNull.Value);
@@ -383,6 +384,10 @@ namespace LitteraCore.DBContext
                     else
                     {
                         cmd.Parameters.AddWithValue("@SearchValue", DBNull.Value);
+                    }
+                    if (columnlist != null)
+                    {
+                        cmd.Parameters.AddWithValue("@ColumnList", columnlist);
                     }
                     cmd.Parameters.AddWithValue("@branchid", branchid);
                     cmd.CommandTimeout = 5000;
