@@ -3,6 +3,8 @@ using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace LitteraCore.Controllers
 {
@@ -16,8 +18,7 @@ namespace LitteraCore.Controllers
             _configuration = configuration; 
             _logger = logger;
         }
-
-
+      
         [HttpPost]
         [Route("api/Save_AI_Conversation")]
         public IActionResult Save_AI_Conversation([FromBody] AITool ai)
@@ -49,6 +50,10 @@ namespace LitteraCore.Controllers
             return Ok(a);
 
         }
+
+
+
+      
 
     }
    

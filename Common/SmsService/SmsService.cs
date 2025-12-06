@@ -1,4 +1,6 @@
-﻿using LitteraCore.Models.SmsSettings;
+﻿using LitteraCore.Common.EmailService;
+using LitteraCore.Models.SmsSettings;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Xml;
 
@@ -6,9 +8,14 @@ namespace LitteraCore.Common.SmsService
 {
     public class SmsService : ISmsService
     {
+        private readonly IConfiguration _configuration;
+        public SmsService(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
         public async Task SendSmsAsync(string recipientMobile, string message, string templateId)
         {
-
+      
             string url = "";
             string userid = "";
             string password = "";
@@ -59,7 +66,16 @@ namespace LitteraCore.Common.SmsService
             }
             catch (Exception ex)
             {
-                //throw new Exception(ex.Message);
+
+                try
+                {
+                    SmtpEmailService s = new SmtpEmailService(_configuration);
+                    await s.SendEmailAsync("prince@prathamsoft.com", "SMS API ERROR", ex.Message);
+                }
+                catch(Exception ex1)
+                {
+                   
+                }
             }
           
 

@@ -71,6 +71,34 @@ namespace LitteraCore.Controllers
             return Ok(AL);
         }
 
+
+        [HttpGet]
+        [Route("api/courseDirector")]
+        public IActionResult courseDirector([FromQuery] PaginationParam param)
+        {
+
+            AgencyBL ABL = new AgencyBL(_configuration);
+            List<Agency> AL = new List<Agency>();
+            AL = ABL.Get_CD_Data();
+            var pagedList = Paging.GetPagedList(param, AL);
+            var result = Paging.GetPagedData(param, AL);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("api/Search_Agency")]
+        public IActionResult Search_Agency(string searchtext,string agencytype = null)
+        {
+
+            AgencyBL ABL = new AgencyBL(_configuration);
+            List<Agency> AL = new List<Agency>();
+            AL = ABL.Search_Agency(searchtext);
+
+
+
+            return Ok(AL);
+        }
+
         [HttpGet]
         [Route("api/agency_by_charge")]
         public IActionResult agency_by_charge(string chargeid)

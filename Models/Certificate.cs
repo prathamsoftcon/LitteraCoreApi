@@ -13,4 +13,14 @@
         public string name { get; set; }
         public string replacecolumnvalue { get; set; }
     }
+    public class certificate_status
+    {
+        public string ttcgs_agenyid { get; set; }
+        public int ttcgs_status { get; set; }
+    }
+    public class cert_status_list
+    {
+        public certificate_status[] certificate_Statuses { get; set; }
+
+    }
 }

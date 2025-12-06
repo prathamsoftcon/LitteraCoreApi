@@ -39,6 +39,10 @@
         public contentuserpermission[] contentuserpermission { get; set; }
 
         public string content_icon { get; set; }
+
+        public string content_language { get; set; } = "HI";
+
+        public int is_feedback_required { get; set; }=0;
     }
     public class contentType
     {
@@ -86,8 +90,9 @@
         public string tpad_ttpai_id { get; set; }
         public string tpad_ttsam_id { get; set; }
         public string tpad_activity_data { get; set; }
-        public string tpad_createdon { get; set; }
-      
+        public DateTime tpad_createdon { get; set; }
+        public string? tpad_upload { get; set; }
+
     }
 
 

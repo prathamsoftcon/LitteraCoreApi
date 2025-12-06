@@ -177,10 +177,18 @@
     {
         public string trainingid { get; set; }
         public string trainingcode { get; set; }
+        public string training_title { get; set; }
+
         public decimal training_rating { get; set; }
 
         public int no_of_respondent { get; set; }
 
-        public string Result { get; set; }
+        public string groupid { get; set; }
+
+        public string groupname { get; set; }
+
+        public int rating_response { get; set; }
+
+        public int desc_response { get; set; }
     }
 }

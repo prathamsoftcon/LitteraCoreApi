@@ -9,6 +9,8 @@ using System.Data;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
+using LitteraCore.Models;
+using LitteraCore.Common.DMS;
 
 namespace LitteraCore.Controllers
 {
@@ -41,7 +43,7 @@ namespace LitteraCore.Controllers
             int isTestAllowed = 0;
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> lwtc = new List<Participant>();
-            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid);
+            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid,null,null, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             lwtc = lwtc.Where(o => o.ParticipantId.ToString().ToUpper() == userid.ToString().ToUpper()).ToList();
             if (lwtc.Count > 0)
             {
@@ -191,19 +193,29 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/get_user_tests")]
-        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1")
+        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1",string trainingid=null)
         {
            List<Test> TESTS = new List<Test>();
            EvalDB tbl = new EvalDB(_configuration);
            TESTS = tbl.Get_test_List(usertype, userid);
+            if (trainingid != null)
+            {
+                TESTS = TESTS.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
+            }
+            var orderedTests = TESTS
+     .OrderBy(t => t.type == "1" ? 0 : t.type == "2" ? 1 : 2) // custom type order
+     .ThenByDescending(t => t.createdon)                       // order within type by createdon desc
+     .ToList();
+
             var searchService = new SearchService();
-            var filteredItems = TESTS;
+            var filteredItems = orderedTests;
             if (searchCriterias != null)
             {
-                filteredItems = searchService.FilterItems(TESTS, searchCriterias.SearchCriteria.ToList());
+                filteredItems = searchService.FilterItems(orderedTests, searchCriterias.SearchCriteria.ToList());
             }
-            filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
+            //filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
             //TESTS = TESTS.Where(o => o.type == "1").ToList();
+          
             var pagedList = Paging.GetPagedList(param, filteredItems);
             var result = Paging.GetPagedData(param, filteredItems);
             return Ok(result);
@@ -271,6 +283,67 @@ namespace LitteraCore.Controllers
         }
 
 
+        [Route("api/Get_Participant_test_Result")]
+        [HttpGet]
+        public IActionResult Get_Participant_test_Result(string testquestionid, string participantid = null, int pageno = 1, int pagesize = 0, string searchcolumn = null, string searchvalue = null)
+        {
+            //At present this data is hardcode in modal need to change by config file
+            EvalBL ebl=new EvalBL(_configuration);
+            List<participant_test_result> ptr = new List<participant_test_result>();
+
+            ptr = ebl.Get_Participant_Test_Result(testquestionid,participantid,pageno,pagesize,searchcolumn,searchvalue);
+
+            var searchService = new SearchService();
+            if (searchvalue != null)
+            {
+                SearchParam searchparam = new SearchParam();
+                List<SearchCriteria> searchcriteria = new List<SearchCriteria>();
+                searchcriteria.Add(new SearchCriteria { Column = searchcolumn, Value = searchvalue, Condition = "Like", NextOperator = "OR" });
+                searchparam.SearchCriteria = searchcriteria.ToArray();
+
+                ptr = searchService.FilterItems(ptr, searchparam.SearchCriteria.ToList());
+            }
+
+
+
+            PaginationParam param = new PaginationParam { PageNumber = 1, PageSize = pagesize };
+            var result = Paging.GetPagedData(param, ptr);
+            if (ptr.Count > 0)
+            {
+                result.TotalRecords = ptr.FirstOrDefault().totalrecored;
+                result.TotalPages = (int)Math.Ceiling((double)ptr.FirstOrDefault().totalrecored / param.PageSize);
+            }
+            return Ok(result);
+
+        }
+
+        [Route("api/check_test_in_use")]
+        [HttpGet]
+        public IActionResult check_test_in_use(string testid)
+        {
+
+            bool is_used = false;
+            EvalBL ebl = new EvalBL(_configuration);
+            is_used = ebl.check_test_in_use(testid);
+
+
+
+            return Ok(new { is_used = is_used });
+        }
+
+        [Route("api/Update_Test_Status")]
+        [HttpPost]
+        public IActionResult Update_Test_Status([FromBody] DMS d)
+        {
+
+            bool is_used = false;
+            EvalBL ebl = new EvalBL(_configuration);
+            is_used = ebl.update_test_status(d);
+
+
+
+            return Ok(is_used);
+        }
     }
 
 }

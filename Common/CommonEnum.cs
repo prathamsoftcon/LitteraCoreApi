@@ -1,4 +1,13 @@
 ﻿using LitteraCore.Models;
+using System;
+using QRCoder;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using LitteraCore.DBContext;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace LitteraCore.Common
 {
@@ -17,6 +26,8 @@ namespace LitteraCore.Common
         public static string default_faulty = "faculty@prathamsoft.com";
         public static string default_participant = "participant@prathamsoft.com";
         public static string default_org = "org@prathamsoft.com";
+        public static string CDCharge = "2724EDE6-BE47-4E77-B4F0-B3DF1ED97BF9";
+        public static string ACDCharge = "A4B5CF39-9599-4127-BFAE-AFE439C3286C";
         //public static DateTime content_expiry = Convert.ToDateTime("2025/06/30");
         public enum UserType
         {
@@ -351,7 +362,9 @@ namespace LitteraCore.Common
             RUN_TEST = 12,
             View_TEST_RESULT = 13,
             Complete_Session = 14,
-            Connect_to_mentor = 15
+            Connect_to_mentor = 15,
+            Add_Mentorship_Slot = 16,
+            View_Mentorship_Slot = 17
 
         }
 
@@ -575,7 +588,45 @@ namespace LitteraCore.Common
 
         }
 
-       
+       public static string generate_qr_code(string qrText)
+        {
+            string imgTag = "";
+
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            {
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
+                Base64QRCode qrCode = new Base64QRCode(qrCodeData);
+                string base64Image = qrCode.GetGraphic(20);
+
+                Console.WriteLine("Base64 QR Code:");
+                Console.WriteLine(base64Image);
+
+                // Optional HTML output
+                 imgTag = $"<img style='max-height:100px;' src='data:image/png;base64,{base64Image}' />";
+                Console.WriteLine("\nHTML <img> tag:");
+                Console.WriteLine(imgTag);
+            }
+
+            return imgTag;
+        }
+
+
+        public string GET_BR_CONFIGURATION(string rule_name)
+        {
+            string returnstr = null;
+            BR_RULE TS = new BR_RULE();
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "BR_RULES.json"));
+            TS = JsonConvert.DeserializeObject<BR_RULE>(jsontxt);
+
+            JObject obj = JObject.Parse(jsontxt);
+            if (obj.ContainsKey(rule_name))
+            {
+                returnstr = obj[rule_name].ToString(Formatting.None);
+            }
+
+                return returnstr;
+        }
 
     }
 }

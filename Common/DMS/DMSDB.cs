@@ -160,11 +160,11 @@ namespace LitteraCore.Common.DMS
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)
             {
-                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_doc_id='" + tdds_doc_id + "' and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id='" + tdds_doc_id + "' and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
             }
             else
             {
-                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
             }
 
 
@@ -607,7 +607,7 @@ namespace LitteraCore.Common.DMS
             if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select * from dms.VW_dms_doc_all_status where tdds_doc_id='"+ tdds_doc_id + "' and tdds_tat_type_id='"+ tdds_tat_type_id + "' order by tdds_process_id asc", con);
+            cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_created_on,tdds_status,tdds_sendby_empid,tdds_fwd_empid,tdds_remark,tdds_status from dms.VW_dms_doc_all_status where tdds_doc_id='" + tdds_doc_id + "' and tdds_tat_type_id='"+ tdds_tat_type_id + "' order by tdds_process_id asc", con);
 
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
@@ -660,23 +660,23 @@ namespace LitteraCore.Common.DMS
             DataTable dt = new DataTable();
             List<Agency> a = new List<Agency>();
             AgencyDB ADB = new AgencyDB(_configuration);
-            List<Agency> agency = ADB.Get_Agency(CommonEnum.Agencytype_Staff, null, 1, 0, null, null, null, null, null);
+            List<Agency> agency = ADB.Get_Agency(CommonEnum.Agencytype_Staff, null, 1, 0, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
             a = agency;
 
             SqlCommand cmd = new SqlCommand();
             if (documentno != null)
             {
-                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_doc_no='" + documentno + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_doc_no='" + documentno + "'", con);
             }
             else
             {
                 if (employeeid != null)
                 {
-                    cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "') and tdds_fwd_empid='" + employeeid + "'", con);
+                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "') and tdds_fwd_empid='" + employeeid + "'", con);
                 }
                 else
                 {
-                    cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "')", con);
+                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "')", con);
                 }
             }
 
@@ -793,11 +793,11 @@ namespace LitteraCore.Common.DMS
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)
             {
-                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where tdds_doc_id in (" + tdds_doc_id + ") and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id in (" + tdds_doc_id + ") and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
             }
             else
             {
-                cmd = new SqlCommand("select * from DMS.VW_dms_doc_last_status where  tdds_tat_type_id in (" + tdds_tat_type_id.ToString() + ")", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where  tdds_tat_type_id in (" + tdds_tat_type_id.ToString() + ")", con);
             }
 
 

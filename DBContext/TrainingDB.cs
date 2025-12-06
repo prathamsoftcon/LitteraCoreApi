@@ -1,7 +1,10 @@
-﻿using LitteraCore.Common.DMS;
+﻿using LitteraCore.BLContext;
+using LitteraCore.Common;
+using LitteraCore.Common.DMS;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Security.Certificates;
 using System.Data;
 
 namespace LitteraCore.DBContext
@@ -14,7 +17,7 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public List<Training> Get_VW_Training_calendar(DateTime fromdate, DateTime todate)
+        public List<Training> Get_VW_Training_calendar(DateTime fromdate, DateTime todate, string status = null, string couse_director = null, string associated_course_director = null)
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
             List<Training> trgdata = new List<Training>();
@@ -22,7 +25,17 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' order by T_StartDate desc", con);
+            SqlCommand cmd = new SqlCommand();
+            if (status != null)
+            {
+                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' and TrainingStatus in ('" + status+"') order by T_StartDate desc", con);
+            }
+            else
+            {
+                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' order by T_StartDate desc", con);
+            }
+          
+           
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -33,6 +46,53 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+
+            //if (status != null)
+            //{
+            //    dt.DefaultView.RowFilter = "TrainingStatus in ('" + status + "')";
+            //    dt = dt.DefaultView.ToTable();
+            //}
+            if(couse_director != null)
+            {
+                List<string> course_director_strings = couse_director.Split(",".ToCharArray()).ToList();
+                // Safely parse to Guid list
+                List<Guid> directorGuids = course_director_strings
+                    .Where(g => Guid.TryParse(g, out _))
+                    .Select(Guid.Parse)
+                    .ToList();
+
+                // Filter the DataTable using LINQ
+                var matchingRows = dt.AsEnumerable()
+                    .Where(row => directorGuids.Contains(row.Field<Guid>("CourseDirector")));
+
+                // Create filtered DataTable (handles empty result safely)
+                DataTable filteredTable = matchingRows.Any()
+                    ? matchingRows.CopyToDataTable()
+                    : dt.Clone(); // return empty table with same schema if no matches
+
+                dt = filteredTable;
+            }
+            if(associated_course_director != null)
+            {
+                List<string> associated_course_director_strings = associated_course_director.Split(",".ToCharArray()).ToList();
+                // Safely parse to Guid list
+                List<Guid> acddirectorGuids = associated_course_director_strings
+                    .Where(g => Guid.TryParse(g, out _))
+                    .Select(Guid.Parse)
+                    .ToList();
+
+                // Filter the DataTable using LINQ
+                var matchingRows = dt.AsEnumerable()
+                    .Where(row => acddirectorGuids.Contains(row.Field<Guid>("CourseDirector")));
+
+                // Create filtered DataTable (handles empty result safely)
+                DataTable filteredTable = matchingRows.Any()
+                    ? matchingRows.CopyToDataTable()
+                    : dt.Clone(); // return empty table with same schema if no matches
+
+                dt = filteredTable;
+            }
+
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Get Data" + System.DateTime.Now);
             foreach (DataRow row in dt.Rows)
             {
@@ -147,6 +207,10 @@ namespace LitteraCore.DBContext
                                     vw.TrainingNo = p.displaycontrols.Where(o => o.id == 9).ToList().FirstOrDefault().displaytext;
                                 }
                             }
+                            if (p.displaycontrols.Where(o => o.id == 13).ToList().Count() > 0)
+                            {
+                                p.displaycontrols.Where(o => o.id == 13).FirstOrDefault().displaytext = vw.NoOfParticipants_Registered.ToString();
+                            }
                         }
                       
 
@@ -207,8 +271,8 @@ namespace LitteraCore.DBContext
         public List<FilterUserTrg> Get_Users_Trg_Data(List<FilterUserTrg> trg, string usertype, string userid, DateTime fromdate, DateTime todate)
         {
             List<FilterUserTrg> LWTC = new List<FilterUserTrg>();
-            TrainingDB cdb = new TrainingDB(_configuration);
-            List<UserTrg> usertrg = cdb.Get_Users_Training(usertype, userid, fromdate, todate);
+          
+            List<UserTrg> usertrg = Get_Users_Training(usertype, userid, fromdate, todate);
             // trg.FindAll(m => m.TrainingId = userid.);
             List<FilterUserTrg> filter = (List<FilterUserTrg>)(trg.Where(x => usertrg.Any(y => y.traininigid == x.trainingid))).ToList();
             // LWTC = (List<VW_Training_calendar>)filtered;
@@ -386,16 +450,19 @@ namespace LitteraCore.DBContext
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
             List<Training> trgdata = new List<Training>();
+            Training trainingDetail = new Training();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 if (con.State != ConnectionState.Open) { con.Open(); }
-                SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where TrainingId = @TrainingId", con);
+                SqlCommand cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus,trg_setting from trainingplan.VW_Training_calendar where TrainingId = @TrainingId", con);
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
 
                 // Add the parameter to avoid SQL injection
                 cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+
+
 
                 using (SqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -495,6 +562,7 @@ namespace LitteraCore.DBContext
                             {
                                 Trg_Setting p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(reader["trg_setting"]));
                                 vw.trg_Setting = p;
+                                //vw.trg_Setting.certificate_setting = new certificate_setting();
                                 if (p.displaycontrols != null)
                                 {
                                     if (p.displaycontrols.Where(o => o.id == 9).ToList().Count() > 0)
@@ -523,9 +591,26 @@ namespace LitteraCore.DBContext
                         trgdata.Add(vw);
                     }
                 }
+
+
+           
+                trainingDetail = trgdata.FirstOrDefault();
+
+                PaginationParam param = new PaginationParam { PageNumber = 1, PageSize = 10 };
+                AgencyBL abl = new AgencyBL(_configuration);
+                Agency CDdetails = new Agency();
+                CDdetails=abl.Get_Agency(null, trainingDetail.CourseDirector.ToString(), null, param, null).Items.FirstOrDefault();
+                Agency ACDdetails = new Agency();
+                ACDdetails = abl.Get_Agency(null, trainingDetail.AssociateDirector.ToString(), null, param, null).Items.FirstOrDefault();
+                List<trg_contact_person> cp=new List<trg_contact_person>();
+
+                cp.Add(new trg_contact_person { person_name=CDdetails.agencyname, person_email= CDdetails.ag_email, person_mobile= CDdetails.ag_mobileno });
+                cp.Add(new trg_contact_person { person_name = ACDdetails.agencyname, person_email = ACDdetails.ag_email, person_mobile = ACDdetails.ag_mobileno });
+                trainingDetail.contact_person = cp.ToArray();
+
             }
 
-            return trgdata.FirstOrDefault();
+            return trainingDetail;
 
         }
         public Training Get_Particular_Training_Detail_By_Code(string trainingcode)
@@ -536,7 +621,7 @@ namespace LitteraCore.DBContext
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 if (con.State != ConnectionState.Open) { con.Open(); }
-                SqlCommand cmd = new SqlCommand("select * from trainingplan.VW_Training_calendar where trainingno ='"+ trainingcode + "'", con);
+                SqlCommand cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus,trg_setting from trainingplan.VW_Training_calendar where trainingno ='" + trainingcode + "'", con);
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
 
@@ -1016,7 +1101,8 @@ namespace LitteraCore.DBContext
                 };
                 
             }
-
+            UserDB udb = new UserDB(_configuration);
+            c.userid = udb.get_user_id_by_agencyid(c.participantid);
             return c;
         }
         public bool Update_Training_Rating_Data()
@@ -1036,5 +1122,348 @@ namespace LitteraCore.DBContext
         }
 
 
+        public bool Update_Certificate_Signatory(string trainingid, string signatoryid,string loginuserid)
+        {
+            bool isexist = false;
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_ins_upd_certificate_signatory", con);
+            cmd.Parameters.AddWithValue("@ttcs_trainingid", trainingid);
+            cmd.Parameters.AddWithValue("@ttcs_agenyid", signatoryid);
+            cmd.Parameters.AddWithValue("@ttcs_created_by", loginuserid);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.ExecuteNonQuery();
+
+          
+            return true;
+        }
+        public bool Update_Certificate_status_Data(string trainingid,string Loginuserid,cert_status_list cert_status)
+        {
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[trainingplan].[proc_tp_insupd_certificate_status]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@ttcgs_trainingid", trainingid);
+            string p1 = JsonConvert.SerializeObject(cert_status.certificate_Statuses);
+            cmd.Parameters.AddWithValue("@jsondata", p1);
+            cmd.Parameters.AddWithValue("@ttcgs_createdon", System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"));
+            cmd.Parameters.AddWithValue("@createdby", Loginuserid);
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+            return true;
+        }
+
+
+        public List<certificate_status> Get_certificate_status(string trainingid)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<certificate_status> trgdata = new List<certificate_status>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_certificate_status", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Get Data" + System.DateTime.Now);
+            foreach (DataRow row in dt.Rows)
+            {
+                certificate_status vw = new certificate_status();
+                if(Convert.ToString(row["ttcgs_status"]) != "")
+                {
+                    vw.ttcgs_status = Convert.ToInt32(row["ttcgs_status"]);
+                }
+         
+                vw.ttcgs_agenyid = Convert.ToString(row["ttcgs_agenyid"]);
+               
+
+                trgdata.Add(vw);
+            }
+
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
+
+        public int Get_Participant_Certificates(string agencyid)
+        {
+            int total_Certificates = 0;
+            List<certificate_status> trgdata = new List<certificate_status>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("DECLARE @ttcgs_agenyid UNIQUEIDENTIFIER = '"+ agencyid + "';SELECT COUNT(*) AS certificates FROM trainingplan.tbl_tp_certificate_generate_status WHERE ttcgs_agenyid = @ttcgs_agenyid", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            if (dt.Rows.Count > 0)
+            {
+                total_Certificates = Convert.ToInt16(dt.Rows[0]["certificates"]);
+            }
+           
+
+            return total_Certificates;
+        }
+
+
+
+        public List<usertrainings> Get_participants_Training(string participantid)
+        {
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
+            List<usertrainings> trgdata = new List<usertrainings>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_get_participant_trainings", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@participantid", participantid);
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow row in dt.Rows)
+            {
+                usertrainings vw = new usertrainings();
+                vw.trainingid = Convert.ToString(row["trainingid"]);
+                vw.trainingcode = Convert.ToString(row["TrainingNo"]);
+                vw.training_title = Convert.ToString(row["t_name"]);
+
+
+                if (Convert.ToString(row["trg_setting"]) != "")
+                {
+                    try
+                    {
+                        Trg_Setting p = JsonConvert.DeserializeObject<Trg_Setting>(Convert.ToString(row["trg_setting"]));
+                        vw.trg_Setting = p;
+                      
+
+                    }
+                    catch
+                    {
+                        vw.trg_Setting = null;
+                    }
+                }
+                else
+                {
+                    vw.trg_Setting = null;
+                }
+
+                trgdata.Add(vw);
+            }
+
+
+
+            //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
+
+            return trgdata;
+        }
+
+        public List<Session> Get_Trg_Progress_Data(string trainingid,string sessionid, string login_user_id,string login_user_type,int status, string branchid = null, int pageno = 0, int pagesize = 0, int ismaskingrequired = 0, string formid = null, string searchcolumn = null, string searchvalue = null)
+        {
+        
+            List<Session> sessiondata = new List<Session>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State == ConnectionState.Open) { con.Close(); }
+            con.Open();
+            SqlCommand cmd = new SqlCommand();
+
+            cmd = new SqlCommand("trainingplan.proc_tp_get_session_completion_status_participantwise", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            if(login_user_id != null)
+            {
+                cmd.Parameters.AddWithValue("@loginuserid", login_user_id);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@loginuserid", DBNull.Value);
+            }
+           if(login_user_type != null)
+            {
+                cmd.Parameters.AddWithValue("@loginusertype", login_user_type);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@loginusertype", DBNull.Value);
+            }
+           
+            cmd.Parameters.AddWithValue("@sessionid", sessionid);
+          
+            if (branchid != null)
+            {
+                cmd.Parameters.AddWithValue("@branchid", branchid);
+            }
+            
+
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 120;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+          
+
+            ParticipantDB WDB = new ParticipantDB(_configuration);
+            List<Participant> trgparticipants = new List<Participant>();
+            if (status == 2)
+            {
+                trgparticipants = WDB.Get_Trg_Participant_List(trainingid, null, branchid, searchcolumn, searchvalue, null, null, null, null, pageno, pagesize,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            }
+            else
+            {
+                trgparticipants = WDB.Get_Trg_Participant_List(trainingid, null, branchid, searchcolumn, searchvalue, null, null, null, null,0,0,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            }
+           
+
+            List<Session> LS = new List<Session>();
+            Session vw = new Session();
+            List<completionDetail> cp = new List<completionDetail>();
+            if (dt.Rows.Count > 0)
+            {
+                vw.trainingid = Convert.ToString(dt.Rows[0]["ttam_trainingid"]);
+                vw.ttttt_session_id = Convert.ToString(dt.Rows[0]["ttam_session_id"]);
+                vw.noofcompletion = Convert.ToInt32(dt.Rows[0]["iscompleted"]);
+            }
+
+            //foreach (Participant p in trgparticipants)
+            //{
+            //    dt.DefaultView.RowFilter = "ttam_session_id='" + Convert.ToString(sessionid) + "' and tta_ttpai_id='" + p.ttpai_id + "'";
+            //    DataTable dtfilterdata1 = dt.DefaultView.ToTable();
+
+            //    if (dtfilterdata1.Rows.Count > 0)
+            //    {
+            //        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Completed", emailid = p.email, mobileno = p.mobileno });
+            //    }
+            //    else
+            //    {
+            //        cp.Add(new completionDetail { agencyid = p.ParticipantId, agencyname = p.ParticipantName, status = "Pending", emailid = p.email, mobileno = p.mobileno });
+            //    }
+
+
+            //    //}
+            //    //var filteredDt = dt.AsEnumerable()
+            //    //       .Where(r => r.Field<string>("ttam_session_id") == Convert.ToString(sessionid))
+            //    //       .ToList();
+
+            //    //        var filteredDt = dt.AsEnumerable()
+            //    //.Where(r => r.Field<Guid>("ttam_session_id").ToString() == sessionid.ToString())
+            //    //.ToList();
+
+            //    //        var result1 = from p in trgparticipants
+            //    //                     join r in filteredDt
+            //    //                    on p.ttpai_id.ToString()
+            //    //   equals r.Field<Guid>("tta_ttpai_id").ToString()  into pr
+            //    //                     from r in pr.DefaultIfEmpty()
+            //    //                     select new completionDetail
+            //    //                     {
+            //    //                         agencyid = p.ParticipantId,
+            //    //                         agencyname = p.ParticipantName,
+            //    //                         status = r != null ? "Completed" : "Pending",
+            //    //                         emailid = p.email,
+            //    //                         mobileno = p.mobileno
+            //    //                     };
+
+
+
+            //}
+
+            var completedSet = new HashSet<string>(
+    dt.AsEnumerable()
+      .Select(r => $"{r["ttam_session_id"]}|{r["tta_ttpai_id"]}")
+);
+
+            foreach (Participant p in trgparticipants)
+            {
+                string key = $"{sessionid}|{p.ttpai_id}";
+                bool exists = completedSet.Contains(key);
+
+                cp.Add(new completionDetail
+                {
+                    agencyid = p.ParticipantId,
+                    agencyname = p.ParticipantName,
+                    status = exists ? "Completed" : "Pending",
+                    emailid = p.email,
+                    mobileno = p.mobileno
+                });
+            }
+
+            if (status == 0)
+            {
+                cp = cp.Where(o => o.status.ToString().ToUpper() == "PENDING").ToList();
+            }
+            else if (status == 1)
+            {
+                cp = cp.Where(o => o.status.ToString().ToUpper() == "COMPLETED").ToList();
+            }
+
+            int totalrecord= trgparticipants.FirstOrDefault().totalrecords;
+            int final_page_no = 0;
+            int final_total_count = 0;
+            if (status == 2)
+            {
+                final_page_no = 1;
+                final_total_count = totalrecord;
+            }
+            else
+            {
+                final_page_no = pageno;
+                final_total_count = cp.Count();
+            }
+            PaginationParam param = new PaginationParam
+            {
+                PageNumber = 1,
+                PageSize = pagesize
+            };
+            
+            var result = Paging.GetPagedData(param, cp);
+            if (trgparticipants.Count() > 0)
+            {
+                result.TotalRecords = final_total_count;
+                result.TotalPages = (int)Math.Ceiling(final_total_count / (double)param.PageSize);
+                result.CurrentPage = pageno;
+
+            }
+
+
+            vw.completiondetail = result;
+
+            sessiondata.Add(vw);
+
+          
+          
+
+            // sessiondata = sessiondata.Where(o => o.ttttt_timetableid != null).ToList();
+
+            return sessiondata;
+        }
     }
 }

@@ -47,7 +47,7 @@ namespace LitteraCore.Controllers
             List<Participant> lwtc = new List<Participant>();
 
 
-            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid);
+            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             lwtc = lwtc.Where(o => o.ParticipantId.ToString().ToUpper() == participantid.ToString().ToUpper()).ToList();
 
 
@@ -343,5 +343,17 @@ namespace LitteraCore.Controllers
             bool isexist = WDB.Validate_User_Training(participantid, trainingid);
             return Ok(isexist);
         }
+
+        //[HttpPost]
+        //[Route("api/Update_Participant_Certificate_Info")]
+        //public IActionResult Update_Participant_Certificate_Info([FromBody] Certificate_info_List Certificate_info, string trainingid)
+        //{
+        //    ParticipantDB tbl = new ParticipantDB(_configuration);
+
+        //    bool issaved = tbl.Update_Participant_certificate_info(Certificate_info, trainingid);
+
+        //    return Ok(issaved);
+
+        //}
     }
 }

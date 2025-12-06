@@ -4,8 +4,10 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using static Azure.Core.HttpHeader;
 using static LitteraCore.Common.CommonEnum;
 using static System.Net.Mime.MediaTypeNames;
@@ -156,7 +158,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -167,7 +169,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -179,7 +181,7 @@ namespace LitteraCore.Controllers
                     }
                   
                     EvalDB tbl = new EvalDB(_configuration);
-                    TESTS = tbl.Get_test_List(usertype, userid);
+                    TESTS = tbl.Get_trg_test_List_on_session(userid, usertype, trainingid);
 
                    
 
@@ -204,13 +206,22 @@ namespace LitteraCore.Controllers
                 {
                     if (userid.ToString() != "")
                     {
-                        status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                        status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate, branchid);
                     }
                 }
-           
 
 
 
+                //***********Extra condition in case of faculty to get mentors slot count
+              
+                List<Mentor_slot> mss = new List<Mentor_slot>();
+                if (Convert.ToInt16(usertype) == (int)CommonEnum.usertype.FACULTY)
+                {
+                    MentorDB mdb = new MentorDB(_configuration);
+                    mss = mdb.Get_Mentor_Session_Slots(trainingid, null, userid, 1);
+                }
+
+                //***********
 
 
                 foreach (Session sess in s)
@@ -252,13 +263,18 @@ namespace LitteraCore.Controllers
                     {
                         testparticipantid = "";
                     }
+
+
+                    int mentors_session_slots = 0;
+                    mentors_session_slots = mss.Where(o => o.ttsl_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).ToList().Count;
+
                     List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
                     foreach (int value in intActionArray)
                     {
                         DisplayInfo DI = new DisplayInfo();
                         DI.key = value.ToString();
                         DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
-                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage, mentors_session_slots);
                         sessionActiondisplay.Add(DI);
                     }
                     sess.ActionInfos = sessionActiondisplay.ToArray();
@@ -416,10 +432,12 @@ namespace LitteraCore.Controllers
                         sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
                     }
                     //Extra condition in case of bhoj to handle feedback not required for session =1
-                    if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10)
-                    {
-                        sessn.is_feedback_Required = 0;
-                    }
+                    //if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10)
+                    //{
+                    //    sessn.is_feedback_Required = 0;
+                    //}
+                    //Comment above part because as discussion this is not a right way to stop feedback
+                  
                 }
                 else
                 {
@@ -451,6 +469,16 @@ namespace LitteraCore.Controllers
 
             return Ok();
         }
+        [HttpPost]
+        [Route("api/UpdateNotes")]
+        public IActionResult UpdateNotes([FromBody] Notes notes)
+        {
+            SessionBL SDB = new SessionBL(_configuration);
+            bool issaved = SDB.update_session_notes(notes);
+
+            return Ok();
+        }
+
 
         [HttpGet]
         [Route("api/SessionNotes")]
@@ -465,11 +493,19 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Comment")]
-        public IActionResult Comment(string userid, string trainingid = null, string sessionid = null)
+        public IActionResult Comment(string trainingid = null, string sessionid = null, string userid=null)
         {
             List<TrgComment> c = new List<TrgComment>();
             SessionBL sdb = new SessionBL(_configuration);
             c = sdb.Get_Trg_Comments(trainingid, sessionid);
+            if (userid != null)
+            {
+                c = c.Where(comment =>
+      comment.tttcm_created_by.ToString().ToUpper() == userid.ToString().ToUpper() ||
+      (comment.comments != null && comment.comments.Any(reply => reply.tttcr_replied_by.ToString().ToUpper() == userid.ToString().ToUpper()))
+  ).ToList();
+            }
+           
             return Ok(c);
         }
         [HttpPost]
@@ -512,10 +548,52 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Session_Status")]
-        public IActionResult Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status)
+        public IActionResult Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status,[FromBody] contents_status_list cl = null)
         {
+            Session_Content_Status[] cs = null;
+            if (cl != null)
+            {
+                cs = cl.Session_Content_Status;
+            }
+           
             SessionBL SDB = new SessionBL(_configuration);
-            bool issaved = SDB.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid,status);
+            session_completion_rule r = new session_completion_rule();
+            r = SDB.session_completion_rule();
+            if (status == 1)
+            {
+                if (r.all_content_completion_mandatory == 1)
+                {
+                    if (cs != null)
+                    {
+                        if (cs.Where(o => o.is_completed == 0).Count() > 0)
+                        {
+                            throw new Exception("Please read all content first");
+                        }
+                    }
+                }
+                else
+                {
+                    if(cs != null)
+                    {
+                        foreach (Session_Content_Status c in cs)
+                        {
+                            c.is_completed = 1;
+                        }
+                    }
+                   
+                }
+            }
+
+            if (status == 1)
+            {
+                List<user_session_status> completiondata = SDB.Get_Participant_session_status(Participantid, trainingid, Sessionid);
+                if (completiondata.Count > 0)
+                {
+                    cs = completiondata.FirstOrDefault().contentstatus;
+                }
+               
+            }
+            bool issaved = SDB.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid,status, cs);
 
             return Ok(issaved);
         }
@@ -900,6 +978,13 @@ namespace LitteraCore.Controllers
             SessionBL cbl = new SessionBL(_configuration);
             List<Session> s = new List<Session>();
             s = cbl.Get_Session_Data_By_Trg(trainingid);
+            if (s.Count <= 0)
+            {
+                return NotFound(new { message = "No any session available in this training,Please contact to admin" });
+             
+            }
+
+
             //*********Get Training Setting Detail
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
@@ -1014,7 +1099,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -1025,7 +1110,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid,branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid,branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1053,7 +1138,7 @@ namespace LitteraCore.Controllers
                 List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
                 if (userid.ToString() != "")
                 {
-                    status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                    status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate, branchid);
                 }
 
 
@@ -1062,6 +1147,7 @@ namespace LitteraCore.Controllers
 
                 foreach (Session sess in s)
                 {
+                    sess.participant_trg_status = participantstatus;
                     List<SessionCompletionStatus> sessionstatus = new List<SessionCompletionStatus>();
                     sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).ToList();
                     if (sessionstatus.Count > 0)
@@ -1248,11 +1334,11 @@ namespace LitteraCore.Controllers
                 }
                 sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
 
-                //Extra condition in case of bhoj to handle feedback not required for session =1
-                if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid == "2")
-                {
-                    sessn.is_feedback_Required = 0;
-                }
+                ////Extra condition in case of bhoj to handle feedback not required for session =1
+                //if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid == "2")
+                //{
+                //    sessn.is_feedback_Required = 0;
+                //}
             }
 
 
@@ -1278,13 +1364,28 @@ namespace LitteraCore.Controllers
                         //if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
                         if (sessn.ttttt_type == 7)
                         {
+                                                     
                             if(participantstatus == 1)
                             {
-                                activeSession = sessn;
-                                if (is_session_not_restricted == 1)
+                                // Check extra condition for Attempted
+                                EvalDB edb = new EvalDB(_configuration);
+                                string testid = edb.Get_Test_Session_Mapping_Data_By_Session(sessn.ttttt_session_id).testid;
+                                //Check status
+                                bool is_test_attempted = edb.Check_test_participant_status(testid,participantid);
+                                //If entry not found then run else not
+                                if (is_test_attempted == false)
                                 {
-                                    break;
+                                    activeSession = sessn;
+                                    if (is_session_not_restricted == 1)
+                                    {
+                                        break;
+                                    }
                                 }
+                          
+                       
+
+
+                              
                             }
                             
                         }
@@ -1292,11 +1393,15 @@ namespace LitteraCore.Controllers
                         {
                             if (activeSession == null)
                             {
-                                activeSession = sessn;
-                                if (is_session_not_restricted == 1)
+                                if (participantstatus == 1 || sessn.ttttt_complimentory==1)
                                 {
-                                    break;
+                                    activeSession = sessn;
+                                    if (is_session_not_restricted == 1)
+                                    {
+                                        break;
+                                    }
                                 }
+                               
                             }
                         }
                         else
@@ -1342,6 +1447,460 @@ namespace LitteraCore.Controllers
 
             return Ok(activeSession);
         }
+
+
+        //[HttpGet]
+        //[Route("api/GET_PARTICIPANT_NEXT_SESSION_V3")]
+        //public IActionResult GET_PARTICIPANT_NEXT_SESSION_V3(string trainingid, string participantid, string branchid = null)
+        //{
+        //    string userid = participantid;
+        //    int pagetype = 0;
+        //    string usertype = "5";
+        //    SessionBL cbl = new SessionBL(_configuration);
+        //    List<Session> s = new List<Session>();
+        //    s = cbl.Get_Session_Data_By_Trg(trainingid);
+        //    //*********Get Training Setting Detail
+        //    TrainingDB WDB = new TrainingDB(_configuration);
+        //    Training trgdetail = new Training();
+        //    trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+        //    string startdate = trgdetail.StartDate?.ToString("yyyy/MM/dd");
+        //    string enddate = trgdetail.T_EndDate?.ToString("yyyy/MM/dd");
+
+
+
+        //    MeetingDB mbl = new MeetingDB(_configuration);
+        //    List<Meeting> m = new List<Meeting>();
+        //    m = mbl.Get_Trg_Meetings(trainingid);
+
+        //    foreach (Session sl in s)
+        //    {
+        //        List<Meeting> lm = new List<Meeting>();
+        //        lm = m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sl.ttttt_session_id.ToString().ToUpper()).ToList();
+        //        sl.meeting = lm.ToArray();
+        //    }
+
+        //    CommonEnum.SESSION_LIST_ACTIONS[] enumActionArray = (CommonEnum.SESSION_LIST_ACTIONS[])Enum.GetValues(typeof(CommonEnum.SESSION_LIST_ACTIONS));
+        //    int[] intActionArray = Array.ConvertAll(enumActionArray, v => (int)v);
+        //    //**************
+        //    if (trgdetail.trg_Setting != null)
+        //    {
+        //        if (trgdetail.trg_Setting.Session != null)
+        //        {
+        //            if (trgdetail.trg_Setting.Session.SessionEntry != null)
+        //            {
+        //                List<DisplayInfo> di = new List<DisplayInfo>();
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+        //                }
+
+        //                foreach (Session sess in s)
+        //                {
+        //                    sess.displayInfos = di.ToArray();
+        //                    sess.DisplayOrder = trgdetail.trg_Setting.Session.SessionOrder;
+        //                }
+
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (trgdetail.isSelfPaced == 1)
+        //        {
+        //            List<DisplayInfo> di = new List<DisplayInfo>();
+        //            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+        //            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+        //            foreach (Session sess in s)
+        //            {
+        //                sess.displayInfos = di.ToArray();
+        //                sess.DisplayOrder = "1,4,2,5,3";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            List<DisplayInfo> di = new List<DisplayInfo>();
+        //            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+        //            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+        //            foreach (Session sess in s)
+        //            {
+        //                sess.displayInfos = di.ToArray();
+        //                sess.DisplayOrder = "1,2,4,3,5";
+        //            }
+        //        }
+        //    }
+
+        //    //**************Attach Action Info
+        //    int iscdLogin = 0;
+        //    int participantstatus = 0;
+        //    string testparticipantid = "";
+        //    int ismeetingavailable = 0;
+
+        //    if (usertype != null)
+        //    {
+        //        List<Test> TESTS = new List<Test>();
+        //        if (Convert.ToInt16(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+        //        {
+        //            ParticipantDB PDB = new ParticipantDB(_configuration);
+        //            List<Participant> pl = new List<Participant>();
+        //            pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid, userid, branchid);
+        //            pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
+        //            if (pl.Count() > 0)
+        //            {
+        //                participantstatus = pl.FirstOrDefault().is_approve;
+        //            }
+        //            else
+        //            {
+        //                participantstatus = 0;
+        //            }
+
+        //            EvalDB tbl = new EvalDB(_configuration);
+        //            TESTS = tbl.Get_test_List(usertype, userid);
+
+
+
+        //        }
+
+        //        if (trgdetail.CourseDirector.ToString().ToUpper() == userid.ToString().ToUpper() || trgdetail.AssociateDirector.ToString().ToUpper() == userid.ToString().ToUpper())
+        //        {
+        //            iscdLogin = 1;
+        //        }
+
+
+        //        SessionDB SDB = new SessionDB(_configuration);
+        //        List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
+        //        if (userid.ToString() != "")
+        //        {
+        //            status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate, branchid);
+        //        }
+
+
+
+
+
+        //        foreach (Session sess in s)
+        //        {
+        //            List<SessionCompletionStatus> sessionstatus = new List<SessionCompletionStatus>();
+        //            sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).ToList();
+        //            if (sessionstatus.Count > 0)
+        //            {
+        //                if (Convert.ToString(sessionstatus.FirstOrDefault().percentcomplete) != "")
+        //                {
+        //                    sess.completionpercentage = Convert.ToDecimal(sessionstatus.FirstOrDefault().percentcomplete);
+        //                }
+        //                else
+        //                {
+        //                    sess.completionpercentage = 0;
+        //                }
+
+        //            }
+        //            else
+        //            {
+        //                sess.completionpercentage = 0;
+        //            }
+
+        //            if (m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+        //            {
+        //                ismeetingavailable = 1;
+        //            }
+        //            else
+        //            {
+        //                ismeetingavailable = 0;
+        //            }
+
+
+        //            if (TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+        //            {
+        //                testparticipantid = TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).FirstOrDefault().participantstatus;
+        //            }
+        //            else
+        //            {
+        //                testparticipantid = "";
+        //            }
+        //            List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
+        //            foreach (int value in intActionArray)
+        //            {
+        //                DisplayInfo DI = new DisplayInfo();
+        //                DI.key = value.ToString();
+        //                DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
+        //                DI.value = SessionDB.SESSION_DISPLAY_ACTION_V3(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable, iscdLogin, participantstatus, testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+        //                sessionActiondisplay.Add(DI);
+        //            }
+        //            sess.ActionInfos = sessionActiondisplay.ToArray();
+
+
+
+
+        //        }
+
+        //    }
+
+
+        //    //*************
+
+        //    if (pagetype != 0)
+        //    {
+        //        string[] strarr = CommonEnum.Page_Allowed_Session_Type(pagetype).Split(",".ToCharArray());
+        //        int[] arr = Array.ConvertAll(strarr, int.Parse);
+        //        s = s.Where(o => arr.Contains(o.ttttt_type)).ToList();
+
+        //    }
+
+        //    //***********Get Trg Setting
+        //    Trg_Setting TS = new Trg_Setting();
+        //    session_setting sessionSetting = new session_setting();
+        //    TS.Session = sessionSetting;
+        //    if (trgdetail.trg_Setting != null)
+        //    {
+        //        if (trgdetail.trg_Setting.Session != null)
+        //        {
+        //            if (trgdetail.trg_Setting.Session.SessionEntry != null)
+        //            {
+        //                List<DisplayInfo> di = new List<DisplayInfo>();
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+        //                }
+        //                if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+        //                {
+        //                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+        //                }
+        //                else
+        //                {
+        //                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+        //                }
+        //                TS.Session.SessionOrder = trgdetail.trg_Setting.Session.SessionOrder;
+
+
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (trgdetail.isSelfPaced == 1)
+        //        {
+        //            List<DisplayInfo> di = new List<DisplayInfo>();
+        //            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+        //            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+        //            TS.Session.SessionOrder = "1,4,2,5,3";
+        //        }
+        //        else
+        //        {
+        //            List<DisplayInfo> di = new List<DisplayInfo>();
+        //            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+        //            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+        //            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+        //            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+        //            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+        //            TS.Session.SessionOrder = "1,2,4,3,5";
+
+        //        }
+        //    }
+
+        //    s = s.Where(o => o.ttttt_status != "9").ToList();
+        //    s = CommonEnum.OrderSessionData(TS.Session.SessionOrder, s);
+
+
+
+        //    //****************Get Session Restriction data
+        //    SessionDB sdb = new SessionDB(_configuration);
+        //    List<Session> slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
+        //    SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
+        //    SessionBL sbl = new SessionBL(_configuration);
+
+
+        //    //***Code to update competiontype 
+        //    foreach (Session ss in slp)
+        //    {
+        //        if (s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+        //        {
+        //            ss.completiontype = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToUpper()).FirstOrDefault().completiontype;
+        //        }
+
+        //    }
+
+        //    //**********
+
+
+
+        //    foreach (Session sessn in s)
+        //    {
+        //        string completion_typeid = "1";
+        //        if (sessn.completiontype != null)
+        //        {
+        //            if (sessn.completiontype.id != null)
+        //            {
+        //                completion_typeid = sessn.completiontype.id.ToString();
+        //            }
+        //        }
+        //        sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
+
+        //        ////Extra condition in case of bhoj to handle feedback not required for session =1
+        //        //if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid == "2")
+        //        //{
+        //        //    sessn.is_feedback_Required = 0;
+        //        //}
+        //    }
+
+
+        //    //**************Now logic to get participant next session
+
+        //    Session activeSession = null;
+        //    int is_session_not_restricted = 0;
+        //    if (trgdetail.trg_Setting.Session.SessionRestriction != null)
+        //    {
+        //        if (trgdetail.trg_Setting.Session.SessionRestriction.isrestricted == 0)
+        //        {
+        //            is_session_not_restricted = 1;
+        //        }
+
+        //    }
+
+        //    foreach (Session sessn in s)
+        //    {
+        //        if (sessn.is_Session_Restricted == false)
+        //        {
+        //            if (sessn.completionpercentage == 0)
+        //            {
+        //                //if(sessn.ttttt_type==6 || sessn.ttttt_type == 7)
+        //                if (sessn.ttttt_type == 7)
+        //                {
+        //                    if (participantstatus == 1)
+        //                    {
+        //                        activeSession = sessn;
+        //                        if (is_session_not_restricted == 1)
+        //                        {
+        //                            break;
+        //                        }
+        //                    }
+
+        //                }
+        //                else if (sessn.ttttt_type == 6) //Assignment
+        //                {
+        //                    if (activeSession == null)
+        //                    {
+        //                        activeSession = sessn;
+        //                        if (is_session_not_restricted == 1)
+        //                        {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    if (sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value == true)
+        //                    {
+        //                        if (activeSession == null)
+        //                        {
+        //                            activeSession = sessn;
+        //                            if (is_session_not_restricted == 1)
+        //                            {
+        //                                break;
+        //                            }
+        //                        }
+        //                    }
+        //                }
+
+
+        //            }
+
+        //        }
+
+        //    }
+
+        //    //string completion_typeid = "1";
+        //    //if (activeSession.completiontype != null)
+        //    //{
+        //    //    if (activeSession.completiontype.id != null)
+        //    //    {
+        //    //        completion_typeid = activeSession.completiontype.id.ToString();
+        //    //    }
+        //    //}
+        //    //if (activeSession != null)
+        //    //{
+        //    //    if (activeSession.ActionInfos.Where(o => o.key == "7").FirstOrDefault().value == true)
+        //    //    {
+        //    //        activeSession.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
+        //    //    }
+        //    //}
+
+
+        //    //***************
+
+        //    return Ok(activeSession);
+        //}
 
 
 
@@ -1467,7 +2026,7 @@ namespace LitteraCore.Controllers
 
             //**************Attach Action Info
             int iscdLogin = 0;
-            int participantstatus = 0;
+            int? participantstatus = 0;
             string testparticipantid = "";
             int ismeetingavailable = 0;
 
@@ -1478,7 +2037,7 @@ namespace LitteraCore.Controllers
                 {
                     ParticipantDB PDB = new ParticipantDB(_configuration);
                     List<Participant> pl = new List<Participant>();
-                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid);
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid,userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
                     pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
                     if (pl.Count() > 0)
                     {
@@ -1506,7 +2065,7 @@ namespace LitteraCore.Controllers
                 List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
                 if (userid.ToString() != "")
                 {
-                    status = SDB.Get_Session_Status(trainingid, usertype, userid, startdate, enddate);
+                    status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate, branchid);
                 }
 
 
@@ -1691,11 +2250,11 @@ namespace LitteraCore.Controllers
                 {
                     sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
                 }
-                //Extra condition in case of bhoj to handle feedback not required for session =1
-                if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid=="2")
-                {
-                    sessn.is_feedback_Required = 0;
-                }
+                ////Extra condition in case of bhoj to handle feedback not required for session =1
+                //if (sessn.ttttt_session_no == 1 || sessn.ttttt_type == 10 || completion_typeid=="2")
+                //{
+                //    sessn.is_feedback_Required = 0;
+                //}
             }
             //**********
 
@@ -1786,6 +2345,474 @@ namespace LitteraCore.Controllers
 
 
         }
+
+
+
+
+        [HttpGet]
+        [Route("api/TrgSessions_with_content")]
+        public IActionResult TrgSessions_with_content(string trainingid, int pagetype = 0, string usertype = null, string userid = null, string branchid = null)
+        {
+
+            SessionBL cbl = new SessionBL(_configuration);
+            List<Session> s = new List<Session>();
+            s = cbl.Get_Session_Data_By_Trg(trainingid);
+            //*********Get Training Setting Detail
+            TrainingDB WDB = new TrainingDB(_configuration);
+            Training trgdetail = new Training();
+            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            string startdate = trgdetail.StartDate?.ToString("yyyy/MM/dd");
+            string enddate = trgdetail.T_EndDate?.ToString("yyyy/MM/dd");
+
+
+
+            MeetingDB mbl = new MeetingDB(_configuration);
+            List<Meeting> m = new List<Meeting>();
+            m = mbl.Get_Trg_Meetings(trainingid);
+
+            foreach (Session sl in s)
+            {
+                List<Meeting> lm = new List<Meeting>();
+                lm = m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sl.ttttt_session_id.ToString().ToUpper()).ToList();
+                sl.meeting = lm.ToArray();
+            }
+
+            CommonEnum.SESSION_LIST_ACTIONS[] enumActionArray = (CommonEnum.SESSION_LIST_ACTIONS[])Enum.GetValues(typeof(CommonEnum.SESSION_LIST_ACTIONS));
+            int[] intActionArray = Array.ConvertAll(enumActionArray, v => (int)v);
+            //**************
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    if (trgdetail.trg_Setting.Session.SessionEntry != null)
+                    {
+                        List<DisplayInfo> di = new List<DisplayInfo>();
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                        }
+
+                        foreach (Session sess in s)
+                        {
+                            sess.displayInfos = di.ToArray();
+                            sess.DisplayOrder = trgdetail.trg_Setting.Session.SessionOrder;
+                        }
+
+                    }
+                }
+            }
+            else
+            {
+                if (trgdetail.isSelfPaced == 1)
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                    foreach (Session sess in s)
+                    {
+                        sess.displayInfos = di.ToArray();
+                        sess.DisplayOrder = "1,4,2,5,3";
+                    }
+                }
+                else
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                    foreach (Session sess in s)
+                    {
+                        sess.displayInfos = di.ToArray();
+                        sess.DisplayOrder = "1,2,4,3,5";
+                    }
+                }
+            }
+
+            //**************Attach Action Info
+            int iscdLogin = 0;
+            int? participantstatus = 0;
+            string testparticipantid = "";
+            int ismeetingavailable = 0;
+
+            if (usertype != null)
+            {
+                List<Test> TESTS = new List<Test>();
+                if (Convert.ToInt16(usertype) == (int)CommonEnum.usertype.PARTICIPANT)
+                {
+                    ParticipantDB PDB = new ParticipantDB(_configuration);
+                    List<Participant> pl = new List<Participant>();
+                    pl = PDB.Get_TRG_PARTICIPANT_Data(trainingid, userid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+                    pl = pl.Where(o => o.ParticipantId.ToUpper() == userid.ToString().ToUpper()).ToList();
+                    if (pl.Count() > 0)
+                    {
+                        participantstatus = pl.FirstOrDefault().is_approve;
+                    }
+                    else
+                    {
+                        participantstatus = 0;
+                    }
+
+                    EvalDB tbl = new EvalDB(_configuration);
+                    TESTS = tbl.Get_trg_test_List_on_session(userid, usertype, trainingid);
+
+
+
+                }
+                if (userid != null)
+                {
+                    if (trgdetail.CourseDirector.ToString().ToUpper() == userid.ToString().ToUpper() || trgdetail.AssociateDirector.ToString().ToUpper() == userid.ToString().ToUpper())
+                    {
+                        iscdLogin = 1;
+                    }
+                }
+                else
+                {
+                    iscdLogin = 0;
+                }
+
+
+
+                SessionDB SDB = new SessionDB(_configuration);
+                List<SessionCompletionStatus> status = new List<SessionCompletionStatus>();
+                if (userid != null)
+                {
+                    if (userid.ToString() != "")
+                    {
+                        status = SDB.Get_Session_Status_vr1(trainingid, usertype, userid, startdate, enddate,branchid);
+                    }
+                }
+
+
+
+
+
+
+                foreach (Session sess in s)
+                {
+                    List<SessionCompletionStatus> sessionstatus = new List<SessionCompletionStatus>();
+                    sessionstatus = status.Where(o => o.ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper() && o.iscompleted == 1).ToList();
+                    if (sessionstatus.Count > 0)
+                    {
+                        if (Convert.ToString(sessionstatus.FirstOrDefault().percentcomplete) != "")
+                        {
+                            sess.completionpercentage = Convert.ToDecimal(sessionstatus.FirstOrDefault().percentcomplete);
+                        }
+                        else
+                        {
+                            sess.completionpercentage = 0;
+                        }
+
+                    }
+                    else
+                    {
+                        sess.completionpercentage = 0;
+                    }
+
+                    if (m.Where(o => o.ttlm_ttttt_session_id.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                    {
+                        ismeetingavailable = 1;
+                    }
+                    else
+                    {
+                        ismeetingavailable = 0;
+                    }
+
+
+                    if (TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                    {
+                        testparticipantid = TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).FirstOrDefault().participantstatus;
+                    }
+                    else
+                    {
+                        testparticipantid = "";
+                    }
+                    //List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
+                    //foreach (int value in intActionArray)
+                    //{
+                    //    DisplayInfo DI = new DisplayInfo();
+                    //    DI.key = value.ToString();
+                    //    DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
+                    //    DI.value = true;
+                    //    //if (SessionDB.Get_Session_Group(sess.ttttt_type) == (int)CommonEnum.SessionGroup.Evaluation_Group)
+                    //    //{
+                    //    //    DI.value = true;
+                    //    //}
+                    //    //else
+                    //    //{
+                    //    //    DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable, iscdLogin, participantstatus, testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+                    //    //}
+
+                    //    sessionActiondisplay.Add(DI);
+                    //}
+                    //sess.ActionInfos = sessionActiondisplay.ToArray();
+
+
+                    List<DisplayInfo> sessionActiondisplay = new List<DisplayInfo>();
+                    foreach (int value in intActionArray)
+                    {
+                        DisplayInfo DI = new DisplayInfo();
+                        DI.key = value.ToString();
+                        DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
+                        DI.value = SessionDB.SESSION_DISPLAY_ACTION_V3(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable, iscdLogin, participantstatus, testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage);
+                        sessionActiondisplay.Add(DI);
+                    }
+                    sess.ActionInfos = sessionActiondisplay.ToArray();
+
+                }
+
+
+
+            }
+
+
+            //*************
+
+            if (pagetype != 0)
+            {
+                string[] strarr = CommonEnum.Page_Allowed_Session_Type(pagetype).Split(",".ToCharArray());
+                int[] arr = Array.ConvertAll(strarr, int.Parse);
+                s = s.Where(o => arr.Contains(o.ttttt_type)).ToList();
+
+            }
+
+            //***********Get Trg Setting
+            int content_feedback_on_session = 1;
+
+            Trg_Setting TS = new Trg_Setting();
+            session_setting sessionSetting = new session_setting();
+            TS.Session = sessionSetting;
+            if (trgdetail.trg_Setting != null)
+            {
+                if (trgdetail.trg_Setting.Session != null)
+                {
+                    if(trgdetail.trg_Setting.Session.content_feedback_on_session != null)
+                    {
+                        content_feedback_on_session = trgdetail.trg_Setting.Session.content_feedback_on_session;
+                    }
+                    if (trgdetail.trg_Setting.Session.SessionEntry != null)
+                    {
+                        List<DisplayInfo> di = new List<DisplayInfo>();
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Module == true)
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "1", name = "Module", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Week == true)
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "2", name = "Week", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Date == true)
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.Day == true)
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "4", name = "Day", value = false });
+                        }
+                        if (trgdetail.trg_Setting.Session.SessionEntry.srno == true)
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                        }
+                        else
+                        {
+                            di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                        }
+                        TS.Session.SessionOrder = trgdetail.trg_Setting.Session.SessionOrder;
+
+
+                    }
+                }
+            }
+            else
+            {
+                if (trgdetail.isSelfPaced == 1)
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = false });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = true });
+                    TS.Session.SessionOrder = "1,4,2,5,3";
+                }
+                else
+                {
+                    List<DisplayInfo> di = new List<DisplayInfo>();
+                    di.Add(new DisplayInfo { key = "1", name = "Module", value = true });
+                    di.Add(new DisplayInfo { key = "2", name = "Week", value = true });
+                    di.Add(new DisplayInfo { key = "3", name = "Date", value = true });
+                    di.Add(new DisplayInfo { key = "4", name = "Day", value = true });
+                    di.Add(new DisplayInfo { key = "5", name = "srno", value = false });
+                    TS.Session.SessionOrder = "1,2,4,3,5";
+
+                }
+            }
+
+            s = s.Where(o => o.ttttt_status != "9").ToList();
+            s = CommonEnum.OrderSessionData(TS.Session.SessionOrder, s);
+
+
+
+            //****************Get Session Restriction data
+            SessionDB sdb = new SessionDB(_configuration);
+
+            List<Session> slp = new List<Session>();
+
+            if (usertype != null)
+            {
+                slp = sdb.Get_Trg_Progress_Data_For_Next_Session(trainingid, userid, branchid);
+            }
+
+
+
+            SessionRestriction restrictiondata = sdb.GET_SESSION_RESTRICTION_INFO(trainingid);
+            SessionBL sbl = new SessionBL(_configuration);
+
+
+            //***Code to update competiontype 
+            foreach (Session ss in slp)
+            {
+                if (s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                {
+                    ss.completiontype = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == ss.ttttt_session_id.ToUpper()).FirstOrDefault().completiontype;
+                }
+
+            }
+
+
+
+            //**********
+
+
+            foreach (Session sessn in s)
+            {
+
+                string completion_typeid = "1";
+                if (sessn.completiontype != null)
+                {
+                    if (sessn.completiontype.id != null)
+                    {
+                        completion_typeid = sessn.completiontype.id.ToString();
+                    }
+                }
+                if (usertype != null)
+                {
+                    sessn.is_Session_Restricted = sbl.Get_Session_Restriction(usertype, sessn.ttttt_session_id, slp, restrictiondata, completion_typeid);
+                    if (sessn.ActionInfos.Where(o => o.key == "7").FirstOrDefault().value == true)
+                    {
+                       // sessn.ActionInfos.Where(o => o.key == "5").FirstOrDefault().value = false;
+                    }
+                   
+
+                }
+                else
+                {
+                    sessn.is_Session_Restricted = false;
+                }
+
+            }
+            //**********
+
+            //******************Add session contents
+            ContentDB cdb = new ContentDB(_configuration);
+            List<Content> cl = new List<Content>();
+            PaginationParam param = new PaginationParam();
+            cl = cdb.Get_Trg_Content(param, trainingid);
+            if (content_feedback_on_session == 1)
+            {
+                cl.ForEach(c => c.is_feedback_required = 0);
+            }
+            else
+            {
+                cl.ForEach(c => c.is_feedback_required = 1);
+            }
+
+            cl.ForEach(c => c.is_feedback_required = content_feedback_on_session);
+
+            foreach (Session cs in s)
+            {
+                Item items = new Item();
+                items.Items = cl.Where(o => o.ttsam_ttttt_session_id.ToString().ToUpper() == cs.ttttt_session_id.ToString().ToUpper()).ToArray();
+                items.totalRecords = items.Items.Count();
+                cs.sessioncontent= items;
+                
+            }
+
+
+
+            return Ok(s);
+        }
+
+        [HttpGet]
+        [Route("api/CHECK_SESSION_STATUS")]
+        public IActionResult CHECK_SESSION_STATUS(string Participantid, string trainingid = null, string sessionid = null)
+        {
+            bool isFeedbackExist = false;
+            SessionBL SDB = new SessionBL(_configuration);
+
+            List<user_session_status> completiondata = SDB.Get_Participant_session_status(Participantid, trainingid, sessionid);
+         
+
+
+            return Ok(completiondata);
+        }
+
 
 
 

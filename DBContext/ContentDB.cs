@@ -151,7 +151,11 @@ namespace LitteraCore.DBContext
                 vw.GlobalContentFolderID = Convert.ToString(row["GlobalContentFolderID"]);
                 if(row["tcm_content_reading_time"] != null)
                 {
-                    vw.minreadingtime = Convert.ToInt32(row["tcm_content_reading_time"]);
+                    if(Convert.ToString(row["tcm_content_reading_time"]) != "")
+                    {
+                        vw.minreadingtime = Convert.ToInt32(row["tcm_content_reading_time"]);
+                    }
+                  
                 }
               
 
@@ -413,6 +417,149 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             return true;
 
         }
+
+        public List<activity_data> Get_Activity_Data(string agencyid, string activityid = null)
+        {
+
+            List<activity_data> AL = new List<activity_data>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand();
+            if (activityid != null)
+            {
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+agencyid+"' and tpad_activity_id='"+activityid+"'", con);
+            }
+            else
+            {
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+ agencyid + "'", con);
+            }
+          
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+         
+
+            foreach (DataRow row in dt.Rows)
+            {
+                activity_data vw = new activity_data();
+                vw.tpad_id = Convert.ToString(row["tpad_id"]);
+                vw.tpad_activity_id = Convert.ToString(row["tpad_activity_id"]);
+                vw.tpad_ttpai_id = Convert.ToString(row["tpad_ttpai_id"]);
+                vw.tpad_ttsam_id    = Convert.ToString(row["tpad_ttsam_id"]);
+
+                vw.tpad_activity_data = Convert.ToString(row["tpad_activity_data"]);
+                vw.tpad_createdon = Convert.ToDateTime(row["tpad_createdon"]);
+                //vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
+              
+                AL.Add(vw);
+
+            }
+
+          
+    
+
+            return AL;
+
+        }
+
+
+
+        public List<activity_data> Get_Activity_Data_by_id(string tpad_id)
+        {
+
+            List<activity_data> AL = new List<activity_data>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand();
+            cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data where tpad_id='" + tpad_id + "'", con);
+
+            cmd.CommandType = CommandType.Text;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+
+            foreach (DataRow row in dt.Rows)
+            {
+                activity_data vw = new activity_data();
+                vw.tpad_id = Convert.ToString(row["tpad_id"]);
+                vw.tpad_activity_id = Convert.ToString(row["tpad_activity_id"]);
+                vw.tpad_ttpai_id = Convert.ToString(row["tpad_ttpai_id"]);
+                vw.tpad_ttsam_id = Convert.ToString(row["tpad_ttsam_id"]);
+
+                vw.tpad_activity_data = Convert.ToString(row["tpad_activity_data"]);
+                vw.tpad_createdon = Convert.ToDateTime(row["tpad_createdon"]);
+                //vw.tpad_upload = Convert.ToString(row["tpad_upload"]);
+
+                AL.Add(vw);
+
+            }
+
+
+
+
+            return AL;
+
+        }
+
+        public bool check_content_learning_exist(string ttsam_id,string participantid)
+        {
+
+            List<contentType> AL = new List<contentType>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString); if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("SELECT * FROM TrainingPlan.tbl_participant_learning_time WHERE tplt_ttsam_id = @tplt_ttsam_id AND tplt_participantid = @tplt_participantid;", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@tplt_ttsam_id", ttsam_id);
+            cmd.Parameters.AddWithValue("@tplt_participantid", participantid);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            if (dt.Rows.Count > 0) { 
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+            
+
+
+
+
+
+            return true;
+        }
+
+
+
 
 
     }

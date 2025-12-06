@@ -12,7 +12,7 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public DBAnalytics Get_Admin_DB_Analytics(string usertype, string userid, DateTime startdate, DateTime enddate, string banchid)
+        public DBAnalytics Get_Admin_DB_Analytics(string usertype, string userid, DateTime startdate, DateTime enddate, string branchid)
         {
             DBAnalytics c = new DBAnalytics();
 
@@ -29,7 +29,7 @@ namespace LitteraCore.DBContext
                     cmd.Parameters.AddWithValue("@userid", userid);
                     cmd.Parameters.AddWithValue("@startdate", startdate);
                     cmd.Parameters.AddWithValue("@enddate", enddate);
-                    cmd.Parameters.AddWithValue("@branchid", banchid);
+                    cmd.Parameters.AddWithValue("@branchid", branchid);
 
                     cmd.Connection = con;
                     cmd.CommandTimeout = 5000;
@@ -101,6 +101,10 @@ namespace LitteraCore.DBContext
                             tfd.trainingid = Convert.ToString(reader["ttbfcr_Training_id"]);
                             tfd.trg_rating = Convert.ToDecimal(reader["ttbfcr_avg_rating"]);
                             tfd.no_of_response = Convert.ToInt32(reader["ttbfcr_total_rows"]);
+                            tfd.trg_percentage = reader["ttbfcr_comp_percentage"] != DBNull.Value
+     ? Convert.ToDecimal(reader["ttbfcr_comp_percentage"])
+     : 0;
+
                             c.Add(tfd);
 
                         }

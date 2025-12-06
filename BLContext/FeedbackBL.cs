@@ -34,7 +34,7 @@ namespace LitteraCore.BLContext
                     FS.Surveyid = filterreport.SurveyID;
                     FS.Surveyname = filterreport.SurveyName;
                     FS.no_of_respondent = FR.Where(o => o.SurveyID.ToString().ToUpper() == s.ToString().ToUpper()).Select(o => o.tssr_id).Distinct().Count();
-
+                   
                     LFS.Add(FS);
                 }
 
@@ -1240,33 +1240,68 @@ namespace LitteraCore.BLContext
             return QWD;
         }
 
-        public List<FeedbackReportSummery_trainingwise> Get_Feedback_360_Summery_trainingwise(string trainingid = null)
+        public List<FeedbackReportSummery_trainingwise> Get_Feedback_360_Summery_trainingwise(string fromdate, string todate, string trainingid = null)
         {
             List<FeedbackReportSummery_trainingwise> LFS = new List<FeedbackReportSummery_trainingwise>();
+            List<FeedbackReportSummery_trainingwise> Final_LFS = new List<FeedbackReportSummery_trainingwise>();
+
+            FeedbackDB FDB = new FeedbackDB(_configuration);
+            LFS = FDB.Get_Survey_Summary_Data(fromdate,todate, trainingid);
+
+            foreach (FeedbackReportSummery_trainingwise report in LFS)
+            {
+                if(Final_LFS.Where(o=>o.trainingid.ToString().ToUpper()== report.trainingid.ToString().ToUpper()).Count()<=0)
+                {
+                    Final_LFS.Add(new FeedbackReportSummery_trainingwise
+                    {
+                        trainingid = report.trainingid,
+                        training_title = report.training_title,
+                        trainingcode = report.trainingcode,
+                        no_of_respondent = LFS.Sum(o => o.no_of_respondent),
+                        training_rating = LFS.Sum(o => o.training_rating)/ LFS.Where(o=>o.trainingid.ToString().ToUpper()== report.trainingid).Count()
+
+                    });
+                }
+            }
+           
+
+
+
+
+
+            return Final_LFS;
+        }
+
+
+
+
+
+
+        public List<Training_Feedback_Summary> Get_Trainingwise_Feedback_Summery(string surveyid = null, string trainingid = null)
+        {
+            List<Training_Feedback_Summary> LFS = new List<Training_Feedback_Summary>();
 
             List<FeedbackReport> FR = new List<FeedbackReport>();
             FeedbackDB FDB = new FeedbackDB(_configuration);
-            FR = FDB.Get_Feedback_Report_Data(null);
-            if(trainingid != null)
+            FR = FDB.Get_Feedback_Report_Data(surveyid);
+            FR = FR.Where(o => o.trainingid != null && o.trainingid.ToString() !="").ToList();
+           
+            List<String> distinctTrainings = FR.Select(o => o.trainingid).Distinct().ToList();
+            int i = 0;
+            foreach (string s in distinctTrainings)
             {
-                FR = FR.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
-            }
-
-
-            List<String> distinctSurvey = FR.Select(o => o.trainingid).Distinct().ToList();
-
-            foreach (string s in distinctSurvey)
-            {
-                FeedbackReportSummery_trainingwise FS = new FeedbackReportSummery_trainingwise();
+                i = i + 1;
+               Training_Feedback_Summary FS = new Training_Feedback_Summary();
 
                 FeedbackReport filterreport = new FeedbackReport();
                 filterreport = FR.Where(o => o.trainingid.ToString().ToUpper() == s.ToString().ToUpper()).FirstOrDefault();
                 if (filterreport != null)
                 {
                     FS.trainingid = filterreport.trainingid;
-                    FS.trainingcode = filterreport.trainingid;
-                    FS.training_rating = 90;
-                    FS.no_of_respondent = FR.Where(o => o.trainingid.ToString().ToUpper() == s.ToString().ToUpper()).Select(o => o.tssr_id).Distinct().Count();
+                    FS.training_code = filterreport.SurveyName;
+                    FS.t_title = filterreport.SurveyName;
+                    FS.no_of_responses= FR.Where(o => o.trainingid.ToString().ToUpper() == s.ToString().ToUpper()).Select(o => o.tssr_id).Distinct().Count();
+                    FS.trg_rating = i*10;
 
                     LFS.Add(FS);
                 }
@@ -1280,6 +1315,381 @@ namespace LitteraCore.BLContext
 
             return LFS;
         }
+
+
+        public List<Questionnaire_Wise_Responses> Get_Groupwise_Feedback_Summery(string trainingid)
+        {
+            List<Questionnaire_Wise_Responses> LFS = new List<Questionnaire_Wise_Responses>();
+
+            List<FeedbackReport> FR = new List<FeedbackReport>();
+            FeedbackDB FDB = new FeedbackDB(_configuration);
+            FR = FDB.Get_Feedback_Report_Data(null);
+            FR = FR.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
+
+            List<String> distinctSurvey = FR.Select(o => o.GroupID).Distinct().ToList();
+            int i = 0;
+            foreach (string s in distinctSurvey)
+            {
+                i = i + 1;
+                Questionnaire_Wise_Responses FS = new Questionnaire_Wise_Responses();
+
+                FeedbackReport filterreport = new FeedbackReport();
+                filterreport = FR.Where(o => o.GroupID.ToString().ToUpper() == s.ToString().ToUpper()).FirstOrDefault();
+                if (filterreport != null)
+                {
+                    FS.groupid = filterreport.GroupID;
+                    FS.group_title = filterreport.Groupname;
+                    FS.no_of_responses = FR.Where(o => o.SurveyID.ToString().ToUpper() == s.ToString().ToUpper()).Select(o => o.tssr_id).Distinct().Count();
+                    FS.mcq_responses = FR.Where(o => o.SurveyID.ToString().ToUpper() == s.ToString().ToUpper() && o.QuestionType=="2").Select(o => o.tssr_id).Distinct().Count();
+                    FS.descriptive_responses = FR.Where(o => o.SurveyID.ToString().ToUpper() == s.ToString().ToUpper() && o.QuestionType == "1").Select(o => o.tssr_id).Distinct().Count();
+                    FS.rating_percentage = i * 10;
+                    LFS.Add(FS);
+                }
+
+
+            }
+
+
+
+
+
+            return LFS;
+        }
+
+
+
+
+        public Question_Rating_Result Get_Rating_Result_Summary_New(string groupid,string trainingid=null, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            List<RatingQuesResult> QuestionratingResult = new List<RatingQuesResult>();
+            List<Question_Rating_Result_Summary> ratingsummary = new List<Question_Rating_Result_Summary>();
+            List<RatingType> ratings = new List<RatingType>();
+            FeedbackDB FDB = new FeedbackDB(_configuration);
+            ratings = FDB.Get_Rating_Type();
+
+            SurveyResponseResult surveyResponses = new SurveyResponseResult();
+            List<FeedbackReport> FR_Surveyresponse = new List<FeedbackReport>();
+
+            FR_Surveyresponse = FDB.Get_Feedback_Report_Data(null);
+            if(trainingid !=null && trainingid != "")
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o=>o.trainingid.ToString().ToUpper()==trainingid.ToString().ToUpper()).ToList();
+            }
+            if (groupid != null)
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o => o.GroupID.ToString().ToUpper() == groupid.ToString().ToUpper()).ToList();
+            }
+            if (sharefeedbackid != null)
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o => o.sharefeedbackiD.ToString().ToUpper() == sharefeedbackid.ToString().ToUpper()).ToList();
+            }
+
+            //string get survey and group name
+            string surveyname = "";
+            string groupname = "";
+            if (FR_Surveyresponse.Count > 0)
+            {
+                surveyname = FR_Surveyresponse.FirstOrDefault().SurveyName;
+                groupname = FR_Surveyresponse.FirstOrDefault().Groupname;
+            }
+
+
+            //*******Filter data according to responsee
+            if (responsee_mobileno != null)
+            {
+                if (responsee_mobileno != "")
+                {
+                    FR_Surveyresponse = FR_Surveyresponse.Where(o => o.tssr_responsee_mobile == responsee_mobileno).ToList();
+                }
+            }
+            if (responsee_emailid != null)
+            {
+                if (responsee_emailid != "")
+                {
+                    FR_Surveyresponse = FR_Surveyresponse.Where(o => o.tssr_responsee_email.ToString().ToUpper() == responsee_emailid.ToString().ToUpper()).ToList();
+                }
+            }
+
+
+            //*************
+            Question_Rating_Result QRR = new Question_Rating_Result();
+
+            if (FR_Surveyresponse.Count > 0)
+            {
+                surveyResponses = Prepare_Feedback_Result(null, FR_Surveyresponse);
+
+                foreach (categoryResponse catres in surveyResponses.category)
+                {
+                    foreach (sharefeedbackResponse sf in catres.sharefeedback)
+                    {
+                        foreach (TssrResponse tssr in sf.tssrresult)
+                        {
+                            sureveyRatingResult SRR = tssr.ratingResult;
+                            foreach (RatingQuesResult res in SRR.result)
+                            {
+                                RatingQuesResult RR = new RatingQuesResult();
+                                RR.questionid = res.questionid;
+                                RR.questiontext = res.questiontext;
+                                RR.ratingresult = res.ratingresult;
+                                QuestionratingResult.Add(RR);
+                            }
+
+                        }
+                    }
+
+
+                }
+
+                //QuestionratingResult where all group questions with rating
+                //now get distinct questions
+                List<string> disQues = new List<string>();
+                disQues = QuestionratingResult.Select(o => o.questionid).Distinct().ToList();
+                //Loop to Get all distinct quesion rating summary
+                foreach (string qid in disQues)
+                {
+                    Question_Rating_Result_Summary QRRS = new Question_Rating_Result_Summary();
+                    List<RatingQuesResult> filterratingresult = QuestionratingResult.Where(o => o.questionid.ToString().ToUpper() == qid.ToString().ToUpper()).ToList();
+
+                    List<RatingType_val> rating_value_sum = new List<RatingType_val>();
+                    int totalquestionresponses = FR_Surveyresponse.Where(o => o.QuestionID.ToString().ToUpper() == qid.ToString().ToUpper()).Count();
+
+                    foreach (RatingType rt in ratings)
+                    {
+                        RatingType_val ratingtval = new RatingType_val();
+                        ratingtval.ratingid = rt.ratingid;
+                        ratingtval.ratingtext = rt.ratingtext;
+                        ratingtval.ratingvalue = rt.ratingvalue;
+                        ratingtval.total = Math.Round((calculate_total_question_value(surveyResponses.category.FirstOrDefault().sharefeedback.ToList(), rt.ratingvalue, qid) / totalquestionresponses) * 100, 2);
+                        rating_value_sum.Add(ratingtval);
+
+                    }
+
+
+                    QRRS.Questionid = filterratingresult.FirstOrDefault().questionid;
+                    QRRS.Questiontext = filterratingresult.FirstOrDefault().questiontext;
+
+                    QRRS.rating = rating_value_sum.ToArray();
+
+                    decimal overallrating = 0;
+                    foreach (RatingType_val ratval in rating_value_sum)
+                    {
+                        overallrating = Convert.ToDecimal(overallrating) + Convert.ToDecimal(ratval.total);
+                    }
+                    QRRS.overallrating = overallrating;
+
+
+
+
+                    ratingsummary.Add(QRRS);
+                }
+                QRR.surveyid = FR_Surveyresponse.FirstOrDefault().SurveyID;
+                QRR.surveyname = FR_Surveyresponse.FirstOrDefault().SurveyName;
+                QRR.groupid = FR_Surveyresponse.FirstOrDefault().GroupID;
+                QRR.groupname = FR_Surveyresponse.FirstOrDefault().SurveyCategory;
+                QRR.Question_Rating_Result_Summary = ratingsummary.ToArray();
+
+                if (responsee_mobileno != null || responsee_emailid != null)
+                {
+                    if (FR_Surveyresponse.Count > 0)
+                    {
+                        QRR.responsee_name = FR_Surveyresponse.FirstOrDefault().tssr_responsee_name;
+                        QRR.responsee_mobile = FR_Surveyresponse.FirstOrDefault().tssr_responsee_mobile;
+                        QRR.responsee_email = FR_Surveyresponse.FirstOrDefault().tssr_responsee_email;
+                    }
+                }
+
+
+
+            }
+            else
+            {
+                //Return in case of data not available
+               // QRR.surveyid = surveyid;
+                QRR.surveyname = surveyname;
+                QRR.groupid = groupid;
+                QRR.groupname = groupname;
+                List<Question_Rating_Result_Summary> qrres = new List<Question_Rating_Result_Summary>();
+                QRR.Question_Rating_Result_Summary = qrres.ToArray();
+
+            }
+
+
+
+            return QRR;
+        }
+
+
+
+        public Question_MCQ_Result Get_MCQ_Result_Summary_New(string groupid,string trainingid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        {
+            List<MCQResult> QuestionMCQResult = new List<MCQResult>();
+            List<Question_MCQ_Result_Summary> mcqsummary = new List<Question_MCQ_Result_Summary>();
+            FeedbackDB FDB = new FeedbackDB(_configuration);
+
+
+            SurveyResponseResult surveyResponses = new SurveyResponseResult();
+            List<FeedbackReport> FR_Surveyresponse = new List<FeedbackReport>();
+
+            FR_Surveyresponse = FDB.Get_Feedback_Report_Data(null);
+            if (trainingid != null && trainingid != "")
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
+            }
+        
+            if (groupid != null)
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o => o.GroupID.ToString().ToUpper() == groupid.ToString().ToUpper()).ToList();
+            }
+            if (sharefeedbackid != null)
+            {
+                FR_Surveyresponse = FR_Surveyresponse.Where(o => o.sharefeedbackiD.ToString().ToUpper() == sharefeedbackid.ToString().ToUpper()).ToList();
+            }
+
+            //string get survey and group name
+            string surveyname = "";
+            string groupname = "";
+            if (FR_Surveyresponse.Count > 0)
+            {
+                surveyname = FR_Surveyresponse.FirstOrDefault().SurveyName;
+                groupname = FR_Surveyresponse.FirstOrDefault().Groupname;
+            }
+
+
+            //*******Filter data according to responsee
+            if (responsee_mobileno != null)
+            {
+                if (responsee_mobileno != "")
+                {
+                    FR_Surveyresponse = FR_Surveyresponse.Where(o => o.tssr_responsee_mobile == responsee_mobileno).ToList();
+                }
+            }
+            if (responsee_emailid != null)
+            {
+                if (responsee_emailid != "")
+                {
+                    FR_Surveyresponse = FR_Surveyresponse.Where(o => o.tssr_responsee_email.ToString().ToUpper() == responsee_emailid.ToString().ToUpper()).ToList();
+                }
+            }
+
+
+            //*************
+            Question_MCQ_Result QRR = new Question_MCQ_Result();
+
+            if (FR_Surveyresponse.Count > 0)
+            {
+                surveyResponses = Prepare_Feedback_Result(null, FR_Surveyresponse);
+
+                foreach (categoryResponse catres in surveyResponses.category)
+                {
+                    foreach (sharefeedbackResponse sf in catres.sharefeedback)
+                    {
+                        foreach (TssrResponse tssr in sf.tssrresult)
+                        {
+                            sureveyMCQResult SRR = tssr.mcqResult;
+                            foreach (MCQResult res in SRR.result)
+                            {
+                                MCQResult RR = new MCQResult();
+                                RR.questionid = res.questionid;
+                                RR.questiontext = res.questiontext;
+                                RR.mcqresult = res.mcqresult;
+                                QuestionMCQResult.Add(RR);
+                            }
+
+                        }
+                    }
+
+
+                }
+
+                //QuestionratingResult where all group questions with rating
+                //now get distinct questions
+                List<string> disQues = new List<string>();
+                disQues = QuestionMCQResult.Select(o => o.questionid).Distinct().ToList();
+                //Loop to Get all distinct quesion rating summary
+                foreach (string qid in disQues)
+                {
+                    Question_MCQ_Result_Summary QRRS = new Question_MCQ_Result_Summary();
+                    List<MCQResult> filterratingresult = QuestionMCQResult.Where(o => o.questionid.ToString().ToUpper() == qid.ToString().ToUpper()).ToList();
+
+                    List<MCQResultOptions> Qoptions = new List<MCQResultOptions>();
+                    Qoptions = filterratingresult.FirstOrDefault().mcqresult.ToList();
+                    List<MCQType_val> mcq_value_sum = new List<MCQType_val>();
+                    // int totalquestionresponses = FR_Surveyresponse.Where(o => o.QuestionID.ToString().ToUpper() == qid.ToString().ToUpper()).Count();
+
+                    foreach (MCQResultOptions rt in Qoptions)
+                    {
+                        MCQType_val mcqtval = new MCQType_val();
+                        mcqtval.answerid = rt.answerid;
+                        mcqtval.answertext = rt.answertext;
+                        mcqtval.answervalue = "0";
+                        mcqtval.total = Math.Round((calculate_total_mcq_question_value(surveyResponses.category.FirstOrDefault().sharefeedback.ToList(), rt.answerid, qid)), 2);
+                        mcq_value_sum.Add(mcqtval);
+
+                    }
+
+
+                    QRRS.Questionid = filterratingresult.FirstOrDefault().questionid;
+                    QRRS.Questiontext = filterratingresult.FirstOrDefault().questiontext;
+                    QRRS.rating = mcq_value_sum.ToArray();
+
+                    mcqsummary.Add(QRRS);
+                }
+                QRR.surveyid = FR_Surveyresponse.FirstOrDefault().SurveyID;
+                QRR.surveyname = FR_Surveyresponse.FirstOrDefault().SurveyName;
+                QRR.groupid = FR_Surveyresponse.FirstOrDefault().GroupID;
+                QRR.groupname = FR_Surveyresponse.FirstOrDefault().SurveyCategory;
+                QRR.Question_MCQ_Result_Summary = mcqsummary.ToArray();
+
+                if (responsee_mobileno != null || responsee_emailid != null)
+                {
+                    if (FR_Surveyresponse.Count > 0)
+                    {
+                        QRR.responsee_name = FR_Surveyresponse.FirstOrDefault().tssr_responsee_name;
+                        QRR.responsee_mobile = FR_Surveyresponse.FirstOrDefault().tssr_responsee_mobile;
+                        QRR.responsee_email = FR_Surveyresponse.FirstOrDefault().tssr_responsee_email;
+                    }
+                }
+
+
+
+            }
+            else
+            {
+                //Return in case of data not available
+                //QRR.surveyid = surveyid;
+                //QRR.surveyname = surveyname;
+                //QRR.groupid = groupid;
+                //QRR.groupname = groupname;
+                //List<Question_Rating_Result_Summary> qrres = new List<Question_Rating_Result_Summary>();
+                //QRR.Question_Rating_Result_Summary = qrres.ToArray();
+
+            }
+
+
+
+            return QRR;
+        }
+
+
+
+        public List<FeedbackReportSummery_trainingwise> Get_Feedback_360_Summery_Groupwise(string fromdate, string todate, string trainingid = null)
+        {
+            List<FeedbackReportSummery_trainingwise> LFS = new List<FeedbackReportSummery_trainingwise>();
+            List<FeedbackReportSummery_trainingwise> Final_LFS = new List<FeedbackReportSummery_trainingwise>();
+
+            FeedbackDB FDB = new FeedbackDB(_configuration);
+            LFS = FDB.Get_Survey_Summary_Data(fromdate, todate, trainingid);
+
+       
+
+
+
+
+
+
+            return LFS;
+        }
+
 
     }
 }

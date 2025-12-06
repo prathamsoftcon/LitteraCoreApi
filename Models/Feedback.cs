@@ -355,4 +355,71 @@ namespace LitteraCore.Models
 
         public DescAnsText[] results { get; set; }
     }
+    public class Training_Feedback_Summary
+    {
+        public string trainingid { get; set; }
+        public string training_code { get; set; }
+        public string t_title { get; set; }
+        public int no_of_responses { get; set; }
+        public decimal trg_rating { get; set; }
+
+    }
+    public class Questionnaire_Wise_Responses
+    {
+        public string groupid { get; set; }
+        public string group_title { get; set; }
+        public int no_of_responses { get; set; }
+
+        public int mcq_responses { get; set; }
+        public int descriptive_responses { get; set; }
+        public decimal rating_percentage { get; set; }
+
+    }
+
+    public class Question_rating
+    {
+        public string questionid { get; set; }
+        public string question_txt { get; set; }
+        public question_options[] optionsrating { get; set; }
+
+    }
+   
+    public class question_options
+    {
+        public string optionid { get; set; }
+        public string option_txt { get; set; }
+        public decimal raring { get; set; }
+
+    }
+
+    public class MCQ_rating
+    {
+        public string questionid { get; set; }
+        public string question_txt { get; set; }
+        public question_options[] optionsrating { get; set; }
+
+    }
+    public class Descriptive_semantics
+    {
+        public decimal positive_feedback { get; set; }
+        public decimal Negative_feedback { get; set; }
+        public decimal No_Response { get; set; }
+
+        public decimal suggestion_for_improvement { get; set; }
+
+    }
+
+    public class Questionwise_description
+    {
+        public string questionid { get; set; }
+        public string question_txt { get; set; }
+        public Descriptive_answers answers { get; set; }
+
+    }
+    public class Descriptive_answers
+    {
+       public string answertext { get; set; }
+
+    }
+
 }

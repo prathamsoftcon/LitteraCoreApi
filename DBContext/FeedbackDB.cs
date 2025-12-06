@@ -23,7 +23,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "'", con);
+            SqlCommand cmd = new SqlCommand("select trainingid,sharefeedbackiD,SurveyID,SurveyName,GroupID,SurveyDescription,tssr_responsdant_mobile,status from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "'", con);
             cmd.CommandType = CommandType.Text;
 
 
@@ -61,7 +61,7 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "' and sharefeedbackiD='" + sharefeedbackid + "'", con);
+            SqlCommand cmd = new SqlCommand("select trainingid,sharefeedbackiD,SurveyID,SurveyName,GroupID,SurveyDescription,tssr_responsdant_mobile from Survey360.Vw_su_particiapnt_training where participantid='" + participantid + "' and sharefeedbackiD='" + sharefeedbackid + "'", con);
             cmd.CommandType = CommandType.Text;
 
 
@@ -167,6 +167,9 @@ namespace LitteraCore.DBContext
 
             return PL;
         }
+
+
+
 
         public List<TemplateQuestion> Get_All_Template_Question_Data()
         {
@@ -327,6 +330,62 @@ namespace LitteraCore.DBContext
             return PL;
         }
 
-    
+
+
+        public List<FeedbackReportSummery_trainingwise> Get_Survey_Summary_Data(string fromdate,string todate,string trainingid=null)
+        {
+
+
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            SqlCommand cmd = new SqlCommand("survey360.proc_su_survey360_report_master_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@fromdate", fromdate);
+            cmd.Parameters.AddWithValue("@todate", todate);
+            if(trainingid != null)
+            {
+                cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@trainingid", DBNull.Value);
+            }
+        
+
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            List<FeedbackReportSummery_trainingwise> PL = new List<FeedbackReportSummery_trainingwise>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                FeedbackReportSummery_trainingwise P = new FeedbackReportSummery_trainingwise();
+                P.trainingid = Convert.ToString(dr["Trainingid"]);
+                P.trainingcode = Convert.ToString(dr["trainingcode"]);
+                P.training_title = Convert.ToString(dr["Trainingname"]);
+                P.training_rating = Convert.ToDecimal(dr["Rating"]);
+                P.no_of_respondent = Convert.ToInt16(dr["Noofresponse"]);
+                P.groupname = Convert.ToString(dr["groupname"]);
+                P.groupid = Convert.ToString(dr["groupid"]);
+                P.rating_response = Convert.ToInt16(dr["rating_response"]);
+                P.desc_response = Convert.ToInt16(dr["desc_response"]);
+
+
+                PL.Add(P);
+            }
+
+
+          
+
+
+            return PL;
+        }
+
+
     }
 }

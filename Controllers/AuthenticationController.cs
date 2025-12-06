@@ -755,6 +755,55 @@ namespace LitteraCore.Controllers
             // Serialize the claims to JSON manually to handle circular references
             var claimsJson = System.Text.Json.JsonSerializer.Serialize(principal.Claims.ToList(), jsonOptions);
 
+
+            // var userid= simplifiedClaims.Where(o=>o.Type== "userid").FirstOrDefault()?.Value;
+
+            //List<Agency> AL = new List<Agency>();
+            //AgencyDB ABD = new AgencyDB(_configuration);
+            //AL = ABD.Get_Agency(null, userid, 1, 10, null, null, null, null, null);
+            //string user_name = "";
+            //if (AL.Count > 0)
+            //{
+            //    simplifiedClaims.Add(new { Type = "username", Value = AL.FirstOrDefault().agencyname });
+            //    simplifiedClaims.Add(new { Type = "agencyid", Value = AL.FirstOrDefault().agencyid });
+            //    simplifiedClaims.Add(new { Type = "emailid", Value = AL.FirstOrDefault().ag_email });
+            //    simplifiedClaims.Add(new { Type = "mobileno", Value = AL.FirstOrDefault().ag_mobileno });
+            //    if (AL.FirstOrDefault().ag_mobileno != "" && AL.FirstOrDefault().ag_mobileno != null)
+            //    {
+            //        user_name = AL.FirstOrDefault().ag_mobileno;
+            //    }
+            //    else
+            //    {
+            //        user_name = AL.FirstOrDefault().ag_email;
+            //    }
+            //}
+
+            //AuthDB audb = new AuthDB(_configuration);
+            //UserInfo a= new UserInfo();
+            //a = audb.GetUserInfo(user_name);
+
+            ////var userIdClaim = simplifiedClaims.FirstOrDefault(c => c.Type == "userid");
+            ////if (userIdClaim != null)
+            ////{
+            ////    userIdClaim.Value = a.userid;
+            ////}
+            //var userIdClaim = simplifiedClaims.FirstOrDefault(c => c.GetType().GetProperty("Type")?.GetValue(c)?.ToString() == "userid");
+
+            //if (userIdClaim != null)
+            //{
+            //    // Get index
+            //    int index = simplifiedClaims.IndexOf(userIdClaim);
+
+            //    // Create new item with updated value
+            //    var newClaim = new { Type = "userid", Value = a.userid };
+
+            //    // Replace
+            //    simplifiedClaims.RemoveAt(index);
+            //    simplifiedClaims.Insert(index, newClaim);
+            //}
+
+
+
             // Return the serialized claims
             return Ok(simplifiedClaims);
         }
@@ -786,7 +835,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateActivityToken")]
-        public async Task<IActionResult> GenerateActivityToken(string userid,string ttpai_id,string ttsm_id,string apipath)
+        public async Task<IActionResult> GenerateActivityToken(string ttsm_id,string apipath, string? userid=null, string? ttpai_id=null)
         {
             //Check Valid User
             AppAuthService auth = new AppAuthService(_configuration);
@@ -828,7 +877,60 @@ namespace LitteraCore.Controllers
             // Serialize the claims to JSON manually to handle circular references
             var claimsJson = System.Text.Json.JsonSerializer.Serialize(principal.Claims.ToList(), jsonOptions);
 
-            // Return the serialized claims
+            var user_id = simplifiedClaims.Where(o => o.Type == "userid").FirstOrDefault()?.Value;
+
+            List<Agency> AL = new List<Agency>();
+            AgencyDB ABD = new AgencyDB(_configuration);
+            if(user_id != "")
+            {
+                AL = ABD.Get_Agency(null, user_id, 1, 10, null, null, null, null, null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
+            }
+          
+            string user_name = "";
+            if (AL.Count > 0)
+            {
+                simplifiedClaims.Add(new { Type = "username", Value = AL.FirstOrDefault().agencyname });
+                simplifiedClaims.Add(new { Type = "agencyid", Value = AL.FirstOrDefault().agencyid });
+                simplifiedClaims.Add(new { Type = "emailid", Value = AL.FirstOrDefault().ag_email });
+                simplifiedClaims.Add(new { Type = "mobileno", Value = AL.FirstOrDefault().ag_mobileno });
+                if (AL.FirstOrDefault().ag_mobileno != "" && AL.FirstOrDefault().ag_mobileno != null)
+                {
+                    user_name = AL.FirstOrDefault().ag_mobileno;
+                }
+                else
+                {
+                    user_name = AL.FirstOrDefault().ag_email;
+                }
+            }
+
+            AuthDB audb = new AuthDB(_configuration);
+            UserInfo a = new UserInfo();
+            if(user_name != "")
+            {
+                a = audb.GetUserInfo(user_name);
+            }
+          
+
+            //var userIdClaim = simplifiedClaims.FirstOrDefault(c => c.Type == "userid");
+            //if (userIdClaim != null)
+            //{
+            //    userIdClaim.Value = a.userid;
+            //}
+            var userIdClaim = simplifiedClaims.FirstOrDefault(c => c.GetType().GetProperty("Type")?.GetValue(c)?.ToString() == "userid");
+
+            if (userIdClaim != null)
+            {
+                // Get index
+                int index = simplifiedClaims.IndexOf(userIdClaim);
+
+                // Create new item with updated value
+                var newClaim = new { Type = "userid", Value = a.userid };
+
+                // Replace
+                simplifiedClaims.RemoveAt(index);
+                simplifiedClaims.Insert(index, newClaim);
+            }
+
             return Ok(simplifiedClaims);
         }
 

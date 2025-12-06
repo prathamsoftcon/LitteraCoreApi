@@ -345,6 +345,66 @@ namespace LitteraCore.BLContext
             issaved = ABD.Update_Emailid(agencyid, emailid);
             return issaved;
         }
+        public List<Agency> Search_Agency(string searchval)
+        {
+
+            AgencyDB ABD = new AgencyDB(_configuration);
+            List<Agency> AL = new List<Agency>();
+            AL= ABD.Search_Agency(searchval, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
+            return AL;
+        }
+
+        public List<Agency> Get_CD_Data()
+        {
+
+            List<Agency> AL = new List<Agency>();
+            AgencyDB ABD = new AgencyDB(_configuration);
+            AL = ABD.Get_CD_Charge_Details();
+
+            List<Agency> AM = new List<Agency>();
+
+
+            AM = ABD.Get_Agency("00008", null, 0, 0, null, null, null, null,null, "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
+
+
+            foreach (Agency a in AL)
+            {
+                List<Agency> filteredmapping = AM.Where(o => o.agencyid.ToString().ToUpper() == a.agencyid.ToString().ToUpper()).Where(o => o.tyaam_status == 1).ToList();
+                if (filteredmapping.Count > 0)
+                {
+                    a.tyaam_status = filteredmapping.FirstOrDefault().tyaam_status;
+                    a.UserCode = filteredmapping.FirstOrDefault().UserCode;
+                }
+                else
+                {
+                    a.tyaam_status = 0;
+                    a.UserCode = "";
+                }
+
+            }
+            //AL = AL.Where(o => o.tyaam_status != 0 && o.UserCode !="00001" && o.UserCode != "00002").ToList();
+            AL = AL.Where(o => o.tyaam_status != 0).Where(o => o.UserCode != "00001").Where(o => o.UserCode != "00002").ToList();
+            //Code to create distinct data
+            List<Agency> distAgency = new List<Agency>();
+            List<string> Agencies = new List<string>();
+            foreach (Agency s in AL)
+            {
+                if (Agencies.Contains(s.agencyid))
+                {
+                    continue;
+                }
+                distAgency.Add(s);
+                Agencies.Add(s.agencyid);
+
+            }
+            AL = distAgency;
+
+            //Code to stop Admin and portal admin agencies in CD
+            AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.PortalAdmin_Agencyid.ToString().ToUpper()).ToList();
+            AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.SuperAdmin_Agencyid.ToString().ToUpper()).ToList();
+            return AL;
+        }
+
 
     }
 }

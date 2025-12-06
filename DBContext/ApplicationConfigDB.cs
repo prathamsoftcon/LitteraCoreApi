@@ -65,6 +65,18 @@ namespace LitteraCore.DBContext
                     dr["SettingValue"] = "{'data_masking_required':'0'}";
                     dt.Rows.Add(dr);
                 }
+                if (settinguniqueid == "11")
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["SettingValue"] = "{'PASSWORD_CHANGE_REQUIRED':'0','PASSWORD_CHANGE_MANDATORY':'0'}";
+                    dt.Rows.Add(dr);
+                }
+                if (settinguniqueid == "3")
+                {
+                    DataRow dr = dt.NewRow();
+                    dr["SettingValue"] = "{'PASSWORD_ON_REGISTRATION':'0','CONFIRMATION_MESSAGE_ON_REGISTRATION':'0','MOBILE_REQUIRED':'1','EMAIL_REQUIRED':'0'}";
+                    dt.Rows.Add(dr);
+                }
 
             }
             return dt;
@@ -280,6 +292,19 @@ namespace LitteraCore.DBContext
             ml = JsonConvert.DeserializeObject<Branch_Configuration>(Get_Application_Setting("9").Rows[0]["SettingValue"].ToString());
             return ml;
         }
+
+
+        //public  Branch_Configuration GET_BRANCH_CONFIGURATION()
+        //{
+
+        //    //string Foldername = CommonDB.GET_JSON__FOLDER();
+        //    //string jsontxt = System.IO.File.ReadAllText(System.Web.HttpContext.Current.Server.MapPath("~/" + Foldername + "/TrainingSettings.json"));
+        //    ApplicationSetting a = new ApplicationSetting();
+        //    HttpResponseMessage response = new HttpResponseMessage();
+        //    Branch_Configuration ml = new Branch_Configuration();
+        //    ml = JsonConvert.DeserializeObject<Branch_Configuration>(Get_Application_Setting("9").Rows[0]["SettingValue"].ToString());
+        //    return ml;
+        //}
 
     }
 }

@@ -51,5 +51,6 @@ namespace LitteraCore.Models
         public string trainingid { get; set; }
         public decimal trg_rating { get; set; }
         public int no_of_response { get; set; }
+        public decimal trg_percentage { get; set; }
     }
 }

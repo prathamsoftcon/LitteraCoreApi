@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data;
 using System.Xml;
+using static LitteraCore.Common.CommonEnum;
 using static LitteraCore.Models.Firebase;
 
 namespace LitteraCore.DBContext
@@ -71,7 +72,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public List<Agency> Get_Agency(string agencytypeid, string agencyid, int pageno, int pagesize, string searchcolumn, string searchvalue, string filtername, string filtervalue, string tat_type_id = null)
+        public List<Agency> Get_Agency(string agencytypeid, string agencyid, int pageno, int pagesize, string searchcolumn, string searchvalue, string filtername, string filtervalue, string tat_type_id = null,string columnlist=null)
         {
 
 
@@ -128,207 +129,381 @@ namespace LitteraCore.DBContext
                 {
                     cmd.Parameters.AddWithValue("@tat_type_id", tat_type_id);
                 }
+                if (columnlist != null)
+                {
+                    cmd.Parameters.AddWithValue("@ColumnList", columnlist);
+                }
 
                 cmd.Connection = con;
                 cmd.CommandTimeout = 5000;
                 SqlDataReader row = cmd.ExecuteReader();
-
-
                 while (row.Read())
                 {
-                    if (row["tyaam_status"].ToString() != "-1")
+                    var tyaamStatusStr = row.GetStringSafe("tyaam_status");
+
+                    if (tyaamStatusStr != "-1")
                     {
-                        Agency vw = new Agency();
-                        vw.totalcount = Convert.ToInt32(row["totalrecords"]);
-                        vw.agencyid = Convert.ToString(row["AgencyId"]);
-                        vw.tyaam_typeid = Convert.ToString(row["tyaam_typeid"]);
-                        if (Convert.ToString(row["tyaam_status"]) != "")
+                        Agency vw = new Agency
                         {
-                            vw.tyaam_status = Convert.ToInt32(row["tyaam_status"]);
-                        }
-                        else
-                        {
-                            vw.tyaam_status = 0;
-                        }
-                        if (Convert.ToString(row["tyaam_status"]) != "")
-                        {
-                            vw.tyaam_status_text = (Enum.GetName(typeof(CommonEnum.Agencystatus), Convert.ToInt32(row["tyaam_status"])));
-                        }
+                            totalcount = row.GetIntSafe("totalrecords"),
+                            agencyid = row.GetStringSafe("AgencyId"),
+                            tyaam_typeid = row.GetStringSafe("tyaam_typeid"),
 
-                        vw.agencyname = Convert.ToString(row["AgencyName"]);
-                        vw.hagencyname = Convert.ToString(row["HAgencyName"]);
-                        vw.AgencyTypeId = Convert.ToString(row["tyaam_typeid"]);
-                        //vw.Fixed = Convert.ToString(row["Fixed"]);
-                        vw.CreatedBy = Convert.ToString(row["CreatedBy"]);
-                        vw.CreatedOn = Convert.ToDateTime(row["CreatedOn"]);
-                        vw.ModifiedBy = Convert.ToString(row["ModifiedBy"]);
-                        vw.UserCode = Convert.ToString(row["UserCode"]);
-                        vw.ParentId = Convert.ToString(row["ParentId"]);
-                        vw.Ag_locationtype = Convert.ToString(row["Ag_locationtype"]);
-                        vw.Ag_location = Convert.ToString(row["Ag_location"]);
-                        vw.Ag_Address = Convert.ToString(row["Ag_Address"]);
-                        vw.Ag_Address1 = Convert.ToString(row["Ag_Address1"]);
-                        vw.Ag_StateId = Convert.ToString(row["Ag_StateId"]);
-                        vw.Ag_DistrictId = Convert.ToString(row["Ag_DistrictId"]);
-                        vw.Ag_BlockId = Convert.ToString(row["Ag_BlockId"]);
-                        vw.Ag_GramPanchayatId = Convert.ToString(row["Ag_GramPanchayatId"]);
-                        vw.ag_divisionid = Convert.ToString(row["ag_divisionid"]);
-                        vw.upload_photo_name = Convert.ToString(row["ag_photo_path"]);
-                        // vw.userid= Convert.ToString(row["userid"]);
+                            tyaam_status = row.GetIntSafe("tyaam_status"),
 
-                        //UploadPath UP = new UploadPath();
-                        //if (row["uploadpath"].ToString() != "")
-                        //{
-                        //    vw.uploadpath = UP.Get_Default_Upload_Path() + Convert.ToString(row["uploadpath"]);
-                        //}
-                        if (row["uploadpath"].ToString() != "")
-                        {
-                            vw.uploadpath = Convert.ToString(row["uploadpath"]);
-                        }
-                        if (agencytypeid == "00001" || agencytypeid == "00002" || agencytypeid == "00003" || agencytypeid == "00004" || agencytypeid == "00005")
+                            tyaam_status_text = !string.IsNullOrEmpty(tyaamStatusStr)
+                                ? Enum.GetName(typeof(CommonEnum.Agencystatus), row.GetIntSafe("tyaam_status"))
+                                : null,
+
+                            agencyname = row.GetStringSafe("AgencyName"),
+                            hagencyname = row.GetStringSafe("HAgencyName"),
+                            AgencyTypeId = row.GetStringSafe("tyaam_typeid"),
+
+                            CreatedBy = row.GetStringSafe("CreatedBy"),
+                            CreatedOn = row.GetDateSafe("CreatedOn") ?? DateTime.MinValue,
+                            ModifiedBy = row.GetStringSafe("ModifiedBy"),
+                            UserCode = row.GetStringSafe("UserCode"),
+                            ParentId = row.GetStringSafe("ParentId"),
+
+                            Ag_locationtype = row.GetStringSafe("Ag_locationtype"),
+                            Ag_location = row.GetStringSafe("Ag_location"),
+                            Ag_Address = row.GetStringSafe("Ag_Address"),
+                            Ag_Address1 = row.GetStringSafe("Ag_Address1"),
+
+                            Ag_StateId = row.GetStringSafe("Ag_StateId"),
+                            Ag_DistrictId = row.GetStringSafe("Ag_DistrictId"),
+                            Ag_BlockId = row.GetStringSafe("Ag_BlockId"),
+                            Ag_GramPanchayatId = row.GetStringSafe("Ag_GramPanchayatId"),
+                            ag_divisionid = row.GetStringSafe("ag_divisionid"),
+
+                            upload_photo_name = row.GetStringSafe("ag_photo_path"),
+                            uploadpath = row.GetStringSafe("uploadpath"),
+
+                            ag_first_name = row.GetStringSafe("ag_first_name"),
+                            ag_m_name = row.GetStringSafe("ag_m_name"),
+                            ag_l_name = row.GetStringSafe("ag_l_name"),
+
+                            ag_hfirst_name = row.GetStringSafe("ag_hfirst_name"),
+                            ag_hm_name = row.GetStringSafe("ag_hm_name"),
+                            ag_hl_name = row.GetStringSafe("ag_hl_name"),
+
+                            ag_address_city = row.GetStringSafe("ag_address_city"),
+                            ag_address_state = row.GetStringSafe("ag_address_state"),
+                            ag_pincode = row.GetStringSafe("ag_pincode"),
+                            ag_phone = row.GetStringSafe("ag_phone"),
+                            ag_alternative_phone = row.GetStringSafe("ag_alternative_phone"),
+                            ag_mobileno = row.GetStringSafe("ag_mobileno"),
+                            ag_alternative_mobileno = row.GetStringSafe("ag_alternative_mobileno"),
+                            ag_email = row.GetStringSafe("ag_email"),
+                            ag_alternative_email = row.GetStringSafe("ag_alternative_email"),
+
+                            ag_gender = row.GetStringSafe("ag_gender"),
+
+                            ag_age = row.GetIntSafe("ag_age"),
+
+                            ag_salutation = row.GetStringSafe("ag_salutation"),
+                            ag_aadhar = row.GetStringSafe("ag_aadhar"),
+                            ag_pan = row.GetStringSafe("ag_pan"),
+                            ag_gstin = row.GetStringSafe("ag_gstin"),
+                            ag_sign_path = row.GetStringSafe("ag_sign_path"),
+                            tdds_tat_type_id = row.GetStringSafe("tdds_tat_type_id"),
+                            remark = row.GetStringSafe("tdds_remark"),
+                        };
+
+                        // Format DOB safely
+                        var dob = row.GetDateSafe("ag_dob");
+                        if (dob.HasValue)
+                            vw.ag_dob = dob.Value.ToString("yyyy/MM/dd");
+
+                        // Handle photo path override
+                        if (agencytypeid == "00001" || agencytypeid == "00002" ||
+                            agencytypeid == "00003" || agencytypeid == "00004" || agencytypeid == "00005")
                         {
                             vw.ag_photo_path = ClientData.Get_Client_Data().CERTIFICATE_LOGO.ToString();
                         }
                         else
                         {
-                            if (row["ag_photo_path"].ToString() != "")
-                            {
-
-
-                                vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
-                            }
+                            vw.ag_photo_path = row.GetStringSafe("ag_photo_path");
                         }
 
-
-
-                        vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
-                        vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
-                        vw.ag_l_name = Convert.ToString(row["ag_l_name"]);
-                        vw.ag_hfirst_name = Convert.ToString(row["ag_hfirst_name"]);
-                        vw.ag_hm_name = Convert.ToString(row["ag_hm_name"]);
-                        vw.ag_hl_name = Convert.ToString(row["ag_hl_name"]);
-                        vw.ag_address_city = Convert.ToString(row["ag_address_city"]);
-                        vw.ag_address_state = Convert.ToString(row["ag_address_state"]);
-
-                        vw.ag_pincode = Convert.ToString(row["ag_pincode"]);
-                        vw.ag_phone = Convert.ToString(row["ag_phone"]);
-                        vw.ag_alternative_phone = Convert.ToString(row["ag_alternative_phone"]);
-                        vw.ag_mobileno = Convert.ToString(row["ag_mobileno"]);
-                        vw.ag_alternative_mobileno = Convert.ToString(row["ag_alternative_mobileno"]);
-                        vw.ag_email = Convert.ToString(row["ag_email"]);
-                        vw.ag_alternative_email = Convert.ToString(row["ag_alternative_email"]);
-
-                        vw.ag_gender = Convert.ToString(row["ag_gender"]);
-                        if (row["ag_age"].ToString() != "")
+                        // Salutation text
+                        if (!string.IsNullOrEmpty(vw.ag_salutation))
                         {
-                            vw.ag_age = Convert.ToInt32(row["ag_age"]);
+                            int? salutationId = row.GetIntSafe("ag_salutation");
+                            var sal = s.FirstOrDefault(o => o.ts_id == salutationId);
+                            if (sal != null)
+                                vw.salutation_txt = sal.ts_name;
                         }
 
-                        if (row["ag_dob"].ToString() != "")
+                        // Additional Info XML
+                        vw.additionalInfo = new AgencyAdditionalInfo();
+                        var additionalVal = row.GetStringSafe("additional_val");
+
+                        if (!string.IsNullOrEmpty(additionalVal))
                         {
-                            vw.ag_dob = Convert.ToDateTime(row["ag_dob"]).ToString("yyyy/MM/dd");
-                        }
-
-                        //vw.latitude = Convert.ToString(row["latitude"]);
-                        //vw.longitude = Convert.ToString(row["longitude"]);
-
-                        vw.ag_salutation = Convert.ToString(row["ag_salutation"]);
-                        vw.ag_aadhar = Convert.ToString(row["ag_aadhar"]);
-                        vw.ag_pan = Convert.ToString(row["ag_pan"]);
-                        vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
-
-
-                        vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
-                        vw.ag_sign_path = Convert.ToString(row["ag_sign_path"]);
-                        vw.tdds_tat_type_id = Convert.ToString(row["tdds_tat_type_id"]);
-                        vw.remark = Convert.ToString(row["tdds_remark"]);
-
-                        if (Convert.ToString(row["ag_salutation"]) != "")
-                        {
-                            if (s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).Count() > 0)
-                            {
-                                vw.salutation_txt = s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).FirstOrDefault().ts_name;
-                            }
-
-                        }
-
-
-
-                        if (Convert.ToString(row["additional_val"]) != "")
-                        {
-                            vw.tyaam_val = Convert.ToString(Convert.ToString(row["additional_val"]));
+                            vw.tyaam_val = additionalVal;
 
                             try
                             {
                                 if (agencytypeid != "00053")
                                 {
                                     XmlDocument doc = new XmlDocument();
-                                    doc.LoadXml(Convert.ToString(row["additional_val"]).Replace("&lt;", "<").Replace("&gt;", ">"));
+                                    doc.LoadXml(additionalVal.Replace("&lt;", "<").Replace("&gt;", ">"));
+
                                     XmlDocument doc1 = new XmlDocument();
                                     doc1.LoadXml(doc.ChildNodes[0].InnerXml);
-                                    string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
-                                    JsonText = JsonText.Substring(1, JsonText.Length - 2);
 
-                                    vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+                                    string json = JsonConvert.SerializeXmlNode(doc1)
+                                        .Replace("\"ADDINFO\":", "");
 
-                                    if (vw.additionalInfo != null)
-                                    {
-                                        if (vw.additionalInfo.ID_PROOF_TYPE != null)
-                                        {
-                                            if (vw.additionalInfo.ID_PROOF_TYPE.ToString() != "")
-                                            {
-                                                vw.additionalInfo.ID_PROOF_TYPE_TXT = (Enum.GetName(typeof(CommonEnum.ID_PROOF_TYPE), Convert.ToInt32(vw.additionalInfo.ID_PROOF_TYPE)));
-                                            }
-                                        }
-                                        if (vw.additionalInfo.CAST != null)
-                                        {
-                                            if (vw.additionalInfo.CAST.ToString() != "")
-                                            {
-                                                vw.additionalInfo.CAST_TXT = (Enum.GetName(typeof(CommonEnum.CASTCATEGORY), Convert.ToInt32(vw.additionalInfo.CAST)));
-                                            }
-                                        }
-                                    }
+                                    json = json.Substring(1, json.Length - 2)
+                                               .Replace("\"DETAILS\":{", "\"DETAILS\":[{")
+                                               .Replace("}}}", "}]}}");
+
+                                    vw.additionalInfo =
+                                        JsonConvert.DeserializeObject<AgencyAdditionalInfo>(json);
+
+                                    if (vw.additionalInfo?.ID_PROOF_TYPE != null)
+                                        vw.additionalInfo.ID_PROOF_TYPE_TXT =
+                                            Enum.GetName(typeof(CommonEnum.ID_PROOF_TYPE),
+                                                         Convert.ToInt32(vw.additionalInfo.ID_PROOF_TYPE));
+
+                                    if (vw.additionalInfo?.CAST != null)
+                                        vw.additionalInfo.CAST_TXT =
+                                            Enum.GetName(typeof(CommonEnum.CASTCATEGORY),
+                                                         Convert.ToInt32(vw.additionalInfo.CAST));
                                 }
                                 else
                                 {
                                     XmlDocument doc = new XmlDocument();
-                                    doc.LoadXml(Convert.ToString(row["additional_val"]).ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
-                                    string JsonText1 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[0]);
-                                    JsonText1 = JsonText1.Replace("{\"ADDINFO\":", "").Replace("}}", "}");
-                                    vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText1);
+                                    doc.LoadXml(additionalVal.Replace("&lt;", "<").Replace("&gt;", ">"));
 
-                                    string JsonText2 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[1]);
-                                    if (JsonText2 != "null")
+                                    string json1 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[0])
+                                        .Replace("{\"ADDINFO\":", "")
+                                        .Replace("}}", "}");
+
+                                    vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(json1);
+
+                                    string json2 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[1]);
+                                    if (json2 != "null")
                                     {
-                                        JsonText2 = JsonText2.Replace("{\"CONTACTPERSON\":", "").Replace("}}", "}");
-                                        //JsonText2 = "[{'Designation':'prince','Name':'ds','Phone':'4232','Email':'ddfg@gmail.com'},{'Designation':'Designtion','Name':'Name','Phone':'5574747474','Email':'mail@gmail.com'}]";
-                                        JsonText2 = JsonText2.Replace("{\"PERSON\":", "").Replace("]}", "]");
-                                        List<CONTACTPERSON> P = JsonConvert.DeserializeObject<List<CONTACTPERSON>>(JsonText2);
-                                        vw.additionalInfo.contactPerson = P.ToArray();
+                                        json2 = json2.Replace("{\"CONTACTPERSON\":", "")
+                                                     .Replace("}}", "}")
+                                                     .Replace("{\"PERSON\":", "")
+                                                     .Replace("]}", "]");
+
+                                        vw.additionalInfo.contactPerson =
+                                            JsonConvert.DeserializeObject<List<CONTACTPERSON>>(json2)?.ToArray();
                                     }
-
                                 }
-
-
-
                             }
                             catch
                             {
-                                vw.additionalInfo = null;
+                                vw.additionalInfo = new AgencyAdditionalInfo();
                             }
-
-                        }
-                        else
-                        {
-                            vw.additionalInfo = new AgencyAdditionalInfo();
                         }
 
-
-
-
+                        // Add to list
                         AL.Add(vw);
                     }
                 }
+
+
+                //while (row.Read())
+                //{
+                //    if (row["tyaam_status"].ToString() != "-1")
+                //    {
+                //        Agency vw = new Agency();
+                //        vw.totalcount = Convert.ToInt32(row["totalrecords"]);
+                //        vw.agencyid = Convert.ToString(row["AgencyId"]);
+                //        vw.tyaam_typeid = Convert.ToString(row["tyaam_typeid"]);
+                //        if (Convert.ToString(row["tyaam_status"]) != "")
+                //        {
+                //            vw.tyaam_status = Convert.ToInt32(row["tyaam_status"]);
+                //        }
+                //        else
+                //        {
+                //            vw.tyaam_status = 0;
+                //        }
+                //        if (Convert.ToString(row["tyaam_status"]) != "")
+                //        {
+                //            vw.tyaam_status_text = (Enum.GetName(typeof(CommonEnum.Agencystatus), Convert.ToInt32(row["tyaam_status"])));
+                //        }
+
+                //        vw.agencyname = Convert.ToString(row["AgencyName"]);
+                //        vw.hagencyname = Convert.ToString(row["HAgencyName"]);
+                //        vw.AgencyTypeId = Convert.ToString(row["tyaam_typeid"]);
+                //        //vw.Fixed = Convert.ToString(row["Fixed"]);
+                //        vw.CreatedBy = Convert.ToString(row["CreatedBy"]);
+                //        vw.CreatedOn = Convert.ToDateTime(row["CreatedOn"]);
+                //        vw.ModifiedBy = Convert.ToString(row["ModifiedBy"]);
+                //        vw.UserCode = Convert.ToString(row["UserCode"]);
+                //        vw.ParentId = Convert.ToString(row["ParentId"]);
+                //        vw.Ag_locationtype = Convert.ToString(row["Ag_locationtype"]);
+                //        vw.Ag_location = Convert.ToString(row["Ag_location"]);
+                //        vw.Ag_Address = Convert.ToString(row["Ag_Address"]);
+                //        vw.Ag_Address1 = Convert.ToString(row["Ag_Address1"]);
+                //        vw.Ag_StateId = Convert.ToString(row["Ag_StateId"]);
+                //        vw.Ag_DistrictId = Convert.ToString(row["Ag_DistrictId"]);
+                //        vw.Ag_BlockId = Convert.ToString(row["Ag_BlockId"]);
+                //        vw.Ag_GramPanchayatId = Convert.ToString(row["Ag_GramPanchayatId"]);
+                //        vw.ag_divisionid = Convert.ToString(row["ag_divisionid"]);
+                //        vw.upload_photo_name = Convert.ToString(row["ag_photo_path"]);
+                //        // vw.userid= Convert.ToString(row["userid"]);
+
+                //        //UploadPath UP = new UploadPath();
+                //        //if (row["uploadpath"].ToString() != "")
+                //        //{
+                //        //    vw.uploadpath = UP.Get_Default_Upload_Path() + Convert.ToString(row["uploadpath"]);
+                //        //}
+                //        if (row["uploadpath"].ToString() != "")
+                //        {
+                //            vw.uploadpath = Convert.ToString(row["uploadpath"]);
+                //        }
+                //        if (agencytypeid == "00001" || agencytypeid == "00002" || agencytypeid == "00003" || agencytypeid == "00004" || agencytypeid == "00005")
+                //        {
+                //            vw.ag_photo_path = ClientData.Get_Client_Data().CERTIFICATE_LOGO.ToString();
+                //        }
+                //        else
+                //        {
+                //            if (row["ag_photo_path"].ToString() != "")
+                //            {
+
+
+                //                vw.ag_photo_path = Convert.ToString(row["ag_photo_path"]);
+                //            }
+                //        }
+
+
+
+                //        vw.ag_first_name = Convert.ToString(row["ag_first_name"]);
+                //        vw.ag_m_name = Convert.ToString(row["ag_m_name"]);
+                //        vw.ag_l_name = Convert.ToString(row["ag_l_name"]);
+                //        vw.ag_hfirst_name = Convert.ToString(row["ag_hfirst_name"]);
+                //        vw.ag_hm_name = Convert.ToString(row["ag_hm_name"]);
+                //        vw.ag_hl_name = Convert.ToString(row["ag_hl_name"]);
+                //        vw.ag_address_city = Convert.ToString(row["ag_address_city"]);
+                //        vw.ag_address_state = Convert.ToString(row["ag_address_state"]);
+
+                //        vw.ag_pincode = Convert.ToString(row["ag_pincode"]);
+                //        vw.ag_phone = Convert.ToString(row["ag_phone"]);
+                //        vw.ag_alternative_phone = Convert.ToString(row["ag_alternative_phone"]);
+                //        vw.ag_mobileno = Convert.ToString(row["ag_mobileno"]);
+                //        vw.ag_alternative_mobileno = Convert.ToString(row["ag_alternative_mobileno"]);
+                //        vw.ag_email = Convert.ToString(row["ag_email"]);
+                //        vw.ag_alternative_email = Convert.ToString(row["ag_alternative_email"]);
+
+                //        vw.ag_gender = Convert.ToString(row["ag_gender"]);
+                //        if (row["ag_age"].ToString() != "")
+                //        {
+                //            vw.ag_age = Convert.ToInt32(row["ag_age"]);
+                //        }
+
+                //        if (row["ag_dob"].ToString() != "")
+                //        {
+                //            vw.ag_dob = Convert.ToDateTime(row["ag_dob"]).ToString("yyyy/MM/dd");
+                //        }
+
+                //        //vw.latitude = Convert.ToString(row["latitude"]);
+                //        //vw.longitude = Convert.ToString(row["longitude"]);
+
+                //        vw.ag_salutation = Convert.ToString(row["ag_salutation"]);
+                //        vw.ag_aadhar = Convert.ToString(row["ag_aadhar"]);
+                //        vw.ag_pan = Convert.ToString(row["ag_pan"]);
+                //        vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
+
+
+                //        vw.ag_gstin = Convert.ToString(row["ag_gstin"]);
+                //        vw.ag_sign_path = Convert.ToString(row["ag_sign_path"]);
+                //        vw.tdds_tat_type_id = Convert.ToString(row["tdds_tat_type_id"]);
+                //        vw.remark = Convert.ToString(row["tdds_remark"]);
+
+                //        if (Convert.ToString(row["ag_salutation"]) != "")
+                //        {
+                //            if (s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).Count() > 0)
+                //            {
+                //                vw.salutation_txt = s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).FirstOrDefault().ts_name;
+                //            }
+
+                //        }
+
+
+
+                //        if (Convert.ToString(row["additional_val"]) != "")
+                //        {
+                //            vw.tyaam_val = Convert.ToString(Convert.ToString(row["additional_val"]));
+
+                //            try
+                //            {
+                //                if (agencytypeid != "00053")
+                //                {
+                //                    XmlDocument doc = new XmlDocument();
+                //                    doc.LoadXml(Convert.ToString(row["additional_val"]).Replace("&lt;", "<").Replace("&gt;", ">"));
+                //                    XmlDocument doc1 = new XmlDocument();
+                //                    doc1.LoadXml(doc.ChildNodes[0].InnerXml);
+                //                    string JsonText = JsonConvert.SerializeXmlNode(doc1).Replace("\"ADDINFO\":", "");
+                //                    JsonText = JsonText.Substring(1, JsonText.Length - 2);
+
+                //                    vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText.Replace("\"DETAILS\":{", "\"DETAILS\":[{").Replace("}}}", "}]}}"));
+
+                //                    if (vw.additionalInfo != null)
+                //                    {
+                //                        if (vw.additionalInfo.ID_PROOF_TYPE != null)
+                //                        {
+                //                            if (vw.additionalInfo.ID_PROOF_TYPE.ToString() != "")
+                //                            {
+                //                                vw.additionalInfo.ID_PROOF_TYPE_TXT = (Enum.GetName(typeof(CommonEnum.ID_PROOF_TYPE), Convert.ToInt32(vw.additionalInfo.ID_PROOF_TYPE)));
+                //                            }
+                //                        }
+                //                        if (vw.additionalInfo.CAST != null)
+                //                        {
+                //                            if (vw.additionalInfo.CAST.ToString() != "")
+                //                            {
+                //                                vw.additionalInfo.CAST_TXT = (Enum.GetName(typeof(CommonEnum.CASTCATEGORY), Convert.ToInt32(vw.additionalInfo.CAST)));
+                //                            }
+                //                        }
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    XmlDocument doc = new XmlDocument();
+                //                    doc.LoadXml(Convert.ToString(row["additional_val"]).ToString().Replace("&lt;", "<").Replace("&gt;", ">"));
+                //                    string JsonText1 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[0]);
+                //                    JsonText1 = JsonText1.Replace("{\"ADDINFO\":", "").Replace("}}", "}");
+                //                    vw.additionalInfo = JsonConvert.DeserializeObject<AgencyAdditionalInfo>(JsonText1);
+
+                //                    string JsonText2 = JsonConvert.SerializeObject(doc.ChildNodes[0].ChildNodes[1]);
+                //                    if (JsonText2 != "null")
+                //                    {
+                //                        JsonText2 = JsonText2.Replace("{\"CONTACTPERSON\":", "").Replace("}}", "}");
+                //                        //JsonText2 = "[{'Designation':'prince','Name':'ds','Phone':'4232','Email':'ddfg@gmail.com'},{'Designation':'Designtion','Name':'Name','Phone':'5574747474','Email':'mail@gmail.com'}]";
+                //                        JsonText2 = JsonText2.Replace("{\"PERSON\":", "").Replace("]}", "]");
+                //                        List<CONTACTPERSON> P = JsonConvert.DeserializeObject<List<CONTACTPERSON>>(JsonText2);
+                //                        vw.additionalInfo.contactPerson = P.ToArray();
+                //                    }
+
+                //                }
+
+
+
+                //            }
+                //            catch
+                //            {
+                //                vw.additionalInfo = null;
+                //            }
+
+                //        }
+                //        else
+                //        {
+                //            vw.additionalInfo = new AgencyAdditionalInfo();
+                //        }
+
+
+
+
+                //        AL.Add(vw);
+                //    }
+                //}
             }
 
             con.Close();
@@ -535,7 +710,7 @@ namespace LitteraCore.DBContext
             return AL;
         }
 
-        public List<Agency> Get_All_Agency_Name(string agencytypeid = null)
+        public List<Agency> Get_All_Agency_Name(string agencytypeid = null,string columnlist=null)
         {
 
 
@@ -560,51 +735,89 @@ namespace LitteraCore.DBContext
                 {
                     cmd.Parameters.AddWithValue("@agencytype", agencytypeid);
                 }
+                if (columnlist != null)
+                {
+                    cmd.Parameters.AddWithValue("@ColumnList", columnlist);
+                }
 
 
                 cmd.Connection = con;
                 cmd.CommandTimeout = 5000;
                 SqlDataReader row = cmd.ExecuteReader();
 
-
                 while (row.Read())
                 {
-                    if (row["tyaam_status"].ToString() != "-1")
+                    // Skip if tyaam_status = -1
+                    var tyaamStatus = row.GetStringSafe("tyaam_status");
+                    if (tyaamStatus == "-1")
+                        continue;
+
+                    Agency vw = new Agency
                     {
-                        Agency vw = new Agency();
-                        vw.totalcount = Convert.ToInt32(row["totalrecords"]);
-                        vw.agencyid = Convert.ToString(row["AgencyId"]);
-                        vw.tyaam_typeid = Convert.ToString(row["tyaam_typeid"]);
-                        if (Convert.ToString(row["tyaam_status"]) != "")
-                        {
-                            vw.tyaam_status = Convert.ToInt32(row["tyaam_status"]);
-                        }
-                        else
-                        {
-                            vw.tyaam_status = 0;
-                        }
-                        vw.agencyname = Convert.ToString(row["AgencyName"]);
-                        vw.hagencyname = Convert.ToString(row["HAgencyName"]);
+                        totalcount = row.GetIntSafe("totalrecords"),
+                        agencyid = row.GetStringSafe("AgencyId"),
+                        tyaam_typeid = row.GetStringSafe("tyaam_typeid"),
+                        tyaam_status = row.GetIntSafe("tyaam_status"),
 
+                        agencyname = row.GetStringSafe("AgencyName"),
+                        hagencyname = row.GetStringSafe("HAgencyName"),
 
+                        ag_salutation = row.GetStringSafe("ag_salutation"),
 
+                        additionalInfo = new AgencyAdditionalInfo()
+                    };
 
-                        vw.ag_salutation = Convert.ToString(row["ag_salutation"]);
+                    // Assign salutation text
+                    if (!string.IsNullOrEmpty(vw.ag_salutation))
+                    {
+                        int salId = row.GetIntSafe("ag_salutation");
+                        var match = s.FirstOrDefault(o => o.ts_id == salId);
 
-
-                        if (Convert.ToString(row["ag_salutation"]) != "")
-                        {
-                            if (s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).Count() > 0)
-                            {
-                                vw.salutation_txt = s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).FirstOrDefault().ts_name;
-                            }
-
-                        }
-
-                        vw.additionalInfo = new AgencyAdditionalInfo();
-                        AL.Add(vw);
+                        if (match != null)
+                            vw.salutation_txt = match.ts_name;
                     }
+
+                    AL.Add(vw);
                 }
+
+                //while (row.Read())
+                //{
+                //    if (row["tyaam_status"].ToString() != "-1")
+                //    {
+                //        Agency vw = new Agency();
+                //        vw.totalcount = Convert.ToInt32(row["totalrecords"]);
+                //        vw.agencyid = Convert.ToString(row["AgencyId"]);
+                //        vw.tyaam_typeid = Convert.ToString(row["tyaam_typeid"]);
+                //        if (Convert.ToString(row["tyaam_status"]) != "")
+                //        {
+                //            vw.tyaam_status = Convert.ToInt32(row["tyaam_status"]);
+                //        }
+                //        else
+                //        {
+                //            vw.tyaam_status = 0;
+                //        }
+                //        vw.agencyname = Convert.ToString(row["AgencyName"]);
+                //        vw.hagencyname = Convert.ToString(row["HAgencyName"]);
+
+
+
+
+                //        vw.ag_salutation = Convert.ToString(row["ag_salutation"]);
+
+
+                //        if (Convert.ToString(row["ag_salutation"]) != "")
+                //        {
+                //            if (s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).Count() > 0)
+                //            {
+                //                vw.salutation_txt = s.Where(o => o.ts_id == Convert.ToInt32(row["ag_salutation"])).FirstOrDefault().ts_name;
+                //            }
+
+                //        }
+
+                //        vw.additionalInfo = new AgencyAdditionalInfo();
+                //        AL.Add(vw);
+                //    }
+                //}
             }
 
             con.Close();
@@ -849,7 +1062,7 @@ namespace LitteraCore.DBContext
             List<BranchType> bt = new List<BranchType>();
             bt = BranchTypes();
             List<Agency> branches = new List<Agency>();
-            branches = Get_All_Agency_Name("00001,00002,00003,00004,00005");
+            branches = Get_All_Agency_Name("00001,00002,00003,00004,00005", "AgencyId,tyaam_status,AgencyName,HAgencyName,ag_email,ag_mobileno,totalrecords");
 
 
 
@@ -1251,6 +1464,10 @@ namespace LitteraCore.DBContext
 
         public bool Update_Agency_Address_Info(string agencyid, string agencytypeid, string branchid, string createdby, Agency_Participant_AddressInfo pi)
         {
+            if (pi.pincode == "")
+            {
+                pi.pincode = null;
+            }
 
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
@@ -1410,7 +1627,7 @@ namespace LitteraCore.DBContext
         }
 
 
-        public List<Agency> Get_Agency_Data_For_Login(string agencytypeid, string agencyid, int pageno, int pagesize, string search, string tat_type_id = null)
+        public List<Agency> Get_Agency_Data_For_Login(string agencytypeid, string agencyid, int pageno, int pagesize, string search, string tat_type_id = null,string columnlist=null)
         {
             string searchcolumn = null; string searchvalue = null;
             if (search != null)
@@ -1430,7 +1647,7 @@ namespace LitteraCore.DBContext
 
             List<Agency> AL = new List<Agency>();
             AgencyDB ABD = new AgencyDB(_configuration);
-            AL = ABD.Get_Agency(agencytypeid, agencyid, pageno, pagesize, searchcolumn, searchvalue, filtername, filtervalue, tat_type_id);
+            AL = ABD.Get_Agency(agencytypeid, agencyid, pageno, pagesize, searchcolumn, searchvalue, filtername, filtervalue, tat_type_id, columnlist);
             //AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.PortalAdmin_Agencyid.ToString().ToUpper()).ToList();
             //AL = AL.Where(o => o.agencyid.ToString().ToUpper() != CommonEnum.SuperAdmin_Agencyid.ToString().ToUpper()).ToList();
 
@@ -1484,6 +1701,101 @@ namespace LitteraCore.DBContext
             cmd.ExecuteNonQuery();
             con.Close();
             return true;
+        }
+
+
+
+        public List<Agency> Search_Agency(string searchval,string columnlist=null)
+        {
+
+
+            List<Agency> AL = new List<Agency>();
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable();
+            //***********Code to get salutaion data for salutation text
+
+            List<SALUTATION> s = new List<SALUTATION>();
+            s = Get_SALUTATION();
+            //*****************
+            //List<Agency> organisations = new List<Agency>();
+            //organisations = Get_ORGANISATION_LIST_DATA();
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_agency_vr1", con);
+            if(columnlist != null)
+            {
+                cmd.Parameters.AddWithValue("@ColumnList", columnlist);
+            }
+            
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            dt.DefaultView.RowFilter = "AgencyName like '%"+ searchval + "%' or HAgencyName like '%"+ searchval + "%' or ag_mobileno like '%"+ searchval + "%' or ag_email like '%"+ searchval + "%'";
+            dt = dt.DefaultView.ToTable();
+           foreach (DataRow dr in dt.Rows)
+            {
+                Agency vw = new Agency();
+                vw.agencyid = Convert.ToString(dr["agencyid"]);
+                vw.agencyname = Convert.ToString(dr["agencyname"]);
+                vw.hagencyname = Convert.ToString(dr["hagencyname"]);
+                vw.ag_mobileno = Convert.ToString(dr["ag_mobileno"]);
+                vw.ag_email= Convert.ToString(dr["ag_email"]);
+                AL.Add(vw);
+            }
+
+            con.Close();
+
+            return AL;
+        }
+
+        public List<Agency> Get_CD_Charge_Details()
+        {
+
+            List<Agency> AL = new List<Agency>();
+            DataTable dt = new DataTable();
+
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State == ConnectionState.Open) { con.Close(); }
+            con.Open();
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_hr_delegated_department", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@procedurefor", "2");
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            dt.DefaultView.RowFilter = "thdd_charge_id ='" + CommonEnum.CDCharge + "' or thdd_charge_id='" + CommonEnum.ACDCharge + "'";
+            dt = dt.DefaultView.ToTable();
+            foreach (DataRow row in dt.Rows)
+            {
+                Agency vw = new Agency();
+                vw.agencyid = Convert.ToString(row["thdd_emp_id"]);
+
+                vw.agencyname    = Convert.ToString(row["agencyname"]);
+                vw.hagencyname = Convert.ToString(row["hagencyname"]);
+                vw.ParentId = Convert.ToString(row["thdd_charge_id"]);
+
+                AL.Add(vw);
+            }
+
+
+
+
+
+            return AL;
         }
 
     }

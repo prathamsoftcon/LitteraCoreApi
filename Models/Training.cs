@@ -109,7 +109,22 @@ namespace LitteraCore.Models
         public int no_of_response { get; set; }
 
         public string trg_setting_search { get; set; }
+
+        public int no_of_assignment { get; set; }
+
+        public string assignment_faculties { get; set; }
+
+        public trg_contact_person[] contact_person { get; set; }
+
     }
+
+    public class trg_contact_person
+    {
+        public string person_name { get; set; }
+        public string person_email { get; set; }
+        public string person_mobile { get; set; }
+    }
+
 
     public class FB_Share_Data
     {
@@ -138,7 +153,21 @@ namespace LitteraCore.Models
         public displaycontrols[] displaycontrols { get; set; }
         public session_setting Session { get; set; }
 
+        public certificate_setting certificate_setting { get; set; }
 
+
+    }
+    public class certificate_setting
+    {
+        public int no_of_signatory_required { get; set; } = 0;
+        public certificate_percentage[] certificate_percentage { get; set; }
+
+    }
+    public class certificate_percentage
+    {
+        public decimal from { get; set; }
+        public decimal to { get; set; }
+        public string grade { get; set; }
     }
     public class displaycontrols
     {
@@ -161,6 +190,8 @@ namespace LitteraCore.Models
         public int mark_per_ques_Self_Test { get; set; }
 
         public int feedback_on_session { get; set; } = 1;
+
+        public int content_feedback_on_session { get; set; } = 1;
     }
     public class SessionRestriction
     {
@@ -177,6 +208,8 @@ namespace LitteraCore.Models
 
         public string SessionOrder_selfpaced_trg { get; set; }
         public string SessionOrder_other_trg { get; set; }
+
+        public certificate_setting certificate_setting { get; set; }
     }
     public class SessionAccessibility
     {
@@ -349,5 +382,15 @@ namespace LitteraCore.Models
 
         public string mobileno { get; set; }
 
+        public string userid { get; set; }
+
+    }
+
+    public class usertrainings
+    {
+        public string trainingid { get; set; }
+        public string trainingcode { get; set; }
+        public string training_title { get; set; }
+        public Trg_Setting? trg_Setting { get; set; }
     }
 }

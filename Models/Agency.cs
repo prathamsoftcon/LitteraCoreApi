@@ -50,7 +50,7 @@
         public string ag_email { get; set; }
         public string ag_alternative_email { get; set; }
         public string ag_gender { get; set; }
-        public int ag_age { get; set; }
+        public int? ag_age { get; set; }
 
         public string ag_dob { get; set; }
 

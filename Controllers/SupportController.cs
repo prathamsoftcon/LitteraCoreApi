@@ -176,7 +176,7 @@ namespace LitteraCore.Controllers
 
 
             List<Participant> s = new List<Participant>();
-            s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue);
+            s = pdb.Get_Search_Participant(trainingid, null, branchid, searchcolumn, searchvalue, "ParticipantId,ParticipantName,HParticipantName,photopath,totalrecords,ttpai_id,is_approve,email,mobileno,usercode");
             SupportBL SBL = new SupportBL(_configuration);
 
            
@@ -202,6 +202,10 @@ namespace LitteraCore.Controllers
         [Route("api/Learning_Report_Summary")]
         public IActionResult Learning_Report_Summary(string? trainingid = null, string? participantid = null, string? ttsam_id = null, string? branchid = null, int reporttype = 1, string? fromdate = null, string? todate = null, int pageno = 1, int pagesize = -1, string? SearchColumn = null, string? searchvalue = null, string? sortcolumn = null, string? sortdirection = null)
         {
+           if(trainingid != null)
+            {
+                trainingid = trainingid.Split(",".ToCharArray())[0].ToString();
+            }
             string unitname = "";
             decimal learning = 0;
             List<Learning_Report_Data> s = new List<Learning_Report_Data>();
@@ -307,7 +311,7 @@ namespace LitteraCore.Controllers
             ParticipantDB tdb = new ParticipantDB(_configuration);
             foreach (string trg in trainings.id)
             {
-                p = tdb.Get_Trg_Participant_List(trg, null, branchid, null, null, null, null, null, null, 1, 1);
+                p = tdb.Get_Trg_Participant_List(trg, null, branchid, null, null, null, null, null, null, 1, 1,2, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve,t_Name,TrainingCode");
                 if (p.Count()  > 0)
                 {
                     li.Add(new Enrollment_Summary {  trainingid = trg, t_code=p.FirstOrDefault().TrainingCode, total_enrollments=p.FirstOrDefault().totalrecords.ToString(), proposed_participants=null, t_name=p.FirstOrDefault().t_Name, no_of_active_lerners="0" });

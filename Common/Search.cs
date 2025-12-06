@@ -62,6 +62,26 @@ namespace LitteraCore.Common
             return query.Where(finalPredicate).ToList();
         }
 
+        //private Expression CreatePredicate<T>(SearchCriteria criteria, ParameterExpression parameter)
+        //{
+        //    var column = criteria.Column;
+        //    var value = criteria.Value;
+        //    var condition = criteria.Condition.ToUpper();
+
+        //    var property = Expression.Property(parameter, column);
+        //    var propertyValue = Expression.Constant(Convert.ChangeType(value, property.Type), property.Type);
+
+        //    Expression body = condition switch
+        //    {
+        //        "=" => Expression.Equal(property, propertyValue),
+        //        "LIKE" => Expression.Call(property, typeof(string).GetMethod("Contains", new[] { typeof(string) }), propertyValue),
+        //        ">" => Expression.GreaterThan(property, propertyValue),
+        //        "<" => Expression.LessThan(property, propertyValue),
+        //        _ => throw new NotSupportedException($"Condition '{condition}' is not supported.")
+        //    };
+
+        //    return body;
+        //}
         private Expression CreatePredicate<T>(SearchCriteria criteria, ParameterExpression parameter)
         {
             var column = criteria.Column;
@@ -69,19 +89,44 @@ namespace LitteraCore.Common
             var condition = criteria.Condition.ToUpper();
 
             var property = Expression.Property(parameter, column);
-            var propertyValue = Expression.Constant(Convert.ChangeType(value, property.Type), property.Type);
 
-            Expression body = condition switch
+            // Ensure the property value is correctly typed
+            var targetType = property.Type;
+            var convertedValue = Convert.ChangeType(value, targetType);
+            var propertyValue = Expression.Constant(convertedValue, targetType);
+
+            Expression body;
+
+            // Case-insensitive handling for string types
+            if (property.Type == typeof(string))
             {
-                "=" => Expression.Equal(property, propertyValue),
-                "LIKE" => Expression.Call(property, typeof(string).GetMethod("Contains", new[] { typeof(string) }), propertyValue),
-                ">" => Expression.GreaterThan(property, propertyValue),
-                "<" => Expression.LessThan(property, propertyValue),
-                _ => throw new NotSupportedException($"Condition '{condition}' is not supported.")
-            };
+                var toLowerMethod = typeof(string).GetMethod("ToLower", Type.EmptyTypes);
+
+                var propertyToLower = Expression.Call(property, toLowerMethod);
+                var valueToLower = Expression.Call(propertyValue, toLowerMethod);
+
+                body = condition switch
+                {
+                    "=" => Expression.Equal(propertyToLower, valueToLower),
+                    "LIKE" => Expression.Call(propertyToLower, typeof(string).GetMethod("Contains", new[] { typeof(string) }), valueToLower),
+                    _ => throw new NotSupportedException($"Condition '{condition}' is not supported for string.")
+                };
+            }
+            else
+            {
+                // Non-string types (e.g., int, DateTime)
+                body = condition switch
+                {
+                    "=" => Expression.Equal(property, propertyValue),
+                    ">" => Expression.GreaterThan(property, propertyValue),
+                    "<" => Expression.LessThan(property, propertyValue),
+                    _ => throw new NotSupportedException($"Condition '{condition}' is not supported.")
+                };
+            }
 
             return body;
         }
+
 
         private Expression CombinePredicates(Expression left, Expression right, string nextOperator)
         {

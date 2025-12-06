@@ -1,0 +1,14 @@
+{
+  "Generate_Certificate": {
+    "Eligibility": {
+      "Session_Completion_percentage": 10,
+      "min_learning_time_min": 200,
+      "attendance_percentage": null
+    },
+    "signatory": {
+      "min_signatory_required": 0
+    },
+    "Certificate_text": "This is certify that ##student_name## a student of ##classname## Registration no ##registration_no## has successflly completed the ##coursename## organised by Madhya Pradesh Bhoj(Open) unievrsity under the National Education Policy (NEP) 2020 Vocational education initiative.<br/> We Congratulate ##student_name## on enhancing their personal and professional skills and wish them success ub their future endeavours.",
+    "Grade_required": 0
+  }
+}

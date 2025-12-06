@@ -472,12 +472,12 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback360_trainingid_Summery")]
-        public IActionResult Feedback360_trainingid_Summery(string? trainigid = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
+        public IActionResult Feedback360_trainingid_Summery(string fromdate, string todate,string? trainigid = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
         {
 
             List<FeedbackReportSummery_trainingwise> FRS = new List<FeedbackReportSummery_trainingwise>();
             FeedbackBL FBL = new FeedbackBL(_configuration);
-            FRS = FBL.Get_Feedback_360_Summery_trainingwise(trainigid);
+            FRS = FBL.Get_Feedback_360_Summery_trainingwise(fromdate,todate,trainigid);
 
 
 
@@ -500,5 +500,116 @@ namespace LitteraCore.Controllers
 
 
 
+        [HttpPost]
+        [Route("api/Training_Wise_Feedback_Summary")]
+        public IActionResult Training_Wise_Feedback_Summary(string fromdate, string todate, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null, string? trainingid = null)
+        {
+
+
+
+            List<FeedbackReportSummery_trainingwise> FRS = new List<FeedbackReportSummery_trainingwise>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            FRS = FBL.Get_Feedback_360_Summery_trainingwise(fromdate, todate,trainingid);
+
+            var searchService = new SearchService();
+            // Filter items based on the search criteria
+            var filteredItems = FRS;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(FRS, searchCriterias.SearchCriteria.ToList());
+            }
+
+         
+
+            var pagedList = Paging.GetPagedList(param, filteredItems);
+            var result = Paging.GetPagedData(param, filteredItems);
+
+            return Ok(result);
+
+
+        }
+
+
+        [HttpPost]
+        [Route("api/Training_Questionnaire_wise_Feedback_Summary")]
+        public IActionResult Training_Questionnaire_wise_Feedback_Summary(string fromdate, string todate, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null, string? trainingid = null)
+        {
+
+            List<FeedbackReportSummery_trainingwise> FRS = new List<FeedbackReportSummery_trainingwise>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            FRS = FBL.Get_Feedback_360_Summery_Groupwise(fromdate, todate,trainingid);
+
+            var searchService = new SearchService();
+            // Filter items based on the search criteria
+            var filteredItems = FRS;
+            if (searchCriterias != null)
+            {
+                filteredItems = searchService.FilterItems(FRS, searchCriterias.SearchCriteria.ToList());
+            }
+
+
+
+            var pagedList = Paging.GetPagedList(param, filteredItems);
+            var result = Paging.GetPagedData(param, filteredItems);
+
+            return Ok(result);
+
+
+        }
+
+
+        [HttpPost]
+        [Route("api/Feedback_Summery_Questionwise")]
+        public IActionResult Feedback_Summery_Questionwise(string groupid,string trainingid, string? sharefeedbackid = null, string? responsee_mobileno = null, string? responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_Rating_Result ORR = new Question_Rating_Result();
+            //List<Question_Rating_Result_Summary> FRS = new List<Question_Rating_Result_Summary>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_Rating_Result_Summary_New(groupid,trainingid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
+
+
+
+        [HttpPost]
+        [Route("api/Feedback_Summery_Questionwise_MCQ")]
+        public IActionResult Feedback_Summery_Questionwise_MCQ(string groupid, string trainingid, string? sharefeedbackid = null, string? responsee_mobileno = null, string? responsee_emailid = null)
+        {
+            //Handle Null
+            if (responsee_mobileno == "")
+            {
+                responsee_mobileno = null;
+            }
+            if (responsee_emailid == "")
+            {
+                responsee_emailid = null;
+            }
+
+            Question_MCQ_Result ORR = new Question_MCQ_Result();
+            //List<Question_Rating_Result_Summary> FRS = new List<Question_Rating_Result_Summary>();
+            FeedbackBL FBL = new FeedbackBL(_configuration);
+            ORR = FBL.Get_MCQ_Result_Summary_New(groupid, trainingid, sharefeedbackid, responsee_mobileno, responsee_emailid);
+
+
+
+            return Ok(ORR);
+
+
+        }
     }
 }

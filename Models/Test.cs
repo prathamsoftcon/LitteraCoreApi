@@ -115,6 +115,35 @@
 
     }
 
-   
+    public class participant_test_result
+    {
+        public string participantid { get; set; }
+        public string testparticipantid { get; set; }
+        public string AgencyName { get; set; }
+        public string ag_mobileno { get; set; }
+        public string ag_email { get; set; }
+
+        public int total_questions { get; set; }
+        public int total_correct { get; set; }
+        public int total_incorrect { get; set; }
+
+        public int total_not_answered { get; set; }
+        public int totalrecored { get; set; }
+
+    }
+
+
+
+    public class TEST_SESSION_MAPPING_DATA
+    {
+        public string testid { get; set; }
+        public string trainingid { get; set; }
+        public string sessionid { get; set; }
+        public string TestQuestionID { get; set; }
+       
+    }
+
+
+
 }
 
