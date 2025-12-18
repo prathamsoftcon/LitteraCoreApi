@@ -22,7 +22,7 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public List<Session> Get_Session_Data_By_Trg(string trainingid)
+        public List<Session> Get_Session_Data_By_Trg(string trainingid,string facultyid =null)
         {
 
             List<Session> sessiondata = new List<Session>();
@@ -93,6 +93,13 @@ namespace LitteraCore.DBContext
 
             foreach (DataRow row in dt.Rows)
             {
+                if(facultyid != null)
+                {
+                    if(facultyid.ToString().ToUpper() != Convert.ToString(row["ttttt_facultyid"]).ToString().ToUpper())
+                    {
+                        continue;
+                    }
+                }
                 if(sessiondata.Where(o=>o.ttttt_session_id.ToString().ToUpper()== Convert.ToString(row["ttttt_session_id"]).ToString().ToUpper()).Count()>0)
                 {
                     continue;
@@ -116,6 +123,7 @@ namespace LitteraCore.DBContext
                 vw.ttttt_remark = Convert.ToString(row["ttttt_remark"]);
                 vw.ttttt_session_week = Convert.ToInt32(row["ttttt_session_week"]);
                 vw.ttttt_type = Convert.ToInt32(row["ttttt_type"]);
+                vw.trainingcategoryid = Convert.ToString(row["trainingcategoryid"]);
                 if (row["ttttt_session_duration_type"] != DBNull.Value)
                 {
                     vw.ttttt_session_duration_type = Convert.ToInt32(row["ttttt_session_duration_type"]);

@@ -192,6 +192,8 @@ namespace LitteraCore.Models
         public int feedback_on_session { get; set; } = 1;
 
         public int content_feedback_on_session { get; set; } = 1;
+
+        public int? Session_Completion_on_any_one_content { get; set; }
     }
     public class SessionRestriction
     {
@@ -210,6 +212,7 @@ namespace LitteraCore.Models
         public string SessionOrder_other_trg { get; set; }
 
         public certificate_setting certificate_setting { get; set; }
+        public int Session_Completion_on_any_one_content { get; set; } = 0;
     }
     public class SessionAccessibility
     {

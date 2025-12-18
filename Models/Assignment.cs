@@ -60,6 +60,8 @@
         public List<AssignmentQuestions> AssignmentQuestionsMarks { get; set; }
 
         public Trg_Setting? trg_Setting { get; set; }
+
+        public UserBranch userbranches { get; set; }
     }
     public class AssignmentType
     {
@@ -117,7 +119,7 @@
 
         public int valuation_status { get; set; }
 
-        public decimal marks_allocated { get; set; }
+        public decimal? marks_allocated { get; set; }
 
         public string get_path(string absouutepath)
         {
@@ -277,7 +279,7 @@
         public string questionid { get; set; }
         public string Description { get; set; }
         public decimal max_marks { get; set; }
-        public decimal max_allocated { get; set; }
+        public decimal? max_allocated { get; set; } = null;
 
     }
     public class Assignment_Question_Valuation

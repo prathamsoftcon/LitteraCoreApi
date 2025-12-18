@@ -640,7 +640,45 @@ namespace LitteraCore.DBContext
         }
 
 
-     
+        public assignment_session_mapping_data Get_Session_Assignment_Details(string sessionid)
+        {
+
+            assignment_session_mapping_data assignment = new assignment_session_mapping_data();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("SELECT * FROM Assessment.Schedule WHERE SessionID = @SessionID;", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@SessionID", sessionid);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+
+                assignment.assignmentid = Convert.ToString(row["AssignmentId"]);
+                assignment.sessionid = Convert.ToString(row["SessionID"]);
+                assignment.trainingid = Convert.ToString(row["trainingid"]);
+
+
+            }
+
+
+
+
+
+            return assignment;
+        }
+
+
+
 
 
     }

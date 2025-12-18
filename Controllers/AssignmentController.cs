@@ -139,6 +139,14 @@ namespace LitteraCore.Controllers
             {
                 List<AssignmentUpload> uploads = new List<AssignmentUpload>();
                 uploads = ABL.Get_Participant_Uploaded_Assignments(userid);
+                AgencyDB adb = new AgencyDB(_configuration);
+                user_agency_mapping uam = new user_agency_mapping();
+                uam = adb.Get_User_Agency_Mapping_Data(userid);
+                UserBranch s = new UserBranch();
+                if (uam.userid != null)
+                {
+                   s = adb.Get_User_Branches(uam.userid);
+                }
 
                 foreach (Assignment a in assignments)
                 {
@@ -154,8 +162,12 @@ namespace LitteraCore.Controllers
                         a.taau_uploadid = "";
                     }
 
-
+                    a.userbranches = s;
                 }
+               
+              
+               
+
             }
           
             return Ok(assignments);
@@ -655,6 +667,19 @@ namespace LitteraCore.Controllers
 
             var result = Paging.GetPagedData(param, filteredItems);
             return Ok(result);
+        }
+
+        [HttpGet]
+        [Route("api/Get_Session_Assignment_Mapping")]
+        public IActionResult Get_Session_Assignment_Mapping(string sessionid)
+        {
+            AssignmentBL ABL = new AssignmentBL(_configuration);
+            assignment_session_mapping_data assignments = new assignment_session_mapping_data();
+            assignments = ABL.Get_Session_Assignment_Details(sessionid);
+
+
+
+            return Ok(assignments);
         }
     }
 }

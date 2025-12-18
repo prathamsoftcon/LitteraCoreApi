@@ -84,8 +84,9 @@
       }
 
     ]
-  }
- 
+  },
+  "Session_Completion_on_any_one_content": 0
+
   //"certificate_certificate": [
   //  {
   //    "from": 0,

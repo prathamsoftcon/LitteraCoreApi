@@ -19,12 +19,12 @@ namespace LitteraCore.BLContext
             _configuration = configuration;
         }
 
-        public List<Session> Get_Session_Data_By_Trg(string trainingid)
+        public List<Session> Get_Session_Data_By_Trg(string trainingid,string facultyid=null)
         {
 
             List<Session> sessiondata = new List<Session>();
             SessionDB sdb=new SessionDB(_configuration);
-            sessiondata = sdb.Get_Session_Data_By_Trg(trainingid);
+            sessiondata = sdb.Get_Session_Data_By_Trg(trainingid, facultyid);
             Training T = new Training();
             TrgBL TBL=new TrgBL(_configuration);
             T = TBL.Get_Particular_Training(trainingid);
@@ -806,11 +806,52 @@ namespace LitteraCore.BLContext
             return issaved;
         }
 
-        public session_completion_rule session_completion_rule()
-        {
+        //public session_completion_rule session_completion_rule()
+        //{
 
+        //    session_completion_rule rule = new session_completion_rule();
+        //    rule.all_content_completion_mandatory = 0;
+        //    return rule;
+        //}
+
+        public session_completion_rule session_completion_on_content(string trainingid)
+        {
             session_completion_rule rule = new session_completion_rule();
-            rule.all_content_completion_mandatory = 0;
+
+            //Get training setting
+            TrainingDB tbl = new TrainingDB(_configuration);
+            Training Trg = new Training();
+            Trg = tbl.Get_Particular_Training_Detail(trainingid);
+
+              if(Trg.trg_Setting !=null) //if training setting found
+            {
+                if(Trg.trg_Setting.Session?.Session_Completion_on_any_one_content != null) //if session completion on any one setting found
+                {
+                    rule.Session_Completion_on_any_one_content = Trg.trg_Setting.Session.Session_Completion_on_any_one_content;
+                }
+                else
+                {
+                    TrainingSettings Default_TS = new TrainingSettings();
+                    string Foldername = CommonEnum.GET_JSON_FOLDER();
+                    string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
+                    Default_TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
+                    rule.Session_Completion_on_any_one_content = Default_TS.Session_Completion_on_any_one_content;
+                }
+            }
+            else
+            {
+                TrainingSettings Default_TS = new TrainingSettings();
+                string Foldername = CommonEnum.GET_JSON_FOLDER();
+                string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
+                Default_TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
+                rule.Session_Completion_on_any_one_content = Default_TS.Session_Completion_on_any_one_content;
+            }
+            
+            //return setting
+            //if not found get setting from JSON and return
+            //If training setting not found then  get setting from JSON and return
+
+           
             return rule;
         }
 

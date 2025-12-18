@@ -145,6 +145,12 @@
 
 
     }
+
+    public class user_agency_mapping
+    {
+        public string agencyid { get; set; }
+        public string userid { get; set; }
+    }
     public class userDetails
     {
         public string usertype { get; set; }

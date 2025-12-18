@@ -252,7 +252,18 @@ namespace LitteraCore.Controllers
             }
 
         }
+        [HttpGet("api/trainingplan")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public IActionResult trainingplan()
+        {
+            CommonDB cdb = new CommonDB(_configuration, null);
 
+            string name = cdb.Get_TP_Data("name");
+            var code = cdb.Get_TP_Data("code");
+            return Ok(new { c = name, k = code });
+
+
+        }
         [HttpPost]
         [Route("api/Update_Email")]
         public IActionResult Update_Email(string agencyid, string emailid)
@@ -291,6 +302,6 @@ namespace LitteraCore.Controllers
 
         }
 
-
+      
     }
 }

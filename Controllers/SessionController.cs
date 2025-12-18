@@ -1,11 +1,14 @@
-﻿using LitteraCore.BLContext;
+﻿using Azure.Core.Pipeline;
+using LitteraCore.BLContext;
 using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Engines;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using static Azure.Core.HttpHeader;
@@ -44,7 +47,34 @@ namespace LitteraCore.Controllers
            
             SessionBL cbl = new SessionBL(_configuration);
             List<Session> s=new List<Session>();
-            s=cbl.Get_Session_Data_By_Trg(trainingid);
+            //********Filter faculty data only
+            if (usertype != null)
+            {
+                if (usertype == "4")
+                {
+                    s = cbl.Get_Session_Data_By_Trg(trainingid,userid);
+                }
+                else
+                {
+                    s = cbl.Get_Session_Data_By_Trg(trainingid);
+                    if (usertype == "6")  // This is an extra usertype which is get from front end to differentiate to get all session for faculty
+                    {
+                        usertype = "4";
+                    }
+                }
+            }
+            else
+            {
+                s = cbl.Get_Session_Data_By_Trg(trainingid);
+            }
+
+           
+
+
+         
+         
+
+            //*****
             //*********Get Training Setting Detail
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
@@ -546,56 +576,191 @@ namespace LitteraCore.Controllers
             return Ok(issaved);
         }
 
+        //[HttpPost]
+        //[Route("api/Update_Session_Status_old")]
+        //public IActionResult Update_Session_Status_old(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status,[FromBody] contents_status_list cl = null)
+        //{
+        //    Session_Content_Status[] cs = null;
+        //    if (cl != null)
+        //    {
+        //        cs = cl.Session_Content_Status;
+        //    }
+           
+        //    SessionBL SDB = new SessionBL(_configuration);
+        //    session_completion_rule r = new session_completion_rule();
+        //    r = SDB.session_completion_rule();
+        //    if (status == 1)
+        //    {
+        //        if (r.all_content_completion_mandatory == 1)
+        //        {
+        //            if (cs != null)
+        //            {
+        //                if (cs.Where(o => o.is_completed == 0).Count() > 0)
+        //                {
+        //                    throw new Exception("Please read all content first");
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if(cs != null)
+        //            {
+        //                foreach (Session_Content_Status c in cs)
+        //                {
+        //                    c.is_completed = 1;
+        //                }
+        //            }
+                   
+        //        }
+        //    }
+
+        //    if (status == 1)
+        //    {
+        //        List<user_session_status> completiondata = SDB.Get_Participant_session_status(Participantid, trainingid, Sessionid);
+        //        if (completiondata.Count > 0)
+        //        {
+        //            cs = completiondata.FirstOrDefault().contentstatus;
+        //        }
+               
+        //    }
+
+        //    //extra condition in case of status=0 means that content completion then update/insert content entry this happened from single share
+        //    if (status == 0)
+        //    {
+        //        List<user_session_status> completiondata = SDB.Get_Participant_session_status(Participantid, trainingid, Sessionid);
+        //        List<Session_Content_Status> scs = completiondata.FirstOrDefault().contentstatus.ToList();
+        //        if (cs.Count() > 0)
+        //        {
+        //            if(scs.Where(o => o.ttsam_id.ToString().ToUpper() == cs.FirstOrDefault().ttsam_id.ToString().ToUpper()).Count() > 0)
+        //            {
+        //                var itemToUpdate = scs.FirstOrDefault(o => o.ttsam_id.ToString().ToUpper() == cs.FirstOrDefault().ttsam_id.ToString().ToUpper());
+        //                if (itemToUpdate != null)
+        //                {
+        //                    itemToUpdate.is_completed = cs.FirstOrDefault().is_completed;
+                            
+        //                }
+        //            }
+        //            else
+        //            {
+        //                scs.Add(new Session_Content_Status { sessionid = cs.FirstOrDefault().sessionid, ttsam_id = cs.FirstOrDefault().ttsam_id, is_completed = cs.FirstOrDefault().is_completed });
+        //            }
+        //        }
+        //        cs = scs.ToArray();
+
+        //        ContentBL CBL = new ContentBL(_configuration);
+        //        PagedResult<Content> AL = new PagedResult<Content>();
+        //        PaginationParam p = new PaginationParam();
+        //        AL = CBL.Get_Trg_Content(trainingid, Sessionid, null, p);
+        //        int is_All_completed = 1;
+        //        if( AL != null)
+        //        {
+        //          foreach(Content c in AL.Items)
+        //            {
+        //                if (cs.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).Count() > 0)
+        //                {
+        //                    if(cs.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).FirstOrDefault().is_completed != 1)
+        //                    {
+        //                        is_All_completed = 0;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        if (is_All_completed == 1)
+        //        {
+        //            status = 1;
+        //        }
+        //    }
+        //    bool issaved = SDB.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid,status, cs);
+
+        //    return Ok(issaved);
+        //}
+
+
         [HttpPost]
         [Route("api/Update_Session_Status")]
-        public IActionResult Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status,[FromBody] contents_status_list cl = null)
+        public IActionResult Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status, [FromBody] contents_status_list cl = null)
         {
-            Session_Content_Status[] cs = null;
-            if (cl != null)
-            {
-                cs = cl.Session_Content_Status;
-            }
+            //*****************************************
+            //Get configuration for session completion
            
-            SessionBL SDB = new SessionBL(_configuration);
-            session_completion_rule r = new session_completion_rule();
-            r = SDB.session_completion_rule();
-            if (status == 1)
-            {
-                if (r.all_content_completion_mandatory == 1)
-                {
-                    if (cs != null)
-                    {
-                        if (cs.Where(o => o.is_completed == 0).Count() > 0)
-                        {
-                            throw new Exception("Please read all content first");
-                        }
-                    }
-                }
-                else
-                {
-                    if(cs != null)
-                    {
-                        foreach (Session_Content_Status c in cs)
-                        {
-                            c.is_completed = 1;
-                        }
-                    }
-                   
-                }
-            }
 
-            if (status == 1)
+
+
+            //if completion required on any one content
+            //Check in given content status if any one is completed
+            // set session status=1
+            //Get all session content and update status 1 and save.
+
+
+            //if completion required on all content
+            //Get session content status (if content status not found then this will return all content with completion =0
+            //update given content status in above 
+            //check if all session is completed 
+            //set session status =1
+            //Update session status
+
+
+            //Exception Condition
+            // if session status=1 and cl is null as per discussion no any case there raise error by backend
+            //**************************
+
+            //**************Code started
+
+
+            //Get configuration for session completion
+            SessionBL sbl = new SessionBL(_configuration);
+            int? session_completion_on_any_one_content = sbl.session_completion_on_content(trainingid).Session_Completion_on_any_one_content;
+
+
+
+            //Get session content status (if content status not found then this will return all content with completion =0
+          
+            List<user_session_status> sessioncontent = new List<user_session_status>();
+            sessioncontent = sbl.Get_Participant_session_status(Participantid, trainingid, Sessionid);
+            Session_Content_Status[] sessioncontent_status = sessioncontent.FirstOrDefault().contentstatus;
+            //update given content status in above 
+            foreach (Session_Content_Status c in sessioncontent_status)
             {
-                List<user_session_status> completiondata = SDB.Get_Participant_session_status(Participantid, trainingid, Sessionid);
-                if (completiondata.Count > 0)
+                if (cl?.Session_Content_Status.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).Count() > 0)
                 {
-                    cs = completiondata.FirstOrDefault().contentstatus;
+                    c.is_completed = cl.Session_Content_Status.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).FirstOrDefault().is_completed;
                 }
-               
             }
-            bool issaved = SDB.Update_Session_Status(Participantid,trainingid,Sessionid,timeonsession,branchid,status, cs);
+            //if completion required on any one content
+            if (session_completion_on_any_one_content == 1)
+            {
+                //Check in given content status if any one is completed
+                if (sessioncontent_status.Where(o => o.is_completed == 1).Count() > 0)
+                {
+                    // set session status=1
+                    status = 1;
+                    // Also set here all content status=1
+                    Array.ForEach(sessioncontent_status, x => x.is_completed = 1);
+
+                }
+            }
+            else if(session_completion_on_any_one_content == 0)
+            {
+                //check if all session is completed (no anyone incomplete)
+                if (sessioncontent_status.Where(o => o.is_completed == 0).Count() <= 0)
+                {
+                    //set session status =1
+                    status = 1;
+                }
+            }
+            //Update session status
+            bool issaved = sbl.Update_Session_Status(Participantid, trainingid, Sessionid, timeonsession, branchid, status, sessioncontent_status);
 
             return Ok(issaved);
+
+
+
+            //Exception Condition
+            // if session status=1 and cl is null as per discussion no any case there raise error by backend
+
+            //**********************
+
+            
         }
 
         [HttpGet]
@@ -2814,7 +2979,73 @@ namespace LitteraCore.Controllers
         }
 
 
+        [HttpGet]
+        [Route("api/Get_Test_Session_Mapping_Data")]
+        public IActionResult Get_Test_Session_Mapping_Data(string sessionid)
+        {
 
+            EvalDB edb = new EvalDB(_configuration);
+            TEST_SESSION_MAPPING_DATA s = new TEST_SESSION_MAPPING_DATA();
+            s = edb.Get_Test_Session_Mapping_Data_By_Session(sessionid);
+            return Ok(s);
+        }
+
+
+        [HttpPost]
+        [Route("api/Complete_Activity")]
+        public IActionResult Complete_Activity(string Participantid, string timeonsession, string ttsam_id, int status, [FromBody] contents_status_list cl = null)
+        {
+            string userid = "";
+            string branchid = "";
+            user_agency_mapping uam = new user_agency_mapping();
+            AgencyDB adb = new AgencyDB(_configuration);
+            uam = adb.Get_User_Agency_Mapping_Data(Participantid);
+            userid = uam.userid;
+            UserBranch b = new UserBranch();
+            b = adb.Get_User_Branches(userid);
+            if (b.branches.Length > 0)
+            {
+                branchid = b.branches.FirstOrDefault().branchid;
+            }
+
+            contentDetail cd = new contentDetail();
+            ContentDB cdb = new ContentDB(_configuration);
+            contentDetail cdn = new contentDetail();
+            cdn = cdb.Get_Content_Detail(ttsam_id);
+
+            
+
+
+            string trainingid = cdn.trainingid;
+            string Sessionid = cdn.sessionid;
+            Update_Session_Status(Participantid, trainingid, Sessionid, timeonsession, branchid,status, cl);
+          
+            return Ok(true);
+
+        }
+
+
+        [HttpGet]
+        [Route("api/Session_Test_Detail")]
+        public IActionResult Session_Test_Detail(string trainingid,string sessionid)
+        {
+            session_test_details sd=new session_test_details();
+            List<Session> sessiondata = new List<Session>();
+            Session s = new Session();
+            SessionDB sdb = new SessionDB(_configuration);
+            sessiondata = sdb.Get_Session_Data_By_Trg(trainingid);
+            s = sessiondata.Where(o => o.ttttt_session_id.ToString().ToUpper() == sessionid.ToString().ToUpper()).FirstOrDefault();
+            sd.trainingCategory = s.trainingcategoryid;
+            sd.questionDifficutyID = null;
+            sd.skillSet = s.ttttt_tag;
+
+
+            CompetencyConfiguration c = new CompetencyConfiguration();
+            EvalBL ebl = new EvalBL(_configuration);
+            c = ebl.GET_SELF_TEST_CONFIGURATION(trainingid);
+            sd.questionCount = c.no_of_question;
+            return Ok(sd);
+        }
 
     }
 }

@@ -142,6 +142,16 @@
         public string TestQuestionID { get; set; }
        
     }
+    public class session_test_details
+    {
+        public string skillSet { get; set; }
+        public int questionCount { get; set; }
+
+        public int? questionDifficutyID { get; set; }
+        public string trainingCategory { get; set; }
+
+
+    }
 
 
 

@@ -1,4 +1,5 @@
 ﻿using LitteraCore.Common;
+using LitteraCore.Common.DMS;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -1796,6 +1797,32 @@ namespace LitteraCore.DBContext
 
 
             return AL;
+        }
+
+        public user_agency_mapping Get_User_Agency_Mapping_Data(string agencyid)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            DataTable dt = new DataTable();
+            SqlCommand cmd = new SqlCommand();
+            cmd = new SqlCommand("SELECT * FROM yuser.tbl_yuser_user_agency_mapping WHERE tyuam_agency_id = @agency_id;", con);
+            cmd.Parameters.AddWithValue("@agency_id", agencyid);
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = 5000;
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+
+            user_agency_mapping uam = new user_agency_mapping();
+            if (dt.Rows.Count > 0)
+            {
+                uam.userid = dt.Rows[0]["tyuam_userid"].ToString();
+                uam.agencyid = dt.Rows[0]["tyuam_agency_id"].ToString();
+            }
+
+            return uam;
+
+
         }
 
     }

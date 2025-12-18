@@ -231,6 +231,17 @@ namespace LitteraCore.BLContext
         }
 
 
+        public assignment_session_mapping_data Get_Session_Assignment_Details(string sessionid)
+        {
+            assignment_session_mapping_data assignment = new assignment_session_mapping_data();
+            AssignmentDB edb = new AssignmentDB(_configuration);
+            assignment = edb.Get_Session_Assignment_Details(sessionid);
+
+            return assignment;
+        }
+
+
+
 
     }
 }

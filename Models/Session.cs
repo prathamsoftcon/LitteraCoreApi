@@ -540,8 +540,9 @@ namespace LitteraCore.Models
 
     public class session_completion_rule
     {
-        public  int all_content_completion_mandatory { get; set; }
-     
+        public  int all_content_completion_mandatory { get; set; } // Depricated not in use
+        public int? Session_Completion_on_any_one_content { get; set; }
+
 
 
 

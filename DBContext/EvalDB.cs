@@ -300,6 +300,7 @@ namespace LitteraCore.DBContext
             string testparticipantid = "";
             if(dt.Rows.Count > 0)
             {
+                //testparticipantid = Convert.ToString(dt.Rows[0]["TestPartcipantID"]);
                 testparticipantid = Convert.ToString(dt.Rows[0]["TestPartcipantID"]);
             }
 

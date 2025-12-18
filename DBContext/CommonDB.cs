@@ -21,6 +21,10 @@ namespace LitteraCore.DBContext
 
         public static string CD_CHARGE_ID = "2724EDE6-BE47-4E77-B4F0-B3DF1ED97BF9";
 
+        //At present these setting hardcode in class but need to set from trg_setting
+        public static int Session_Completion_on_any_one_content = 1; // 1 - on any content session should complete 0 - session complete on all content completion only 
+        public static int Feedback_required_on_content = 0; // in case of 0 feedback on session ,1 -feedback on content.
+        
 
         public static string Get_MaskData(int ismaskingreq, string data, Form form, int columntype)
         {
@@ -132,6 +136,24 @@ namespace LitteraCore.DBContext
             TS = JsonConvert.DeserializeObject<Certificate>(jsontxt);
 
             return TS;
+        }
+
+        public  string Get_TP_Data(string name)
+        {
+            if (name == "name")
+            {
+                string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+                return connectionString;
+            }
+            else if(name == "code")
+            {
+                var validapiKey = _configuration.GetSection("ApiKey").Value;
+                return validapiKey;
+            }
+
+            return "";
+
+
         }
     }
  
