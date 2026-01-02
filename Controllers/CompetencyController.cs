@@ -5,6 +5,7 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 using System.Text;
 
@@ -23,6 +24,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SaveFunction")]
+        [SwaggerOperation("To save competency function data.")]
         public IActionResult SaveFunction(DeptFunction f,string createdby)
         {
             _logger.LogError("Post error.");
@@ -35,6 +37,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetFunction")]
+        [SwaggerOperation("To get competency function data.")]
         public IActionResult GetFunction([FromQuery] PaginationParam filter,int? exactMatch=0,string? searchtext=null)
         {
             CompetencyDB cdb=new CompetencyDB(_configuration);
@@ -70,6 +73,7 @@ namespace LitteraCore.Controllers
 
         [HttpDelete]
         [Route("api/DeleteFunction")]
+        [SwaggerOperation("To delete competency function data.")]
         public IActionResult DeleteFunction(string id)
         {
          
@@ -82,6 +86,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetFunctionById")]
+        [SwaggerOperation("To get particular function detail.")]
         public IActionResult GetFunctionById(string id)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -100,6 +105,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SaveJobPosition")]
+        [SwaggerOperation("To save competency job position data.")]
         public IActionResult SaveJobPosition(JobPosition f, string createdby)
         {
             _logger.LogError("Post error.");
@@ -111,6 +117,7 @@ namespace LitteraCore.Controllers
         }
         [HttpDelete]
         [Route("api/DeleteJobPosition")]
+        [SwaggerOperation("To delete competency function data.")]
         public IActionResult DeleteJobPosition(string id)
         {
 
@@ -123,6 +130,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetJobPosition")]
+        [SwaggerOperation("To get job position data.")]
         public IActionResult GetJobPosition([FromQuery] PaginationParam filter, int? exactMatch = 0, string? searchtext = null)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -159,6 +167,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetJobPositionById")]
+        [SwaggerOperation("To get particulatr competency job position.")]
         public IActionResult GetJobPositionById(string id)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -176,6 +185,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SaveActivity")]
+        [SwaggerOperation("To save competency activity data.")]
         public IActionResult SaveActivity(Activity f, string createdby)
         {
             _logger.LogError("Post error.");
@@ -188,6 +198,7 @@ namespace LitteraCore.Controllers
 
         [HttpDelete]
         [Route("api/DeleteActivity")]
+        [SwaggerOperation("To delete competency activity data.")]
         public IActionResult DeleteActivity(string id)
         {
 
@@ -200,6 +211,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetActivity")]
+        [SwaggerOperation("To get competency activity data.")]
         public IActionResult GetActivity([FromQuery] PaginationParam filter, int? exactMatch = 0, string? searchtext = null)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -236,6 +248,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetActivityById")]
+        [SwaggerOperation("To get particular competency activity data.")]
         public IActionResult GetActivityById(string id)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -253,6 +266,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetPositionLevels")]
+        [SwaggerOperation("To get positions level master data.")]
         public IActionResult GetPositionLevels([FromQuery] PaginationParam filter)
         {
             CompetencyBL cdb = new CompetencyBL(_configuration);
@@ -289,6 +303,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SaveJobRole")]
+        [SwaggerOperation("To save competency job role data.")]
         public IActionResult SaveJobRole(JobRole R, string createdby)
         {
             _logger.LogError("Post error.");
@@ -302,6 +317,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetJobRole")]
+        [SwaggerOperation("To get competency job role data.")]
         public IActionResult GetJobRole([FromQuery] PaginationParam filter, int? exactMatch = 0, string? searchtext = null)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -337,6 +353,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetJobRoleById")]
+        [SwaggerOperation("To get competency job role by id.")]
         public IActionResult GetJobRoleById(string id)
         {
             CompetencyDB cdb = new CompetencyDB(_configuration);
@@ -354,6 +371,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Save_Fracking_EMP")]
+        [SwaggerOperation("To save fracking employee data.")]
         public IActionResult Save_Fracking_EMP(FracEmp E)
         {
             _logger.LogError("Post error.");
@@ -365,6 +383,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Save_Frack_Emp_Activity")]
+        [SwaggerOperation("To save fracking employee data.")]
         public IActionResult Save_Frack_Emp_Activity(FracEmpActivity A)
         {
             _logger.LogError("Post error.");
@@ -376,6 +395,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Save_Frack_Emp_Activity_Resources")]
+        [SwaggerOperation("To save frack employee activity resource.")]
         public IActionResult Save_Frack_Emp_Activity_Resources(FracEmpResources R)
         {
             _logger.LogError("Post error.");
@@ -388,6 +408,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Frac_Emp_Activity")]
+        [SwaggerOperation("To get fracking employee activity data.")]
         public IActionResult Get_Frac_Emp_Activity(string employeeid, string branchid)
         {
             _logger.LogError("Post error.");
@@ -399,6 +420,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Check_Frack_Emp_Exist")]
+        [SwaggerOperation("To check eisting employee.")]
         public IActionResult Check_Frack_Emp_Exist(string mobileno, string branchid)
         {
             bool isexist = false;
@@ -412,6 +434,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetPosts")]
+        [SwaggerOperation("To get posts master data.")]
         public IActionResult GetPosts(string? name)
         {
             string[] posts;
@@ -423,6 +446,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Fracing_Report")]
+        [SwaggerOperation("To get fracing data.")]
         public IActionResult Get_Fracing_Report()
         {
             List<EMP_FRACK_REPORT> r = new List<EMP_FRACK_REPORT>();

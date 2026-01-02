@@ -1,10 +1,12 @@
-﻿using LitteraCore.BLContext;
-using LitteraCore.Common;
-using LitteraCore.DBContext;
+﻿using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using static LitteraCore.Models.Firebase;
+using Microsoft.AspNetCore.Http.Metadata;
+using System.ComponentModel;
+using Swashbuckle.AspNetCore.Annotations;
+
+
 
 namespace LitteraCore.Controllers
 {
@@ -17,7 +19,8 @@ namespace LitteraCore.Controllers
         }
 
         [HttpPost("send")]
-        public async Task<IActionResult> SendNotification([FromBody] NotificationUsers users,string title,string message)
+        [SwaggerOperation("Validates user credentials and logs the user in")]
+        public async Task<IActionResult> SendNotification([FromBody] NotificationUsers users, string title, string message)
         {
             AgencyDB adb = new AgencyDB(_configuration);
             root ft;
@@ -39,7 +42,7 @@ namespace LitteraCore.Controllers
                     // Call Send_Notification method
                     await fb.Send_Notification(t.tyft_token, title, message);
                 }
-               
+
 
                 return Ok("Notification sent successfully.");
             }

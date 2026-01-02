@@ -690,6 +690,10 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
+            ContentBL CBL = new ContentBL(_configuration);
+            PagedResult<Content> AL = new PagedResult<Content>();
+            PaginationParam p = new PaginationParam();
+            AL = CBL.Get_Trg_Content(trainingid, sessionid, null, p);
 
             if (dt.Rows.Count > 0)
             {
@@ -703,13 +707,25 @@ namespace LitteraCore.DBContext
                     if (row["tpss_contetn_status"].ToString() != "")
                     {
                         vw.contentstatus = JsonConvert.DeserializeObject<List<Session_Content_Status>>(Convert.ToString(row["tpss_contetn_status"])).ToArray();
+                        List<Session_Content_Status> ul = new List<Session_Content_Status>();
+                        ul = vw.contentstatus.ToList();
+                        if (vw.contentstatus.Count()< AL.Items.Count())
+                        {
+                            foreach(Content c in AL.Items)
+                            {
+                                if (vw.contentstatus.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).Count()==0){
+                                    ul.Add(new Session_Content_Status { is_completed = 0, sessionid = c.ttsam_ttttt_session_id, ttsam_id = c.ttsam_id });
+                                }
+                              
+                               
+                            }
+                        }
+                        vw.contentstatus = ul.ToArray();
+
                     }
                     else
                     {
-                        ContentBL CBL = new ContentBL(_configuration);
-                        PagedResult<Content> AL = new PagedResult<Content>();
-                        PaginationParam p = new PaginationParam();
-                        AL = CBL.Get_Trg_Content(trainingid, sessionid, null, p);
+                        
                         List<Content> c = new List<Content>();
                         List<Session_Content_Status> cl = new List<Session_Content_Status>();
                         if (AL.Items != null)
@@ -736,10 +752,7 @@ namespace LitteraCore.DBContext
             {
 
 
-                ContentBL CBL = new ContentBL(_configuration);
-                PagedResult<Content> AL = new PagedResult<Content>();
-                PaginationParam p = new PaginationParam();
-                AL = CBL.Get_Trg_Content(trainingid, sessionid, null, p);
+               
                 List<Content> c = new List<Content>();
                 List<Session_Content_Status> cl = new List<Session_Content_Status>();
 

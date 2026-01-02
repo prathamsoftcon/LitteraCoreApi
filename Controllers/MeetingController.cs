@@ -3,6 +3,7 @@ using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -19,6 +20,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Meetings")]
+        [SwaggerOperation("To get meeting list.")]
         public IActionResult Meetings(string finyear, string branchid, string usertype, string userid, PaginationParam param)
         {
 
@@ -45,6 +47,7 @@ namespace LitteraCore.Controllers
 
         [HttpDelete]
         [Route("api/DeleteMeeting")]
+        [SwaggerOperation("To delete existing neeting from software.")]
         public IActionResult DeleteMeeting(string meetingid)
         {
             bool isdeleted = false;
@@ -58,6 +61,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Meetings_With_Search")]
+        [SwaggerOperation("To delete existing meeting from software.")]
         public IActionResult Meetings_With_Search(string finyear, string branchid, string usertype, string userid, PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
 

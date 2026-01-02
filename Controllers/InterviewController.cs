@@ -8,6 +8,7 @@ using Microsoft.Identity.Client;
 using Microsoft.PowerBI.Api;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Tsp;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Text.RegularExpressions;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -26,6 +27,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Interview_Questions")]
+        [SwaggerOperation("To get interview questions from Interview.json.")]
         public IActionResult Interview_Questions()
         {
            List<interviewQuestion> interviewquestion=new List<interviewQuestion>();
@@ -36,6 +38,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Interview_Questions")]
+        [SwaggerOperation("To save interview questions.")]
         public async Task<IActionResult> PostInterview_Questions(string activityid,string ttpai_id,string ttsam_id, [FromBody] interviewAnswers interviewQuestions,int is_ai_result_required,string? agencyid=null)
         {
             int tokenconsumed = 0;
@@ -83,6 +86,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Interview_Result")]
+        [SwaggerOperation("To get particular interview result.")]
         public IActionResult Interview_Questions(string tpad_id)
         {
             interviewAnswers ans = new interviewAnswers();
@@ -155,6 +159,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/get_embeddings")]
+        [SwaggerOperation("To get AI embeddings for text using open AI.")]
         public async Task<IActionResult> get_embeddings(string text)
         {
 
@@ -171,6 +176,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Next_Interview_Result")]
+        [SwaggerOperation("To get Next interview result.")]
         public IActionResult Next_Interview_Result(string agencyid,string activityid, string? tpad_id=null,int isprevious=1)
         {
             ContentDB cdb = new ContentDB(_configuration);
@@ -257,6 +263,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Check_User_Balance")]
+        [SwaggerOperation("To check user balance ai tokens.")]
         public IActionResult Check_User_Balance(string agencyid, string activityid)
         {
            
@@ -266,6 +273,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Enable_API_Interview_Result")]
+        //[SwaggerOperation("To check user balance ai tokens.")]
         public async Task<IActionResult> Enable_API_Interview_Result(string tpad_id)
         {
             int tokenconsumed = 0;
@@ -337,6 +345,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/AI_Question_Result")]
+        [SwaggerOperation("To get AI question results.")]
         public async Task<IActionResult> AI_Question_Result([FromBody] AI_Answer a)
         {
             InterviewBL IBL = new InterviewBL(_configuration);

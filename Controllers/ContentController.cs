@@ -4,6 +4,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Data;
 
 namespace LitteraCore.Controllers
@@ -21,6 +22,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/ContentType")]
+        [SwaggerOperation("To get different content types[pdf/video/wysiwyg/document].")]
         public IActionResult GetFunction()
         {
             ContentBL CBL = new ContentBL(_configuration);
@@ -31,6 +33,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Trg_Content")]
+        [SwaggerOperation("To get particular training/session contents.")]
         public IActionResult Trg_Content([FromQuery] PaginationParam filter, string trainingid = null, string sessionid = null, string tags = null)
         {
             
@@ -47,6 +50,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Learning_Time")]
+        [SwaggerOperation("To save participant learning time.")]
         public IActionResult Learning_Time([FromBody]learningtime lt)
         {
             ContentBL CBL = new ContentBL(_configuration);
@@ -58,6 +62,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GET_CONTENT_DETAILS")]
+        [SwaggerOperation("To get particular content detail with participant status.")]
         public IActionResult GET_CONTENT_DETAILS(string ttsam_id, string participantid)
         {
 
@@ -141,6 +146,7 @@ namespace LitteraCore.Controllers
         //    return Ok(ctype);
         //}
         [HttpGet("GETCLIENTIP")]
+        [SwaggerOperation("To get client ip address.")]
         public string GetClientIp()
         {
             string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -156,7 +162,8 @@ namespace LitteraCore.Controllers
 
 
         [HttpPost]
-        [Route("api/Activity_Data")]    
+        [Route("api/Activity_Data")]
+        [SwaggerOperation("To save activity tracking data.")]
         public IActionResult Activity_Data([FromBody]activity_data a)
         {
             ContentBL CBL = new ContentBL(_configuration);
@@ -164,6 +171,7 @@ namespace LitteraCore.Controllers
             return Ok(issaved);
         }
         [HttpGet("Get_Activity_Data")]
+        [SwaggerOperation("To get activity data.")]
         public IActionResult Get_Activity_Data(string agencyid, string activityid = null)
         {
             ContentBL CBL = new ContentBL(_configuration);
@@ -176,6 +184,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/check_content_learning_exist")]
+        [SwaggerOperation("To check learning exist on particular content for given participant.")]
         public IActionResult check_content_learning_exist(string ttsam_id, string participantid)
         {
             bool isexist=true;
@@ -186,5 +195,26 @@ namespace LitteraCore.Controllers
             return Ok(new {learning_exist= isexist });
         }
 
+
+        [HttpGet]
+        [Route("api/Get_Session_Avg_Learning_Time")]
+        [SwaggerOperation("To Get session wise average learning time.")]
+        public IActionResult Get_Session_Avg_Learning_Time(string trainingid)
+        {
+            List<Avg_Learning_data_Sessionwise> s = new List<Avg_Learning_data_Sessionwise>();
+            ContentBL CBL = new ContentBL(_configuration);
+            s = CBL.Avg_Learning_data_sessionwise(trainingid);
+            return Ok(s);
+        }
+        [HttpGet]
+        [Route("api/Get_content_Avg_Learning_Time")]
+        [SwaggerOperation("To Get session wise average learning time.")]
+        public IActionResult Get_content_Avg_Learning_Time(string trainingid)
+        {
+            List<Avg_Learning_data> s = new List<Avg_Learning_data>();
+            ContentBL CBL = new ContentBL(_configuration);
+            s = CBL.Avg_Learning_data_contentwise(trainingid);
+            return Ok(s);
+        }
     }
 }

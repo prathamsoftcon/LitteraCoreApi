@@ -14,6 +14,7 @@ using LitteraCore.Common.Token;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using static System.Net.Mime.MediaTypeNames;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -29,6 +30,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Dashboard_analytics")]
+        [SwaggerOperation("To get dashboard analytics data.")]
         public IActionResult Dashboard_analytics(string usertype, string userid, DateTime startdate, DateTime enddate,string? branchid=null)
         {
             DBAnalytics d = new DBAnalytics();
@@ -129,6 +131,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Dashboard_Data")]
+        [SwaggerOperation("To get user dashboard training data.")]
         public IActionResult Dashboard_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param,[FromBody] SearchParam? searchCriterias,string filter_status = null,string filter_cd=null,string filter_acd=null,string? branchid=null)
         {
 
@@ -447,6 +450,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Dashboard_All_Trg_Data")]
+        [SwaggerOperation("To get dashboard all training data.")]
         public IActionResult Dashboard_All_Trg_Data(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string filter_status = null, string filter_cd = null, string filter_acd = null,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
@@ -744,6 +748,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Upcoming_Events")]
+        [SwaggerOperation("To get upcoming trainings.")]
         public IActionResult Upcoming_Events(DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
             param.PageNumber = 1;
@@ -849,6 +854,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Tour_Config")]
+        [SwaggerOperation("To get tour config data.")]
         public IActionResult Get_Tour_Config(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
@@ -993,6 +999,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Fb_Data")]
+        [SwaggerOperation("To get facebook share page data.")]
         public IActionResult Get_Fb_Data([FromBody]FB_Share_Data fbdata)
         {
             StringBuilder sb = new StringBuilder();
@@ -1051,6 +1058,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Training_Tags")]
+        [SwaggerOperation("To get training sessions tags from Mock_Test_Configuration json.")]
         public IActionResult Get_Training_Tags(string trainingid)
         {
             List<tags> mcl = new List<tags>();
@@ -1077,6 +1085,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Participant_By_MOBILE")]
+        [SwaggerOperation("To get participant information from mobile no.")]
         public IActionResult Get_Participant_By_MOBILE(string mobileno,string name,string? trainingid=null)
         {
            string participantid=Guid.NewGuid().ToString();
@@ -1131,6 +1140,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/MOCK_TEST_EVENTS")]
+        [SwaggerOperation("To get mock test trainings from Mock_Test_Configuration json.")]
         public IActionResult MOCK_TEST_EVENTS(DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
             param.PageNumber = 1;
@@ -1226,6 +1236,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Littera_Events")]
+        [SwaggerOperation("To get Littera Events to share with external user's with different secret key.")]
         public IActionResult Littera_Events(string SecretKey, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param)
         {
             DashboardBL dbl = new DashboardBL(_configuration);
@@ -1351,6 +1362,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Participant_Pending_Tests")]
+        [SwaggerOperation("To get pending test of particular agency.")]
         public IActionResult Get_User_Pending_Tests(string usertype, string userid)
         {
            int Pendingtests = 0;

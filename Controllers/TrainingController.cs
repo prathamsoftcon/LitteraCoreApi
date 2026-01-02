@@ -12,6 +12,7 @@ using System.Text.Json;
 using System.Text;
 using static LitteraCore.Common.CommonEnum;
 using Google.Apis.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -28,6 +29,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Categories")]
+        [SwaggerOperation("To get training categories.")]
         public IActionResult GetCategories(string categoryid)
         {
             TrgBL CBL = new TrgBL(_configuration);
@@ -37,6 +39,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Trainings")]
+        [SwaggerOperation("To get trainings between given dates.")]
         public IActionResult GetTrainings(DateTime fromdate, DateTime todate)
         {
             List<Training> T=new List<Training>();
@@ -46,6 +49,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Training_Day_Week")]
+        [SwaggerOperation("To get trainings day weeks.")]
         public IActionResult Training_Day_Week(string fromdate, string todate)
         {
             List<TRG_DAY_WEEK> T = new List<TRG_DAY_WEEK>();
@@ -56,6 +60,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Training_Details")]
+        [SwaggerOperation("To get trainings details.")]
         public IActionResult Training_Details (string trainingid,string? usertype=null,string? loginuserid=null,string? branchid=null)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
@@ -105,6 +110,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Training_Details_by_Code")]
+        [SwaggerOperation("To get trainings details by training code.")]
         public IActionResult Training_Details_by_Code(string trainingcode)
         {
             TrainingDB WDB = new TrainingDB(_configuration);
@@ -132,6 +138,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/TrainingStatus")]
+        [SwaggerOperation("To get trainings different status list.")]
         public IActionResult TrainingStatus()
         {
 
@@ -150,6 +157,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/TrainingProgressReport")]
+        [SwaggerOperation("To get trainings progress report")]
         public IActionResult TrainingProgressReport(string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string sessionid = null, string participantid = null,string branchid=null)
         {
 
@@ -231,6 +239,7 @@ namespace LitteraCore.Controllers
         //}
         [HttpGet]
         [Route("api/Check_Signatory_Available")]
+        [SwaggerOperation("To check certificate signatory available or not .")]
         public IActionResult Check_Signatory_Available(string trainingid)
         {
             bool is_signatory_exist = false;
@@ -295,6 +304,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Get_Certificate_Signatory")]
+        [SwaggerOperation("To get certificate signatories.")]
         public IActionResult Get_Certificate_Signatory(string trainingid)
         {
 
@@ -305,6 +315,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/TRG_PARTICIPANT_MAP")]
+        [SwaggerOperation("To attach participant with training.")]
         public IActionResult TRG_PARTICIPANT_MAP([FromBody]  TRGMAPPING trgmapping)
         {
             bool issaved = false;
@@ -315,6 +326,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TRG_SPONSOR")]
+        [SwaggerOperation("To get particular training sponsor list.")]
         public IActionResult TRG_SPONSOR(string trainingid)
         {
             List<Agency> EH = new List<Agency>();
@@ -325,6 +337,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TRG_PARTICIPANT_DETAILS")]
+        [SwaggerOperation("To particular participant detail in training.")]
         public IActionResult TRG_PARTICIPANT_DETAILS(string trainingid,string participantid=null,string branchid=null)
         {
            
@@ -337,6 +350,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Trg_Type")]
+        [SwaggerOperation("To get training type list.")]
         public IActionResult Trg_Type()
         {
             List<Trg_Type> T = new List<Trg_Type>();
@@ -346,6 +360,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Trg_Title")]
+        [SwaggerOperation("To get all training distinct titles.")]
         public IActionResult Trg_Title()
         {
             List<Trg_Title> T = new List<Trg_Title>();
@@ -357,6 +372,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_Certificate")]
+        [SwaggerOperation("To Generate certificate and get certificate html.")]
         public IActionResult Generate_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path,string? loginuserid=null)
         {
 
@@ -400,6 +416,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_Certificate_New")]
+        [SwaggerOperation("To Generate certificate and get certificate html.")]
         public IActionResult Generate_Certificate_New(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
         {
 
@@ -473,6 +490,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_ALL_Certificate")]
+        [SwaggerOperation("To Generate certificate for all participant in training and get certificate html.")]
         public IActionResult Generate_ALL_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
         {
             Task.Run(async () =>
@@ -571,6 +589,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_And_Download_ALL_Certificate")]
+        [SwaggerOperation("To Generate and download all certificate.")]
         public IActionResult Generate_And_Download_ALL_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
         {
             Task.Run(async () =>
@@ -687,6 +706,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Download_All_Certificate")]
+        [SwaggerOperation("To download all pre generated certificates of training.")]
         public IActionResult Download_All_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
         {
             Task.Run(async () =>
@@ -814,6 +834,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Reprint_Certificate")]
+        [SwaggerOperation("To Reprint already generated certificate.")]
         public IActionResult Reprint_Certificate(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path,string certificateid)
         {
 
@@ -831,6 +852,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/QR_Certificate_verification")]
+        [SwaggerOperation("To verificate QR code using certificateid.")]
         public IActionResult QR_Certificate_verification(string certificateid)
         {
 
@@ -851,6 +873,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Check_Certificate_Eligibility")]
+        [SwaggerOperation("To check certificate eligibility.")]
         public IActionResult Check_Certificate_Eligibility(string ttpai_id,string trainingid)
         {
             TrgBL tbl=new TrgBL(_configuration);
@@ -862,6 +885,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_Certificate_All")]
+        [SwaggerOperation("To Generate certificate for all participant in training.")]
         public IActionResult Generate_Certificate(string trainingid, string branchid, string APPURL, string Logo_Path)
         {
 
@@ -888,6 +912,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Trg_Participant_List")]
+        [SwaggerOperation("To get training participant list.")]
         public IActionResult Get_Trg_Participant_List(string trainingid = null, string participantid = null, string branchid = null, string searchcolumn = null, string searchvalue = null, string sortcolumn = null, string sortvalue = null,string filtername=null,string filtervalue=null, int pageno = 1, int pagesize = -1,int is_certificate_generated=2)
         {
            TrgBL tbl=new TrgBL(_configuration);
@@ -907,6 +932,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Training_Status")]
+        [SwaggerOperation("To update participant training status.")]
         public IActionResult Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
         {
             TrgBL tbl = new TrgBL(_configuration);
@@ -919,6 +945,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Bulk_Participant_Status")]
+        [SwaggerOperation("To update participant status in bulk.")]
         public IActionResult Update_Bulk_Participant_Status(string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid,string? participantid= null)
         {
             TrgBL tbl = new TrgBL(_configuration);
@@ -931,6 +958,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Multiple_Participant_Status")]
+        [SwaggerOperation("To update multiple participant status.")]
         public IActionResult Update_Multiple_Participant_Status(string trainingid, string branchid, string currentstatus, string updatedstatus, string createdbyempid, string? participantid = null)
         {
             TrgBL tbl = new TrgBL(_configuration);
@@ -951,6 +979,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Certificate_Details")]
+        [SwaggerOperation("To get certificate detail by particpant training registration id.")]
         public IActionResult Certificate_Details(string ttpai_id)
         {
             TrgBL tbl=new TrgBL(_configuration);
@@ -973,6 +1002,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Verify_Certificate")]
+        [SwaggerOperation("To verify user's certificate.")]
         public IActionResult Verify_Certificate(string usercode,string trainingid)
         {
             string grade = "";
@@ -996,6 +1026,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_User_Agency")]
+        [SwaggerOperation("To get user details by usercode.")]
         public IActionResult Get_User_Agency(string usercode)
         {
             string grade = "";
@@ -1010,6 +1041,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/update_trg_rating_data")]
+        [SwaggerOperation("To update training rating data[BI table].")]
         public IActionResult update_trg_rating_data()
         {
             bool isupdated = false;
@@ -1022,6 +1054,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/update_certificate_signatory")]
+        [SwaggerOperation("To update certificate signatory.")]
         public IActionResult update_certificate_signatory(string trainingid, string signatoryid, string loginuserid)
         {
             bool isupdated = false;
@@ -1034,6 +1067,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/update_certificate_status")]
+        [SwaggerOperation("To update user's certificate status.")]
         public IActionResult update_certificate_status(string trainingid, string Loginuserid, [FromBody]cert_status_list cert_status)
         {
             bool isupdated = false;
@@ -1045,6 +1079,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Participants_training")]
+        [SwaggerOperation("To Generate certificate and get certificate html.")]
         public IActionResult Participants_training(string participantid)
         {
             List<usertrainings> ut = new List<usertrainings>();
@@ -1057,6 +1092,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Training_Progress_Report_Participantwise")]
+        [SwaggerOperation("To Generate participant wise training progress report.")]
         public IActionResult Training_Progress_Report_Participantwise(string trainingid, string loginuserid, string loginusertype,string sessionid=null,int status=2, string branchid = null, int pageno = 0, int pagesize = 0, string searchcolumn = null, string searchvalue=null)
         {
             List<Session> ut = new List<Session>();
@@ -1076,6 +1112,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Generate_Certificate_BR")]
+        [SwaggerOperation("To Generate certificate according to business rules.")]
         public IActionResult Generate_Certificate_BR(string trainingid, string participantid, string branchid, string APPURL, string Logo_Path, string? loginuserid = null)
         {
             CommonEnum ce=new CommonEnum();

@@ -5,6 +5,7 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 
 namespace LitteraCore.Controllers
@@ -21,6 +22,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation("To get Distinct designations in system")]
         [Route("api/GetDesignations")] 
         public IActionResult GetDesignation([FromQuery] PaginationParam filter)
         {
@@ -59,6 +61,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Agency")]
+        [SwaggerOperation("To get Agencies on basis of agency type")]
         public IActionResult getAgency(string agencytype = null,string filters = null, string agencyid = null, string tat_type_id = null, [FromQuery] PaginationParam param=null,string filter=null)
         {
             
@@ -74,6 +77,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/courseDirector")]
+        [SwaggerOperation("To get Course Directors")]
         public IActionResult courseDirector([FromQuery] PaginationParam param)
         {
 
@@ -87,6 +91,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Search_Agency")]
+        [SwaggerOperation("To search particular agency data ")]
         public IActionResult Search_Agency(string searchtext,string agencytype = null)
         {
 
@@ -101,6 +106,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/agency_by_charge")]
+        [SwaggerOperation("To get all agencies on basis of given charge.")]
         public IActionResult agency_by_charge(string chargeid)
         {
             AgencyBL ABL = new AgencyBL(_configuration);
@@ -112,6 +118,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_cast_category")]
+        [SwaggerOperation("To get cast category.")]
         public IActionResult Get_cast_category()
         {
             List<cast_category> c = new List<cast_category>();
@@ -125,6 +132,7 @@ namespace LitteraCore.Controllers
 
         [HttpPut]
         [Route("api/Update_Profile")]
+        [SwaggerOperation("To update agency profile.")]
         public IActionResult Update_Profile(string agencyid,[FromBody] Update_Profile_Data agency)
         {
             bool issaved=false;
@@ -137,6 +145,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Salutation")]
+        [SwaggerOperation("To get agency salutation data.")]
         public IActionResult Salutation()
         {
             List<SALUTATION> s = new List<SALUTATION>();
@@ -149,6 +158,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_user_branches")]
+        [SwaggerOperation("To get user's branches.")]
         public IActionResult Get_user_branches(string userid)
         {
             UserBranch s = new UserBranch();
@@ -162,6 +172,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Branches")]
+        [SwaggerOperation("To get branches.")]
         public IActionResult Branches(string agencytypeid, string parentid=null)
         {
             PaginationParam filter=new PaginationParam();
@@ -196,6 +207,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/PARTICIPANT_PERSONAL_INFO")]
+        [SwaggerOperation("To get participant personal information.")]
         public IActionResult PARTICIPANT_PERSONAL_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody]Agency_PersonalInfo pi)
         {
             AgencyBL ABL = new AgencyBL(_configuration);
@@ -216,6 +228,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/AGENCY_ADDRESS_INFO")]
+        [SwaggerOperation("To get agency address information.")]
         public IActionResult AGENCY_ADDRESS_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_AddressInfo ai)
         {
             AgencyBL ABL = new AgencyBL(_configuration);
@@ -236,6 +249,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/PARTICIPANT_OTHER_INFO")]
+        [SwaggerOperation("To get participant's other info.")]
         public IActionResult OTHER_INFO(string agencytypeid, string agencyid, string branchid, string createdby, [FromBody] Agency_Participant_OtherInfo oi)
         {
 
@@ -266,6 +280,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Update_Email")]
+        [SwaggerOperation("To update agency email id .")]
         public IActionResult Update_Email(string agencyid, string emailid)
         {
 
@@ -285,6 +300,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Mobileno")]
+        [SwaggerOperation("To update agency mobile no.")]
         public IActionResult Update_Mobileno(string agencyid, string mobileno)
         {
 

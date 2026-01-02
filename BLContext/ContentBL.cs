@@ -1,4 +1,4 @@
-﻿using LitteraCore.Common;
+using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
@@ -122,6 +122,53 @@ namespace LitteraCore.BLContext
 
         }
 
+        public List<Avg_Learning_data_Sessionwise> Avg_Learning_data_sessionwise(string trainingid)
+        {
+            List<Avg_Learning_data_Sessionwise> s = new List<Avg_Learning_data_Sessionwise>();
+            ContentDB CDB = new ContentDB(_configuration);
+            List<Avg_Learning_data> lCT = new List<Avg_Learning_data>();
+            lCT = CDB.Get_trg_avg_learning_Time(trainingid);
+            List<Avg_Learning_data_Sessionwise> sessionWiseList =
+       lCT
+        .GroupBy(x => new
+        {
+            x.tplt_trainingid,
+            x.tplt_ttsam_id,
+            x.tplt_sessionid,
+            x.ttttt_subject,
+            x.ttttt_content_desc,
+            x.content_total_Reading_time
 
+        })
+        .Select(g => new Avg_Learning_data_Sessionwise
+        {
+            tplt_trainingid = g.Key.tplt_trainingid,
+            tplt_ttsam_id = g.Key.tplt_ttsam_id,
+            tplt_sessionid = g.Key.tplt_sessionid,
+            ttttt_subject = g.Key.ttttt_subject,
+            ttttt_content_desc = g.Key.ttttt_content_desc,
+            session_total_reading_time = g.Sum(x =>  x.content_total_Reading_time),
+                           
+            avg_learning = g.Sum(x => x.avg_learning * x.content_total_Reading_time)
+                           / g.Sum(x => x.content_total_Reading_time)
+        })
+        .ToList();
+
+
+
+
+
+            return sessionWiseList;
+        }
+
+        public List<Avg_Learning_data> Avg_Learning_data_contentwise(string trainingid)
+        {
+            List<Avg_Learning_data_Sessionwise> s = new List<Avg_Learning_data_Sessionwise>();
+            ContentDB CDB = new ContentDB(_configuration);
+            List<Avg_Learning_data> lCT = new List<Avg_Learning_data>();
+            lCT = CDB.Get_trg_avg_learning_Time(trainingid);
+           
+            return lCT;
+        }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.Identity.Client;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Engines;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using static Azure.Core.HttpHeader;
@@ -29,6 +30,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/UserSessions")]
+        [SwaggerOperation("To get user related sessions.")]
         public IActionResult UserSessions(string usertype, string userid, DateTime trg_startdate, DateTime trg_enddate, [FromQuery] PaginationParam param, DateTime? SessionDate = null)
         {
 
@@ -42,6 +44,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TrgSessions")]
+        [SwaggerOperation("To get training sessions.")]
         public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null,string branchid=null)
         {
            
@@ -492,6 +495,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SessionNotes")]
+        [SwaggerOperation("To save session notes.")]
         public IActionResult SaveSessionNotes([FromBody] Notes notes)
         {
             SessionBL SDB = new SessionBL(_configuration);
@@ -501,6 +505,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/UpdateNotes")]
+        [SwaggerOperation("To update session notes.")]
         public IActionResult UpdateNotes([FromBody] Notes notes)
         {
             SessionBL SDB = new SessionBL(_configuration);
@@ -512,6 +517,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SessionNotes")]
+        [SwaggerOperation("To get session notes.")]
         public IActionResult GetSessionNotes(string userid, string trainingid = null, string sessionid = null)
         {
             List<Notes> N = new List<Notes>();
@@ -523,6 +529,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Comment")]
+        [SwaggerOperation("To get comments.")]
         public IActionResult Comment(string trainingid = null, string sessionid = null, string userid=null)
         {
             List<TrgComment> c = new List<TrgComment>();
@@ -540,6 +547,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Comment")]
+        [SwaggerOperation("To save comments.")]
         public IActionResult SaveComment([FromBody]TrgComment C)
         {
             List<TrgComment> c = new List<TrgComment>();
@@ -549,6 +557,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Comment_Reply")]
+        [SwaggerOperation("To save comment reply.")]
         public IActionResult SaveComment_reply([FromBody] TrgComment_reply r)
         {
             List<TrgComment> c = new List<TrgComment>();
@@ -563,6 +572,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SaveContentFeedback")]
+        [SwaggerOperation("To save content feedback.")]
         public IActionResult SaveContentFeedback_new(string trainingid, string sessionid, string loginagencyid, [FromBody] SessionContentFacultyFeedback Feedback)
         {
             if (Feedback == null)
@@ -678,6 +688,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Session_Status")]
+        [SwaggerOperation("To update participat session status.")]
         public IActionResult Update_Session_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status, [FromBody] contents_status_list cl = null)
         {
             //*****************************************
@@ -765,6 +776,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_FEEBDACK")]
+        [SwaggerOperation("To check user feedback exist or not on session.")]
         public IActionResult CHECK_SESSION_FEEBDACK(string userid, string trainingid, string sessionid,string branchid=null)
         {
             bool isFeedbackExist = false;
@@ -796,6 +808,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_COMPLETION_STATUS")]
+        [SwaggerOperation("To check session completion status.")]
         public IActionResult CHECK_SESSION_COMPLETION_STATUS(string userid, string trainingid, string sessionid)
         {
             List<user_session_status> statusdata = new List<user_session_status>();
@@ -805,6 +818,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/SESSION_MEETINGS")]
+        [SwaggerOperation("To get session meeting.")]
         public IActionResult SESSION_MEETINGS(string sessionid)
         {
             List<Meeting> meetings = new List<Meeting>();
@@ -815,6 +829,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_RESTRICTION")]
+        [SwaggerOperation("To check session restriction.")]
         public IActionResult CHECK_SESSION_RESTRICTION(string usertype, string userid, string sessionid, string trainingid,string branchid=null)
         {
             var isrestricted = true;
@@ -1021,6 +1036,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SessionType")]
+        [SwaggerOperation("To get different session types.")]
         public IActionResult SessionType()
         {
 
@@ -1041,6 +1057,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SessionModules")]
+        [SwaggerOperation("To get session modules.")]
         public IActionResult SessionModules()
         {
             List<SessionModule> modules = new List<SessionModule>();
@@ -1051,6 +1068,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Session")]
+        [SwaggerOperation("To save session.")]
         public IActionResult SaveSession([FromBody] CreateSessionDTO session)
         {
             
@@ -1060,6 +1078,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/GET_SESSION_ENTRY_CONTROLS")]
+        [SwaggerOperation("To get session entry controls on basis of training type.")]
         public IActionResult GET_SESSION_ENTRY_CONTROLS(int trainingtype)
         {
             SessionEntry E = new SessionEntry();
@@ -1071,6 +1090,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TRG_SESSIONS_DURATION")]
+        [SwaggerOperation("To get session summary of particular training.")]
         public IActionResult TRG_SESSIONS_DURATION(string trainingid, string durationtype = null)
         {
 
@@ -1135,6 +1155,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GET_PARTICIPANT_NEXT_SESSION")]
+        [SwaggerOperation("To get participant next session.")]
         public IActionResult GET_PARTICIPANT_NEXT_SESSION(string trainingid,string participantid,string branchid=null)
         {
             string userid = participantid;
@@ -2071,6 +2092,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_PREVIOUS_SESSION_FOR_COMPLETION")]
+        [SwaggerOperation("To check session for completion.")]
         public IActionResult CHECK_PREVIOUS_SESSION_FOR_COMPLETION(string trainingid,string sessionid,int pagetype = 0, string usertype = null, string userid = null,string branchid=null)
         {
 
@@ -2468,6 +2490,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Session_visit_Status")]
+        [SwaggerOperation("To update session visit status of particular user .")]
         public IActionResult Update_Session_visit_Status(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status)
         {
             SessionBL SDB = new SessionBL(_configuration);
@@ -2477,6 +2500,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Check_Exception")]
+        [SwaggerOperation("To check custom exception[Hardcode].")]
         public IActionResult Check_Exception()
         {
             throw new Exception("This is a custom exception message.");
@@ -2485,6 +2509,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/Get_Consent_msg")]
         [HttpGet]
+        [SwaggerOperation("To get conset message on basis of participant status.")]
         public IActionResult Get_Consent_msg(string trainingid,string participantid,string branchid)
         {
             string msg = "";
@@ -2516,6 +2541,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/TrgSessions_with_content")]
+        [SwaggerOperation("To get training all sessions and content.")]
         public IActionResult TrgSessions_with_content(string trainingid, int pagetype = 0, string usertype = null, string userid = null, string branchid = null)
         {
 
@@ -2966,6 +2992,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CHECK_SESSION_STATUS")]
+        [SwaggerOperation("To check session status.")]
         public IActionResult CHECK_SESSION_STATUS(string Participantid, string trainingid = null, string sessionid = null)
         {
             bool isFeedbackExist = false;
@@ -2981,6 +3008,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Test_Session_Mapping_Data")]
+        [SwaggerOperation("To get test detail on particular session id in case of test session.")]
         public IActionResult Get_Test_Session_Mapping_Data(string sessionid)
         {
 
@@ -2993,6 +3021,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Complete_Activity")]
+        [SwaggerOperation("To update complete status of user's activity.")]
         public IActionResult Complete_Activity(string Participantid, string timeonsession, string ttsam_id, int status, [FromBody] contents_status_list cl = null)
         {
             string userid = "";
@@ -3027,6 +3056,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Session_Test_Detail")]
+        [SwaggerOperation("To get test detail of particular session.")]
         public IActionResult Session_Test_Detail(string trainingid,string sessionid)
         {
             session_test_details sd=new session_test_details();
@@ -3044,6 +3074,9 @@ namespace LitteraCore.Controllers
             EvalBL ebl = new EvalBL(_configuration);
             c = ebl.GET_SELF_TEST_CONFIGURATION(trainingid);
             sd.questionCount = c.no_of_question;
+            sd.time_per_question = c.time_per_question;
+            sd.mark_per_question = c.mark_per_question;
+            sd.application_type_id = c.application_type_id;
             return Ok(sd);
         }
 

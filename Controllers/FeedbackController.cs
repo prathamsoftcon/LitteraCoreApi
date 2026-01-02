@@ -4,6 +4,7 @@ using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 using static LitteraCore.Common.CommonEnum;
 
@@ -22,6 +23,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/TrainingFeedback")]
+        [SwaggerOperation("To get trainings feedback.")]
         public IActionResult TrainingFeedback(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
            
@@ -205,6 +207,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Check_Feedback_Status")]
+        [SwaggerOperation("To check participant status in feedback.")]
         public IActionResult Check_Feedback_Status(string participantid, string sharefeedbackid)
         {
             TrainingFeedbackBL TFB = new TrainingFeedbackBL(_configuration);
@@ -221,6 +224,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/TESTT")]
+        [SwaggerOperation("Not in use.")]
         public IActionResult TESTT([FromBody] SearchParam? searchCriterias)
         {
 
@@ -234,6 +238,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback360_Summery")]
+        [SwaggerOperation("To get feedback 360 summery report.")]
         public IActionResult Feedback360_Summery(string? surveyid = null, [FromQuery] PaginationParam? param=null, [FromBody] SearchParam? searchCriterias=null, string trainingid=null)
         {
 
@@ -330,6 +335,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback360_Survey_Result")]
+        [SwaggerOperation("To get feedback 360 survey result.")]
         public IActionResult Feedback360_Survey_Result(string surveyid, string? responsee_mobileno = null, string? responsee_emailid = null)
         {
 
@@ -348,6 +354,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Feedback360_Survey_Result_MCQ_Summery_Questionwise")]
+        [SwaggerOperation("To get feedback 360 survey result MCQ summery wise.")]
         public IActionResult Feedback360_Survey_Result_MCQ_Summery_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
@@ -372,6 +379,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Feedback360_Survey_MCQ_Detail_Questionwise")]
+        [SwaggerOperation("To get feedback 360 survey result MCQ detail question wise.")]
         public IActionResult Feedback360_Survey_MCQ_Detail_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
@@ -397,6 +405,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Feedback360_Survey_Result_DESC_Summery_Questionwise")]
+        [SwaggerOperation("To get feedback 360 survey result MCQ summery wise.")]
         public IActionResult Feedback360_Survey_Result_DESC_Summery_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
@@ -422,6 +431,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Feedback360_Survey_DESC_Detail_Questionwise")]
+        [SwaggerOperation("To get feedback 360 survey detail questionwise report.")]
         public IActionResult Feedback360_Survey_DESC_Detail_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
@@ -446,6 +456,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Feedback360_Survey_Result_Rating_Summery_Questionwise")]
+        [SwaggerOperation("To get feedback 360 survey result questionwise rating summary.")]
         public IActionResult Feedback360_Survey_Result_Rating_Summery_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
@@ -472,6 +483,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback360_trainingid_Summery")]
+        [SwaggerOperation("To get feedback 360 training summary.")]
         public IActionResult Feedback360_trainingid_Summery(string fromdate, string todate,string? trainigid = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
         {
 
@@ -502,6 +514,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Training_Wise_Feedback_Summary")]
+        [SwaggerOperation("To get feedback 360 training wise feedback summary.")]
         public IActionResult Training_Wise_Feedback_Summary(string fromdate, string todate, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null, string? trainingid = null)
         {
 
@@ -532,6 +545,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Training_Questionnaire_wise_Feedback_Summary")]
+        [SwaggerOperation("To get training questionnaire wise feedback summary.")]
         public IActionResult Training_Questionnaire_wise_Feedback_Summary(string fromdate, string todate, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null, string? trainingid = null)
         {
 
@@ -560,6 +574,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback_Summery_Questionwise")]
+        [SwaggerOperation("To get feedback summary questionwise.")]
         public IActionResult Feedback_Summery_Questionwise(string groupid,string trainingid, string? sharefeedbackid = null, string? responsee_mobileno = null, string? responsee_emailid = null)
         {
             //Handle Null
@@ -588,6 +603,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Feedback_Summery_Questionwise_MCQ")]
+        [SwaggerOperation("To get feedback summary question wise.")]
         public IActionResult Feedback_Summery_Questionwise_MCQ(string groupid, string trainingid, string? sharefeedbackid = null, string? responsee_mobileno = null, string? responsee_emailid = null)
         {
             //Handle Null

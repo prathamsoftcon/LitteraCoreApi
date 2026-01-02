@@ -105,6 +105,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Littera.Core", Version = "v1" });
 
     c.OperationFilter<AddRequiredHeaderParameter>();
+    c.EnableAnnotations();
+
 });
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<IDatabaseConnectionFactory, DatabaseConnectionFactory>();

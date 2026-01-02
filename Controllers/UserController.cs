@@ -16,6 +16,7 @@ using LitteraCore.Common.SmsService;
 using Newtonsoft.Json;
 using System.Data;
 using static QRCoder.PayloadGenerator;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -32,6 +33,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/CreateUser")]
+        [SwaggerOperation("To create new user.")]
         public IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
         {
             UserBL UBL = new UserBL(_configuration);

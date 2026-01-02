@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.PowerBI.Api.Models;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -22,6 +23,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Create_Mentor_Slot")]
+        [SwaggerOperation("To create new mentor slot.")]
         public IActionResult Create_Mentor_Slot([FromBody] Mentor_slot m)
         {
             MentorBL UBL = new MentorBL(_configuration);
@@ -32,6 +34,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Remove_Mentor_Slot")]
+        [SwaggerOperation("To remove existing mentor slot.")]
         public IActionResult Remove_Mentor_Slot(string ttsl_id, string createdby)
         {
             MentorBL UBL = new MentorBL(_configuration);
@@ -42,6 +45,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Get_Mentor_Slots")]
+        [SwaggerOperation("To get mentor slots.")]
         public IActionResult Get_Mentor_Slots(string? ttsl_training_id, string? ttsl_session_id, string? ttsl_mentor_id, string? slot_date, int status=1, [FromBody]PaginationParam param=null)
         {
             MentorBL UBL = new MentorBL(_configuration);
@@ -53,6 +57,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Session_Slot")]
+        [SwaggerOperation("To get particular session slot.")]
         public IActionResult Get_Session_Slots(string sessionid,string? participantid=null)
         {
             MentorBL UBL = new MentorBL(_configuration);
@@ -68,6 +73,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Slot_Participant")]
+        [SwaggerOperation("To get slot participant.")]
         public IActionResult Get_Slot_Participant(string slotid, string? participantlist=null, [FromBody] PaginationParam param = null)
         {
             MentorBL UBL = new MentorBL(_configuration);
@@ -80,6 +86,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Add_slot_Participant")]
+        [SwaggerOperation("To attache participant in slot.")]
         public IActionResult Add_slot_Participant([FromBody] slot_participant m)
         {
             bool issaved = false;
@@ -91,6 +98,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Delete_slot_Participant")]
+        [SwaggerOperation("To delete participant from slot.")]
         public IActionResult Delete_slot_Participant(string slotid, string participantlist)
         {
             bool issaved = false;
@@ -98,6 +106,18 @@ namespace LitteraCore.Controllers
 
             issaved = UBL.Delete_slot_Participant(slotid, participantlist);
             return Ok();
+
+        }
+
+
+        [HttpGet]
+        [Route("api/Get_Mentor_Notification_Option")]
+        [SwaggerOperation("To check popup required to send notification or not[Hardcode].")]
+        public IActionResult Get_Mentor_Notification_Option()
+        {
+           
+          
+            return Ok(new {is_popup_required=1 });
 
         }
 

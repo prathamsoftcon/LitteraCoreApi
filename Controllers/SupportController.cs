@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
 
 namespace LitteraCore.Controllers
@@ -36,6 +37,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SupportQuery")]
+        [SwaggerOperation("To save support query.")]
         public IActionResult SupportQuery(Support u)
         {
             string refno = "";
@@ -49,6 +51,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Update_Support_Status")]
+        [SwaggerOperation("To update support status.")]
         public IActionResult GetSupportQuery(Update_Support us)
         {
             List<Support> s = new List<Support>();
@@ -60,6 +63,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/SupportQuery")]
+        [SwaggerOperation("To get support enquiries.")]
         public IActionResult SupportQuery(string? fromdate=null,string? todate=null,string appurl=null, [FromQuery] PaginationParam? param = null)
         {
             List<Support> s = new List<Support>();
@@ -74,6 +78,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Login_Failed")]
+        [SwaggerOperation("To save login failed entry.")]
         public IActionResult Login_Failed(string? fromdate = null, string? todate = null, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias=null)
         {
             
@@ -97,6 +102,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/User_Analytics_Data")]
+        [SwaggerOperation("To get user's analytics data.")]
         public IActionResult User_Analytics_Data(string? fromdate = null, string? todate = null,int type=1, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
         {
             //type=1 First Login ,2-Password not updated,3-Password Updated
@@ -121,6 +127,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Learning_Time")]
+        [SwaggerOperation("To get learning time data.")]
         public IActionResult Learning_Time(string? trainingid = null, string? participantid = null, string? ttsam_id = null,int unit=1)
         {
             string unitname = "";
@@ -147,6 +154,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Learning_Time_Report")]
+        [SwaggerOperation("To get learning time report data.")]
         public IActionResult Learning_Time_Report(string? trainingid = null, string? participantid = null, string? ttsam_id = null, int unit = 1, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
         {
             string unitname = "";
@@ -170,6 +178,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SearchParticipant")]
+        [SwaggerOperation("To search specific participant.")]
         public IActionResult SearchParticipant(string? trainingid=null,string? searchcolumn=null,string? searchvalue=null,string ? branchid=null, [FromQuery] PaginationParam? param = null)
         {
             ParticipantDB pdb = new ParticipantDB(_configuration);
@@ -200,6 +209,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Learning_Report_Summary")]
+        [SwaggerOperation("To get learning report summary.")]
         public IActionResult Learning_Report_Summary(string? trainingid = null, string? participantid = null, string? ttsam_id = null, string? branchid = null, int reporttype = 1, string? fromdate = null, string? todate = null, int pageno = 1, int pagesize = -1, string? SearchColumn = null, string? searchvalue = null, string? sortcolumn = null, string? sortdirection = null)
         {
            if(trainingid != null)
@@ -216,6 +226,7 @@ namespace LitteraCore.Controllers
 
         }
         [HttpGet("api/ErrorFile")]
+        [SwaggerOperation("To download error file.")]
         public IActionResult DownloadFile(string APIFolder, string ErrorDate)
         {
             // Full path to the file
@@ -264,6 +275,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet("api/GET_API_NAMES")]
+        [SwaggerOperation("To get api names to download error file[Hardcode].")]
         public IActionResult GET_API_NAMES()
         {
             // Full path to the file
@@ -290,6 +302,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Check_First_Login")]
+        [SwaggerOperation("To check participant first login.")]
         public IActionResult Check_First_Login(string participantid)
         {
             string unitname = "";
@@ -304,6 +317,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/GET_ENROLLMENT_SUMMARY")]
+        [SwaggerOperation("To get enrollment summary.")]
         public IActionResult GET_ENROLLMENT_SUMMARY(TrainingList trainings,string branchid, [FromQuery] PaginationParam? param = null)
         {
             List<Enrollment_Summary> li=new List<Enrollment_Summary>();

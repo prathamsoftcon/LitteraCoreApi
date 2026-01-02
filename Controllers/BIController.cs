@@ -11,6 +11,7 @@ using Microsoft.Identity.Client;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Threading.Tasks;
 
@@ -41,6 +42,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_BI_Report_List")]
+        [SwaggerOperation("To get BI report list.")]
         public IActionResult Get_BI_Report_List(PaginationParam param = null, string search = null)
         {
             PagedResult<BIReports>  B =new PagedResult<BIReports> ();
@@ -52,6 +54,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GetEmbedToken")]
+        [SwaggerOperation("To generate BI embed token.")]
         public async Task<IActionResult> GetEmbedTokenAsync(string ReportId, string WorkspaceId)
         {
             var app = ConfidentialClientApplicationBuilder.Create(ClientId)

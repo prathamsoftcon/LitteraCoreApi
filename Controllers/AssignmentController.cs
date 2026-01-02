@@ -5,6 +5,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -24,6 +25,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Assignment")]
+        [SwaggerOperation("To get user's assignment list .")]
         public IActionResult Assignment(string usertype, string userid, DateTime Startdate, DateTime Enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string trainingid = null)
         {
 
@@ -115,6 +117,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/AssignmentDetail")]
+        [SwaggerOperation("To get particular assignment details.")]
         public IActionResult AssignmentDetail(string assignmentid = null,string userid=null)
         {
             AssignmentBL ABL = new AssignmentBL(_configuration);
@@ -174,6 +177,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Get_Assignment_Valuation")]
+        [SwaggerOperation("To get assignment valuation details.")]
         public IActionResult Get_Assignment_Valuation(string assignmentid, string participantid = null)
         {
             AssignmentBL ABL = new AssignmentBL(_configuration);
@@ -219,6 +223,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Comments")]
+        [SwaggerOperation("To get assignment comments .")]
         public IActionResult Get_Comments (string assignmentid,string trainingid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null,string branchid=null)
         {
 
@@ -295,6 +300,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Uploads")]
+        [SwaggerOperation("To get assignment submission uploads.")]
         public IActionResult Get_Assignment_Uploads(string assignmentid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string participantid = null,string searchname = null, string doc_type = null,int isdraft=1)
         {
             AssignmentBL PBL = new AssignmentBL(_configuration);
@@ -375,6 +381,7 @@ namespace LitteraCore.Controllers
 
         [HttpPut]
         [Route("api/Update_assignment_upload_comment")]
+        [SwaggerOperation("To save assignment comment.")]
         public IActionResult Update_assignment_upload_comment(string uploadid, [FromBody] AssignmentUploadComments comment)
         {
             AssignmentBL ADB = new AssignmentBL(_configuration);
@@ -384,6 +391,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/InsertComment")]
+        [SwaggerOperation("To insert comment data .")]
         public IActionResult InsertComment([FromBody] AssignmentComment a)
         {
             AssignmentBL ADB = new AssignmentBL(_configuration);
@@ -394,6 +402,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/UploadAssignment")]
+        [SwaggerOperation("To upload and submit assignment .")]
         public IActionResult UploadAssignment([FromBody] AssignmentUpload a)
         {
             AssignmentBL ADB = new AssignmentBL(_configuration);
@@ -404,6 +413,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/AssignmentQuestion")]
+        [SwaggerOperation("To get assignment questionswise marks .")]
         public IActionResult AssignmentQuestion(string assignmentid)
         {
             AssignmentDB ADB=new AssignmentDB(_configuration);  
@@ -414,6 +424,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Get_Assignment_Question_Validation")]
+        [SwaggerOperation("To get assignment questionwise valuation.")]
         public IActionResult Get_Assignment_Question_Validation(string assignmentid,string participantid)
         {
             AssignmentDB ADB = new AssignmentDB(_configuration);
@@ -424,6 +435,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Save_Assignmant_Valuation")]
+        [SwaggerOperation("To save assingnment valuation.")]
         public IActionResult Save_Assignmant_Valuation([FromBody] Assignment_Question_Valuation a)
         {
             AssignmentBL ADB = new AssignmentBL(_configuration);
@@ -433,6 +445,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Get_Valuation_Summary")]
+        [SwaggerOperation("To get assignment valuation summary.")]
         public IActionResult Get_Valuation_Summary(string assignmentid)
         {
             Assignment_Valuation_Summary vw = new Assignment_Valuation_Summary();
@@ -443,6 +456,7 @@ namespace LitteraCore.Controllers
 
 
         [Route("api/Update_Assignment_Status")]
+        [SwaggerOperation("To update assignment status.")]
         [HttpPost]
         public IActionResult Update_Assignment_Status([FromBody] DMS d)
         {
@@ -459,6 +473,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Assignment_Summary")]
+        [SwaggerOperation("To get assignment summary.")]
         public IActionResult Get_Assignment_Summary(string usertype, string userid, DateTime startdate, DateTime enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
         {
             var searchService = new SearchService();
@@ -531,6 +546,7 @@ namespace LitteraCore.Controllers
 
 
         [Route("api/Get_Participant_Marks")]
+        [SwaggerOperation("To get participant's questionwise marks.")]
         [HttpGet]
         public IActionResult Get_Participant_Marks(string assignmenid, string participantid, string branchid = null)
         {
@@ -554,6 +570,7 @@ namespace LitteraCore.Controllers
           
         }
         [Route("api/Get_Participant_Marks_Detail")]
+        [SwaggerOperation("To get assignment question marks detail.")]
         [HttpGet]
         public IActionResult Get_Participant_Marks_Detail(string assignmenid, string participantid, string branchid = null)
         {
@@ -579,6 +596,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Get_Assignment_Upload_Status")]
+        [SwaggerOperation("To get participan's assignment status.")]
         public IActionResult Get_Assignment_Upload_Status(string trainingid, string assignmentid, PaginationParam param, [FromBody] SearchParam? searchCriterias=null, string branchid = null,int status=2)
         {
 
@@ -671,6 +689,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Session_Assignment_Mapping")]
+        [SwaggerOperation("To get assignment for particular session.")]
         public IActionResult Get_Session_Assignment_Mapping(string sessionid)
         {
             AssignmentBL ABL = new AssignmentBL(_configuration);

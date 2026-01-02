@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 using LitteraCore.Models;
 using LitteraCore.Common.DMS;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -27,6 +28,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/Get_Self_Test_Configuration")]
         [HttpGet]
+        [SwaggerOperation("To get self test configuration from Mock_Test_Configuration.")]
         public IActionResult Get_Self_Test_Configuration(string trainingid=null)
         {
             //At present this data is hardcode in modal need to change by config file
@@ -38,6 +40,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Check_Test_Eligibility")]
+        [SwaggerOperation("To check participant test eligibility.")]
         public IActionResult Check_Test_Eligibility(string userid, string trainingid, string testid = null)
         {
             int isTestAllowed = 0;
@@ -70,6 +73,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Selt_Test_Analytics")]
+        [SwaggerOperation("To get self test analytics.")]
         public IActionResult Selt_Test_Analytics(string usertype, string userid, int GroupBy, string categoryid = null, string testid = null)
         {
             CompetencyBL BL = new CompetencyBL(_configuration);
@@ -82,6 +86,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Self_test_Report_Data")]
+        [SwaggerOperation("To get self test report data.")]
         public IActionResult Self_test_Report_Data(string usertype, string userid)
         {
             CompetencyBL BL = new CompetencyBL(_configuration);
@@ -92,6 +97,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/TRAINING_TEST_ANALYTIC_DATA")]
+        [SwaggerOperation("To get training test alanytic data.[groupOn=1 for training, groupOn=2 for session,groupOn=3 for Participant,groupOn=4 for test ]")]
         public IActionResult TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, string sessionid = null, string participantid = null, int groupOn = 1, int testtype = 3, string testid = null,string branchid=null)
         {
             //groupOn=1 for training, groupOn=2 for session,groupOn=3 for Participant,groupOn=4 for test 
@@ -193,6 +199,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/get_user_tests")]
+        [SwaggerOperation("To get user's test.")]
         public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1",string trainingid=null)
         {
            List<Test> TESTS = new List<Test>();
@@ -223,6 +230,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/get_test_participant_id")]
         [HttpGet]
+        [SwaggerOperation("To get particular participant testparticipant id .")]
         public IActionResult get_test_participant_id(string testquestionid, string userid)
         {
             //At present this data is hardcode in modal need to change by config file
@@ -235,6 +243,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/get_user_session_test_details")]
         [HttpGet]
+        [SwaggerOperation("To get session detail from test.")]
         public IActionResult get_user_session_test_details(string userid, string testid)
         {
 
@@ -285,6 +294,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/Get_Participant_test_Result")]
         [HttpGet]
+        [SwaggerOperation("To get particular test participant result.")]
         public IActionResult Get_Participant_test_Result(string testquestionid, string participantid = null, int pageno = 1, int pagesize = 0, string searchcolumn = null, string searchvalue = null)
         {
             //At present this data is hardcode in modal need to change by config file
@@ -319,6 +329,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/check_test_in_use")]
         [HttpGet]
+        [SwaggerOperation("To check particular test is in use before any change in test details.")]
         public IActionResult check_test_in_use(string testid)
         {
 
@@ -333,6 +344,7 @@ namespace LitteraCore.Controllers
 
         [Route("api/Update_Test_Status")]
         [HttpPost]
+        [SwaggerOperation("To update particular test status.")]
         public IActionResult Update_Test_Status([FromBody] DMS d)
         {
 

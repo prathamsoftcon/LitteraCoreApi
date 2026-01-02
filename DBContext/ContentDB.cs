@@ -4,6 +4,7 @@ using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.IO;
+using static System.Net.WebRequestMethods;
 
 namespace LitteraCore.DBContext
 {
@@ -559,7 +560,63 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
         }
 
 
+        public List<Avg_Learning_data> Get_trg_avg_learning_Time(string trainingid)
+        {
+            SessionBL cbl = new SessionBL(_configuration);
+            List<Session> ls=new List<Session>();
+            ls = cbl.Get_Session_Data_By_Trg(trainingid);
 
+            ContentBL CBL = new ContentBL(_configuration);
+            PagedResult<Content> cl = new PagedResult<Content>();
+            PaginationParam p = new PaginationParam();
+            cl = CBL.Get_Trg_Content(trainingid, null, null,p);
+           
+
+            List<Avg_Learning_data> AL = new List<Avg_Learning_data>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString); if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_get_learning_time_bi_data", con);
+            cmd.Parameters.AddWithValue("@trainingid", trainingid);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+
+
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+           
+            foreach (DataRow row in dt.Rows)
+            {
+                Avg_Learning_data vw = new Avg_Learning_data();
+                vw.tplt_trainingid = Convert.ToString(row["ttbfld_trainingid"]);
+                vw.tplt_sessionid = Convert.ToString(row["ttbfld_sessionid"]);
+                vw.tplt_ttsam_id = Convert.ToString(row["ttbfld_ttsam_id"]);
+                vw.content_total_Reading_time = Convert.ToDecimal(row["ttbfld_total_learningtime"]);
+                vw.avg_learning = Convert.ToDecimal(row["ttbfld_avg_learningtime"]);
+                if(ls.Where(o=>o.ttttt_session_id.ToString().ToUpper()== Convert.ToString(row["ttbfld_sessionid"]).ToString().ToUpper()).Count()>0){
+                    vw.ttttt_content_desc = ls.Where(o => o.ttttt_session_id.ToString().ToUpper() == Convert.ToString(row["ttbfld_sessionid"]).ToString().ToUpper()).FirstOrDefault().ttttt_content_desc;
+                    vw.ttttt_subject = ls.Where(o => o.ttttt_session_id.ToString().ToUpper() == Convert.ToString(row["ttbfld_sessionid"]).ToString().ToUpper()).FirstOrDefault().ttttt_subject;
+                }
+               if(cl.Items.Where(o=>o.ttsam_id== Convert.ToString(row["ttbfld_ttsam_id"])).Count() > 0)
+                {
+                    vw.content_title = cl.Items.Where(o => o.ttsam_id == Convert.ToString(row["ttbfld_ttsam_id"])).FirstOrDefault().ttsad_title;
+                }
+               
+             
+                AL.Add(vw);
+            }
+
+
+
+
+
+            return AL;
+        }
 
 
     }

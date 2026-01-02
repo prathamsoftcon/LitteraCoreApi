@@ -94,6 +94,39 @@
         public string? tpad_upload { get; set; }
 
     }
+    public class Avg_Learning
+    {
+        public Avg_Learning_data Avg_Learning_data { get; set; }
+      
+    }
+
+    public class Avg_Learning_data
+    {
+        public string tplt_trainingid { get; set; }
+        public string tplt_ttsam_id { get; set; }
+        public decimal content_total_Reading_time { get; set; }
+        public string content_title { get; set; }
+        public string tplt_sessionid { get; set; }
+        public decimal avg_learning { get; set; }
+        public string ttttt_subject { get; set; }
+        public string ttttt_content_desc { get; set; }
+       
+     
+    }
+
+
+    public class Avg_Learning_data_Sessionwise
+    {
+        public string tplt_trainingid { get; set; }
+        public string tplt_ttsam_id { get; set; }
+        public string tplt_sessionid { get; set; }
+        public decimal session_total_reading_time { get; set; }
+        public decimal avg_learning { get; set; }
+        public string ttttt_subject { get; set; }
+        public string ttttt_content_desc { get; set; }
+
+
+    }
 
 
 }

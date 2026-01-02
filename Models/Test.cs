@@ -55,6 +55,10 @@
         public string ttttt_status { get; set; }
 
         public Trg_Setting? trg_Setting { get; set; }
+
+        public int passing_marks_percentage { get; set; } = 33;
+        public int max_attempt { get; set; } = 3;
+        public int attempted { get; set; } = 0;
     }
     public class TEST_RESULT_DATA
     {
@@ -149,6 +153,11 @@
 
         public int? questionDifficutyID { get; set; }
         public string trainingCategory { get; set; }
+
+        public decimal time_per_question { get; set; }
+
+        public int application_type_id { get; set; }
+        public int mark_per_question { get; set; }
 
 
     }

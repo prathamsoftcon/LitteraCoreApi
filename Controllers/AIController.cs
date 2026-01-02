@@ -3,6 +3,7 @@ using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -21,6 +22,7 @@ namespace LitteraCore.Controllers
       
         [HttpPost]
         [Route("api/Save_AI_Conversation")]
+        [SwaggerOperation("To save AI conversation data for chat UI.")]
         public IActionResult Save_AI_Conversation([FromBody] AITool ai)
         {
 
@@ -32,6 +34,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/Like_Conversation")]
+        [SwaggerOperation("To save conversation like data.")]
         public IActionResult Like_Conversation([FromBody] AITool ai)
         {
 
@@ -43,6 +46,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/GET_AI_CONVERSATION")]
+        [SwaggerOperation("To get AI conversation data.")]
         public IActionResult GET_AI_CONVERSATIO(PaginationParam param)
         {
             AIBL cbl = new AIBL(_configuration);

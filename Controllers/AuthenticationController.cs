@@ -14,6 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Swashbuckle.AspNetCore.Annotations;
 using System.Data;
 using System.Net;
 using System.Reflection;
@@ -99,6 +100,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/GetToken")]
+        [SwaggerOperation("To generate token.")]
         public IActionResult GetToken(UserLogin u)
         {
             try
@@ -219,6 +221,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateOTP")]
+        [SwaggerOperation("To Generate and send OTP.")]
         public async Task<IActionResult> GenerateMobileOTP(string username,int utilityOTP=0)
         {
             //Check Valid User
@@ -297,6 +300,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/VerifyOTP")]
+        [SwaggerOperation("To verify OTP .")]
         public async Task<IActionResult> VerifyOTP(string username,string otp)
         {
             //Check Valid User
@@ -321,6 +325,7 @@ namespace LitteraCore.Controllers
 
 
         [Route("api/Rights")]
+        [SwaggerOperation("To get rights details.")]
         [HttpGet]
         public IActionResult Rights()
         {
@@ -351,6 +356,7 @@ namespace LitteraCore.Controllers
         //}
 
         [Route("api/CheckPermission")]
+        [SwaggerOperation("To check user's permission.")]
         [HttpGet]
         public IActionResult CheckPermission(
     [FromQuery] string usertype,
@@ -385,6 +391,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/UpdatePassword")]
+        [SwaggerOperation("To update user's password.")]
         public IActionResult UpdatePassword(Update_Password u)
         {
             //Code to check old password
@@ -412,6 +419,7 @@ namespace LitteraCore.Controllers
         }
         [HttpPost]
         [Route("api/UnblockPassword")]
+        [SwaggerOperation("To unblock particular user.")]
         public IActionResult UnblockPassword(string userid)
         {
             AuthDB adb = new AuthDB(_configuration);
@@ -427,6 +435,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/UserInfo")]
+        [SwaggerOperation("To get particular user info.")]
         public IActionResult UserInfo(string username)
         {
             try
@@ -454,6 +463,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateOAuthToken")]
+        [SwaggerOperation("To generate token .")]
         public async Task<IActionResult> GenerateOAuthToken(string username)
         {
             //Check Valid User
@@ -467,6 +477,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/CheckOAuthToken")]
+        [SwaggerOperation("To validate token.")]
         public async Task<IActionResult> CheckOAuthToken(string username)
         {
             //Check Valid User
@@ -482,6 +493,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SET_PRINT_DATA")]
+        [SwaggerOperation("To set print data for APP purpose .")]
         public async Task<Boolean> SET_PRINT_DATA(string id, [FromBody] PrintData data)
         {
             //Check Valid User
@@ -492,6 +504,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/GET_PRINT_DATA")]
+        [SwaggerOperation("To get print data for APP purpose .")]
         public async Task<string> GET_PRINT_DATA(string id)
         {
             //Check Valid User
@@ -503,6 +516,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SAVE_PARTICIPANT_CONTENT_STATUS")]
+        [SwaggerOperation("To save participant content status.")]
         public async Task<string> SAVE_PARTICIPANT_CONTENT_STATUS(string userid,string contenid, [FromBody] dynamic jsonContent)
         {
             string jsonString = jsonContent.ToString();
@@ -514,6 +528,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION")]
+        [SwaggerOperation("To get react app configuration from config.json.")]
         public IActionResult GET_REACT_APP_CONFIGURATION()
         {
            REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
@@ -532,6 +547,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/FirebaseToken")]
+        [SwaggerOperation("To get firebase token.")]
         public IActionResult FirebaseToken(string agencyid, string token)
         {
             LoginDB ldb = new LoginDB(_configuration);
@@ -542,6 +558,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/BulkUpdatePassword")]
+        [SwaggerOperation("To update password in bulk.")]
         public IActionResult BulkUpdatePassword(userlist ul)
         {
             AuthDB adb=new AuthDB(_configuration);
@@ -584,6 +601,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Is_Password_Changed")]
+        [SwaggerOperation("To check is user's password changed.")]
         public IActionResult Is_Password_Changed(string userid)
         {
             try
@@ -606,6 +624,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/password_updated")]
+        [SwaggerOperation("To update password updated status only.")]
         public IActionResult password_updated(string userid)
         {
             AuthDB ADB = new AuthDB(_configuration);
@@ -617,6 +636,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Send_OTP")]
+        [SwaggerOperation("To Send OTP.")]
         public async Task<IActionResult> Send_OTP(string username)
         {
             //Check Valid User
@@ -727,6 +747,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_Token_Info")]
+        [SwaggerOperation("To Get Token Information.")]
         public async Task<IActionResult> Get_Token_Info(string token)
         {
             // Check Valid User
@@ -811,6 +832,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Get_API_INFO")]
+        [SwaggerOperation("To Get API Information.")]
         public async Task<IActionResult> Get_API_INFO(string userid)
         {
             string username = "";
@@ -835,6 +857,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/GenerateActivityToken")]
+        [SwaggerOperation("To Generate activity token.")]
         public async Task<IActionResult> GenerateActivityToken(string ttsm_id,string apipath, string? userid=null, string? ttpai_id=null)
         {
             //Check Valid User
@@ -849,6 +872,7 @@ namespace LitteraCore.Controllers
         [HttpGet]
         
         [Route("api/Get_Activity_Token_Info")]
+        [SwaggerOperation("To Get Token Information.")]
         public async Task<IActionResult> Get_Activity_Token_Info(string token)
         {
             // Check Valid User
@@ -936,6 +960,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Send_General_OTP")]
+        [SwaggerOperation("To Send General OTP.")]
         public async Task<IActionResult> Send_General_OTP(string username)
         {
             //Check Valid User
@@ -974,6 +999,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/VerifyOTPWithLogin")]
+        [SwaggerOperation("To Verify login OTP.")]
         public async Task<IActionResult> VerifyOTPWithLogin(string username, string otp,string user_id)
         {
             //Check Valid User
@@ -1091,6 +1117,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Login_Fail_Entry")]
+        [SwaggerOperation("To Make Login Fail Entry.")]
         public IActionResult Login_Fail_Entry(string username, string? reason=null)
         {
             //Code to check old password
@@ -1108,6 +1135,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/Match_Password")]
+        [SwaggerOperation("To check same password before update password.")]
         public IActionResult Match_Password(Update_Password u)
         {
             //Code to check old password
@@ -1136,6 +1164,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/SAVE_USER_LOG")]
+        [SwaggerOperation("To save user log entry.")]
         public IActionResult SAVE_USER_LOG(string userid)
         {
            
@@ -1156,6 +1185,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet("clientip")]
+        [SwaggerOperation("To Get Client IP.")]
         public string GetClientIp()
         {
             string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
@@ -1170,6 +1200,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet("api/CHECK_VIDEO_LINK_EXPIRY")]
+        [SwaggerOperation("To check video expiry link.")]
         public IActionResult CHECK_VIDEO_LINK_EXPIRY(string trainingid)
         {
             ApplicationConfigBL abl = new ApplicationConfigBL(_configuration);
@@ -1186,6 +1217,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/User_Session_Details")]
+        [SwaggerOperation("To get user's session details.")]
         public IActionResult User_Session_Details(string SecretKey, int usertype)
         {
             string username = "";

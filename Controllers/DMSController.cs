@@ -3,6 +3,7 @@ using LitteraCore.Common.DMS;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -18,6 +19,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/GetAllActions")]
+        [SwaggerOperation("To get all status of particular document id.")]
         public IActionResult GetAllActions(string docid, int tat_type_id)
         {
             _logger.LogError("test error.");
@@ -29,6 +31,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/DMSData")]
+        [SwaggerOperation("To get dms information between dates.")]
         public IActionResult GetDMSData(string fromdate, string todate, string documentno, string applicationtypeid, string employeeid)
         {
             _logger.LogError("test error.");
@@ -39,6 +42,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/Charges")]
+        [SwaggerOperation("To get different agency charges.")]
         public IActionResult Charges()
         {
          
@@ -51,6 +55,7 @@ namespace LitteraCore.Controllers
 
         [HttpPost]
         [Route("api/DOCUMENT_STATUS")]
+        [SwaggerOperation("To update document status.")]
         public IActionResult POST_DOCUMENT_STATUS([FromBody]  DMS D)
         {
             DMSBL DBL = new DMSBL(_configuration);

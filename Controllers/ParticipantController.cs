@@ -5,6 +5,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LitteraCore.Controllers
 {
@@ -20,6 +21,7 @@ namespace LitteraCore.Controllers
         }
         [HttpGet]
         [Route("api/TRG_PARTICIPANT_ACTION")]
+        [SwaggerOperation("To get actions on participant list.")]
         public IActionResult TRG_PARTICIPANT_ACTION(string usertype, string userid, string trainingid, string participantid, string branchid = null)
         {
             Branch_Configuration bc = new Branch_Configuration();
@@ -335,6 +337,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet]
         [Route("api/Participant_Exist_In_trg")]
+        [SwaggerOperation("To check particular participant exist in training or not.")]
         public IActionResult Validate_User_Training(string participantid, string trainingid)
         {
 

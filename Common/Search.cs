@@ -91,9 +91,24 @@ namespace LitteraCore.Common
             var property = Expression.Property(parameter, column);
 
             // Ensure the property value is correctly typed
+            //var targetType = property.Type;
+            //var convertedValue = Convert.ChangeType(value, targetType);
+            //var propertyValue = Expression.Constant(convertedValue, targetType);
             var targetType = property.Type;
-            var convertedValue = Convert.ChangeType(value, targetType);
+
+            // Handle nullable types
+            var nonNullableType = Nullable.GetUnderlyingType(targetType) ?? targetType;
+
+            object convertedValue = null;
+
+            if (value != null)
+            {
+                convertedValue = Convert.ChangeType(value, nonNullableType);
+            }
+
+            // Create constant expression with correct type
             var propertyValue = Expression.Constant(convertedValue, targetType);
+
 
             Expression body;
 

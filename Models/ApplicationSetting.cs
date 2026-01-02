@@ -150,6 +150,14 @@ namespace LitteraCore.Models
         public string message { get; set; }
       
     }
+
+    public class bulk_maildetails
+    {
+        public string[] recipientEmail { get; set; }
+        public string subject { get; set; }
+        public string message { get; set; }
+
+    }
     public class Audit_Trail
     {
         public string tyat_userid { get; set; }
