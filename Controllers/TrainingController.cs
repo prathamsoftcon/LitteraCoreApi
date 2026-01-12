@@ -349,6 +349,19 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Route("api/TRG_PARTICIPANT_DETAILS_wk")]
+        [SwaggerOperation("To particular participant detail in training.")]
+        public IActionResult TRG_PARTICIPANT_DETAILS_wk(string trainingid, string participantid = null, string branchid = null)
+        {
+
+            List<Participant> PL = new List<Participant>();
+            ParticipantDB PDB = new ParticipantDB(_configuration);
+            //List of training all participant
+            PL = PDB.Get_TRG_PARTICIPANT_Data(trainingid, participantid, branchid, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            return Ok(PL);
+        }
+
+        [HttpGet]
         [Route("api/Trg_Type")]
         [SwaggerOperation("To get training type list.")]
         public IActionResult Trg_Type()
@@ -1085,6 +1098,18 @@ namespace LitteraCore.Controllers
             List<usertrainings> ut = new List<usertrainings>();
             TrgBL tbl = new TrgBL(_configuration);
           
+            ut = tbl.Get_participant_Trainings(participantid);
+
+            return Ok(ut);
+        }
+        [HttpGet]
+        [Route("api/Participants_training_wk")]
+        [SwaggerOperation("To Generate certificate and get certificate html.")]
+        public IActionResult Participants_training_wk(string participantid)
+        {
+            List<usertrainings> ut = new List<usertrainings>();
+            TrgBL tbl = new TrgBL(_configuration);
+
             ut = tbl.Get_participant_Trainings(participantid);
 
             return Ok(ut);

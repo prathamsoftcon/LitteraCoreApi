@@ -774,6 +774,94 @@ namespace LitteraCore.Controllers
             
         }
 
+        [HttpPost]
+        [Route("api/Update_Session_Status_wk")]
+        [SwaggerOperation("To update participat session status.")]
+        public IActionResult Update_Session_Status_wk(string Participantid, string trainingid, string Sessionid, string timeonsession, string branchid, int status, [FromBody] contents_status_list cl = null)
+        {
+            //*****************************************
+            //Get configuration for session completion
+
+
+
+
+            //if completion required on any one content
+            //Check in given content status if any one is completed
+            // set session status=1
+            //Get all session content and update status 1 and save.
+
+
+            //if completion required on all content
+            //Get session content status (if content status not found then this will return all content with completion =0
+            //update given content status in above 
+            //check if all session is completed 
+            //set session status =1
+            //Update session status
+
+
+            //Exception Condition
+            // if session status=1 and cl is null as per discussion no any case there raise error by backend
+            //**************************
+
+            //**************Code started
+
+
+            //Get configuration for session completion
+            SessionBL sbl = new SessionBL(_configuration);
+            int? session_completion_on_any_one_content = sbl.session_completion_on_content(trainingid).Session_Completion_on_any_one_content;
+
+
+
+            //Get session content status (if content status not found then this will return all content with completion =0
+
+            List<user_session_status> sessioncontent = new List<user_session_status>();
+            sessioncontent = sbl.Get_Participant_session_status(Participantid, trainingid, Sessionid);
+            Session_Content_Status[] sessioncontent_status = sessioncontent.FirstOrDefault().contentstatus;
+            //update given content status in above 
+            foreach (Session_Content_Status c in sessioncontent_status)
+            {
+                if (cl?.Session_Content_Status.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).Count() > 0)
+                {
+                    c.is_completed = cl.Session_Content_Status.Where(o => o.ttsam_id.ToString().ToUpper() == c.ttsam_id.ToString().ToUpper()).FirstOrDefault().is_completed;
+                }
+            }
+            //if completion required on any one content
+            if (session_completion_on_any_one_content == 1)
+            {
+                //Check in given content status if any one is completed
+                if (sessioncontent_status.Where(o => o.is_completed == 1).Count() > 0)
+                {
+                    // set session status=1
+                    status = 1;
+                    // Also set here all content status=1
+                    Array.ForEach(sessioncontent_status, x => x.is_completed = 1);
+
+                }
+            }
+            else if (session_completion_on_any_one_content == 0)
+            {
+                //check if all session is completed (no anyone incomplete)
+                if (sessioncontent_status.Where(o => o.is_completed == 0).Count() <= 0)
+                {
+                    //set session status =1
+                    status = 1;
+                }
+            }
+            //Update session status
+            bool issaved = sbl.Update_Session_Status(Participantid, trainingid, Sessionid, timeonsession, branchid, status, sessioncontent_status);
+
+            return Ok(issaved);
+
+
+
+            //Exception Condition
+            // if session status=1 and cl is null as per discussion no any case there raise error by backend
+
+            //**********************
+
+
+        }
+
         [HttpGet]
         [Route("api/CHECK_SESSION_FEEBDACK")]
         [SwaggerOperation("To check user feedback exist or not on session.")]

@@ -298,6 +298,86 @@ namespace LitteraCore.Controllers
             return Unauthorized();
         }
 
+
+        [HttpGet]
+        [Route("api/GenerateOTP_wk")]
+        [SwaggerOperation("To Generate and send OTP.")]
+        public async Task<IActionResult> GenerateOTP_wk(string username, int utilityOTP = 0)
+        {
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+            AuthDB adb = new AuthDB(_configuration);
+            //List<User> lU = new List<User>();
+            UserInfo lU = adb.GetUserInfo(username);
+
+
+
+
+            //Get the OTP from APi and return it back
+            if (lU.Mobileno == null && lU.emailid == null)
+            {
+                return Unauthorized();
+            }
+            else
+            {
+                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
+                DataTable dt = a.Get_Application_Setting("6");
+                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                ml.settingid = dt.Rows[0]["SettingID"].ToString();
+
+                if (utilityOTP == 1)
+                {
+                    ml.OTP_ON_SMS = "1";
+                    ml.OTP_ON_MAIL = "1";
+                }
+
+                var otp = await _otpManager.GenerateOtpAsync(username.ToString());
+                var otpid = await _otpManager.GenerateOtpID();
+                if (otp != null)
+                {
+                    SmsTemplate template = new SmsTemplate();
+                    template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                    string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                    if (lU.Mobileno != null)
+                    {
+                        if (ml.OTP_ON_SMS == "1")
+                        {
+                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
+                        }
+
+                    }
+                    if (lU.emailid != null)
+                    {
+                        try
+                        {
+                            if (ml.OTP_ON_MAIL == "1")
+                            {
+                                SmtpEmailService s = new SmtpEmailService(_configuration);
+                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                            }
+
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+
+                    }
+
+                    return Ok(new { otp = otp, userid = lU.userid, agencyid = lU.agencyid });
+
+                }
+                else
+                {
+                    return Unauthorized();
+                }
+            }
+
+
+            return Unauthorized();
+        }
+
         [HttpGet]
         [Route("api/VerifyOTP")]
         [SwaggerOperation("To verify OTP .")]
@@ -311,6 +391,29 @@ namespace LitteraCore.Controllers
             if (Convert.ToBoolean(isValid.Result))
             {
             
+                return Ok(true);
+            }
+            else
+            {
+                return Unauthorized("Invalid Otp");
+            }
+
+
+            return Unauthorized();
+        }
+        [HttpGet]
+        [Route("api/VerifyOTP_wk")]
+        [SwaggerOperation("To verify OTP .")]
+        public async Task<IActionResult> VerifyOTP_wk(string username, string otp)
+        {
+            //Check Valid User
+
+
+            var isValid = _otpManager.VerifyOtpAsync(username, otp);
+
+            if (Convert.ToBoolean(isValid.Result))
+            {
+
                 return Ok(true);
             }
             else
@@ -459,6 +562,32 @@ namespace LitteraCore.Controllers
         }
 
 
+        [HttpGet]
+        [Route("api/UserInfo_wk")]
+        [SwaggerOperation("To get particular user info.")]
+        public IActionResult UserInfo_wk(string username)
+        {
+            try
+            {
+                AppAuthService auth = new AppAuthService(_configuration);
+                AuthDB ADB = new AuthDB(_configuration);
+                //UserInfo U = ADB.GetUserInfo(username);
+                var token = auth.Authenticate(username);
+                Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken));
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
+
+
+
+
+        }
+
+
 
 
         [HttpGet]
@@ -543,6 +672,25 @@ namespace LitteraCore.Controllers
 
             // Return the object using System.Text.Json with custom settings
             return new JsonResult(RAC, options); 
+        }
+
+        [HttpGet]
+        [Route("api/GET_REACT_APP_CONFIGURATION_wk")]
+        [SwaggerOperation("To get react app configuration from config.json.")]
+        public IActionResult GET_REACT_APP_CONFIGURATION_wk()
+        {
+            REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
+
+            string Foldername = CommonEnum.GET_JSON_FOLDER();
+            string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "Config.json"));
+            RAC = JsonConvert.DeserializeObject<REACT_APP_CONFIGURATION>(jsontxt);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null // This preserves the original property names
+            };
+
+            // Return the object using System.Text.Json with custom settings
+            return new JsonResult(RAC, options);
         }
 
         [HttpPost]
@@ -868,7 +1016,21 @@ namespace LitteraCore.Controllers
 
             return Ok(token);
         }
-        
+
+        [HttpGet]
+        [Route("api/GenerateActivityToken_wk")]
+        [SwaggerOperation("To Generate activity token.")]
+        public async Task<IActionResult> GenerateActivityToken_wk(string ttsm_id, string apipath, string? userid = null, string? ttpai_id = null)
+        {
+            //Check Valid User
+            AppAuthService auth = new AppAuthService(_configuration);
+            var token = auth.Activity_Token(userid, ttpai_id, ttsm_id, apipath).Result.AuthToken;
+            var isValid = _otpManager.SetOauthToken(userid, token.ToString());
+
+
+            return Ok(token);
+        }
+
         [HttpGet]
         
         [Route("api/Get_Activity_Token_Info")]
@@ -1176,6 +1338,28 @@ namespace LitteraCore.Controllers
                 adb.Password_Updated(userid);
             }
           
+
+
+            return Ok(true);
+
+
+
+        }
+
+        [HttpPost]
+        [Route("api/SAVE_USER_LOG_wk")]
+        [SwaggerOperation("To save user log entry.")]
+        public IActionResult SAVE_USER_LOG_wk(string userid)
+        {
+
+            string ip = GetClientIp();
+            AuthDB adb = new AuthDB(_configuration);
+
+            if (adb.Make_Login_Entry(userid, null, ip) == true)
+            {
+                adb.Password_Updated(userid);
+            }
+
 
 
             return Ok(true);

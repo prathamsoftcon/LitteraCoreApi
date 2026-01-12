@@ -215,6 +215,19 @@ namespace LitteraCore.Controllers
             return true;
 
         }
+
+        [HttpPost]
+        [SwaggerOperation("To sav audit trail")]
+        [Route("api/Save_Audit_Trail_wk")]
+        public async Task<Boolean> Save_Audit_Trail_wk(Audit_Trail m)
+        {
+            m.tyat_ip = GetClientIp();
+            bool issaved = false;
+            ApplicationConfigBL b = new ApplicationConfigBL(_configuration);
+            issaved = b.Save_Audit_Trail(m);
+            return true;
+
+        }
         [HttpPost]
         [SwaggerOperation("To save error log.")]
         [Route("api/Save_Error_Log")]

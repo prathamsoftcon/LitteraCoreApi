@@ -58,6 +58,16 @@ namespace LitteraCore.Controllers
             return Ok(issaved);
         }
 
+        [HttpPost]
+        [Route("api/Learning_Time_wk")]
+        [SwaggerOperation("To save participant learning time.")]
+        public IActionResult Learning_Time_wk([FromBody] learningtime lt)
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            bool issaved = CBL.save_participant_learning_time(lt);
+            return Ok(issaved);
+        }
+
 
 
         [HttpGet]
@@ -135,6 +145,85 @@ namespace LitteraCore.Controllers
             return Ok(cd);
         }
 
+
+
+        [HttpGet]
+        [Route("api/GET_CONTENT_DETAILS_wk")]
+        [SwaggerOperation("To get particular content detail with participant status.")]
+        public IActionResult GET_CONTENT_DETAILS_wk(string ttsam_id, string participantid)
+        {
+
+            string ipaddress = GetClientIp();
+
+            contentDetail cd = new contentDetail();
+            ContentDB cdb = new ContentDB(_configuration);
+            cd = cdb.Get_ttpai_from_Content(ttsam_id, participantid);
+            contentDetail cdn = new contentDetail();
+            cdn = cdb.Get_Content_Detail(ttsam_id);
+            cd.content_path = cdn.content_path;
+            cd.trainingid = cdn.trainingid;
+            cd.sessionid = cdn.sessionid;
+            //********
+            UserDB UBL = new UserDB(_configuration);
+            User amob = new User();
+            if (cd.mobileno == null)
+            {
+                throw new Exception("You are not eligible to access this training.");
+            }
+
+            amob = UBL.GET_MOBILE_NO_DATA(cd.mobileno, 2);
+            if (amob != null)
+            {
+                cd.userid = amob.userid;
+            }
+            ContentDB CDB = new ContentDB(_configuration);
+            List<Content> AL = new List<Content>();
+            PaginationParam param = null;
+
+            bool issaved = cdb.INSERT_CONTENT_VISITING(ttsam_id, cd.mobileno, ipaddress);
+            // Save Learning Time with 0 entry
+            ContentBL CBL = new ContentBL(_configuration);
+            learningtime lt = new learningtime
+            {
+                tplt_Id = Guid.NewGuid().ToString(),
+                tplt_learning_time = 0,
+                tplt_createdon = System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"),
+                tplt_createdby = participantid,
+                tplt_ttpai_id = cd.ttpai_id,
+                tplt_ttsam_id = ttsam_id
+
+            };
+
+
+            bool islearningtimesaved = CBL.save_participant_learning_time(lt);
+
+            AL = CDB.Get_Trg_Content(param, cd.trainingid, cd.sessionid);
+            AL = AL.Where(o => o.ttsad_ttsam_id.ToString().ToUpper() == ttsam_id.ToString().ToUpper()).ToList();
+            //********
+            cd.Items = AL.ToArray();
+
+
+
+
+            SessionBL cbl = new SessionBL(_configuration);
+            List<Session> s = new List<Session>();
+            s = cbl.Get_Session_Data_By_Trg(cd.trainingid);
+            Session sd = s.Where(o => o.ttttt_session_id.ToString().ToUpper() == cd.sessionid.ToString().ToUpper()).FirstOrDefault();
+            cd.Session = sd;
+
+
+            //get branchid
+            UserBranch ub = new UserBranch();
+            AgencyBL abl = new AgencyBL(_configuration);
+            ub = abl.Get_User_Branche(cd.userid);
+            if (ub.branches.Count() > 0)
+            {
+                cd.branchid = ub.branches.FirstOrDefault().branchid;
+            }
+
+            return Ok(cd);
+        }
+
         //[HttpGet]
         //[Route("api/GlobalContentType")]
         //public IActionResult GlobalContentType()
@@ -193,6 +282,19 @@ namespace LitteraCore.Controllers
 
 
             return Ok(new {learning_exist= isexist });
+        }
+
+        [HttpGet]
+        [Route("api/check_content_learning_exist_wk")]
+        [SwaggerOperation("To check learning exist on particular content for given participant.")]
+        public IActionResult check_content_learning_exist_wk(string ttsam_id, string participantid)
+        {
+            bool isexist = true;
+            ContentBL CBL = new ContentBL(_configuration);
+            isexist = CBL.check_content_learning_exist(ttsam_id, participantid);
+
+
+            return Ok(new { learning_exist = isexist });
         }
 
 

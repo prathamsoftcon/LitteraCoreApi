@@ -315,6 +315,21 @@ namespace LitteraCore.Controllers
 
         }
 
+        [HttpGet]
+        [Route("api/Check_First_Login_wk")]
+        [SwaggerOperation("To check participant first login.")]
+        public IActionResult Check_First_Login_wk(string participantid)
+        {
+            string unitname = "";
+            decimal learning = 0;
+            List<Learning_Report_Data> s = new List<Learning_Report_Data>();
+            SupportDB SBL = new SupportDB(_configuration);
+            bool ischanged = SBL.Check_First_Login(participantid);
+
+            return Ok(ischanged);
+
+        }
+
         [HttpPost]
         [Route("api/GET_ENROLLMENT_SUMMARY")]
         [SwaggerOperation("To get enrollment summary.")]
