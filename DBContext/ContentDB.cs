@@ -158,9 +158,10 @@ namespace LitteraCore.DBContext
                     }
                   
                 }
-              
 
-                vw.GlobalWysiwagText = Convert.ToString(row["GlobalWysiwagText"]);
+
+                //vw.GlobalWysiwagText = Convert.ToString(row["GlobalWysiwagText"]);
+                vw.GlobalWysiwagText = Convert.ToString(row["GlobalWysiwagText"]).Trim().Replace("\u200B", "");
                 if (Convert.ToString(row["GlobalFilePath"]) != "")
                 {
 
@@ -327,7 +328,7 @@ where ttsam_id = '"+ ttsam_id + "'", con);
             con.Close();
             if (dt.Rows.Count > 0)
             {
-                cd.content_path = Convert.ToString(dt.Rows[0]["GlobalWysiwagText"]);
+                cd.content_path = Convert.ToString(dt.Rows[0]["GlobalWysiwagText"]).Trim().Replace("\u200B", "");
                 cd.sessionid = Convert.ToString(dt.Rows[0]["ttsam_ttttt_session_id"]);
                 cd.trainingid= Convert.ToString(dt.Rows[0]["ttsam_trg_id"]);
             }
