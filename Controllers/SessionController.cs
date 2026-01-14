@@ -3162,7 +3162,8 @@ namespace LitteraCore.Controllers
             EvalBL ebl = new EvalBL(_configuration);
             c = ebl.GET_SELF_TEST_CONFIGURATION(trainingid);
             sd.questionCount = c.no_of_question;
-            sd.time_per_question = c.time_per_question * sd.questionCount;
+            sd.time_per_question = c.time_per_question * c.no_of_question;
+            //Here we multiply temp
             sd.mark_per_question = c.mark_per_question;
             sd.application_type_id = c.application_type_id;
             return Ok(sd);
