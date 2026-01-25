@@ -3,6 +3,7 @@ using LitteraCore.BLContext;
 using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
@@ -773,7 +774,7 @@ namespace LitteraCore.Controllers
 
             
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/Update_Session_Status_wk")]
         [SwaggerOperation("To update participat session status.")]

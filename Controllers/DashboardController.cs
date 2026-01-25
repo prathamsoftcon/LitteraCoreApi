@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Reflection.Metadata;
 using static System.Net.Mime.MediaTypeNames;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LitteraCore.Controllers
 {
@@ -1233,7 +1234,7 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/Littera_Events")]
         [SwaggerOperation("To get Littera Events to share with external user's with different secret key.")]

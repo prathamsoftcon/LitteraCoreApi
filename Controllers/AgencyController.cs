@@ -2,6 +2,7 @@
 using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
@@ -266,6 +267,7 @@ namespace LitteraCore.Controllers
             }
 
         }
+        [AllowAnonymous]
         [HttpGet("api/trainingplan")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult trainingplan()

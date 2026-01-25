@@ -18,6 +18,7 @@ using static System.Net.WebRequestMethods;
 using System.Security.Cryptography;
 using LitteraCore.Common.SmsService;
 using LitteraCore.Models.SmsSettings;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LitteraCore.Controllers
 {
@@ -215,7 +216,7 @@ namespace LitteraCore.Controllers
             return true;
 
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [SwaggerOperation("To sav audit trail")]
         [Route("api/Save_Audit_Trail_wk")]

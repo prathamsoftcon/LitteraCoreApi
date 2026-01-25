@@ -13,6 +13,7 @@ using System.Text;
 using static LitteraCore.Common.CommonEnum;
 using Google.Apis.Logging;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LitteraCore.Controllers
 {
@@ -1102,6 +1103,7 @@ namespace LitteraCore.Controllers
 
             return Ok(ut);
         }
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/Participants_training_wk")]
         [SwaggerOperation("To Generate certificate and get certificate html.")]

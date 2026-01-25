@@ -2,6 +2,7 @@
 using LitteraCore.Common;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Swashbuckle.AspNetCore.Annotations;
@@ -57,7 +58,7 @@ namespace LitteraCore.Controllers
             bool issaved = CBL.save_participant_learning_time(lt);
             return Ok(issaved);
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/Learning_Time_wk")]
         [SwaggerOperation("To save participant learning time.")]
@@ -146,7 +147,7 @@ namespace LitteraCore.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GET_CONTENT_DETAILS_wk")]
         [SwaggerOperation("To get particular content detail with participant status.")]
@@ -283,7 +284,7 @@ namespace LitteraCore.Controllers
 
             return Ok(new {learning_exist= isexist });
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/check_content_learning_exist_wk")]
         [SwaggerOperation("To check learning exist on particular content for given participant.")]

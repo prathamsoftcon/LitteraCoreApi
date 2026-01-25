@@ -7,6 +7,7 @@ using LitteraCore.Common.Token;
 using LitteraCore.DBContext;
 using LitteraCore.Models; 
 using LitteraCore.Models.SmsSettings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace LitteraCore.Controllers
    
     [ApiController]
 
-    
+    [Route("api/[controller]")]
     public class AuthenticationController : ControllerBase
     {
         
@@ -98,10 +99,11 @@ namespace LitteraCore.Controllers
         //}
 
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/GetToken")]
         [SwaggerOperation("To generate token.")]
-        public IActionResult GetToken(UserLogin u)
+        public IActionResult GetToken([FromBody]UserLogin u)
         {
             try
             {
@@ -219,6 +221,7 @@ namespace LitteraCore.Controllers
 
 
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GenerateOTP")]
         [SwaggerOperation("To Generate and send OTP.")]
@@ -299,6 +302,7 @@ namespace LitteraCore.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GenerateOTP_wk")]
         [SwaggerOperation("To Generate and send OTP.")]
@@ -377,7 +381,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/VerifyOTP")]
         [SwaggerOperation("To verify OTP .")]
@@ -401,6 +405,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/VerifyOTP_wk")]
         [SwaggerOperation("To verify OTP .")]
@@ -561,7 +566,7 @@ namespace LitteraCore.Controllers
 
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/UserInfo_wk")]
         [SwaggerOperation("To get particular user info.")]
@@ -654,7 +659,7 @@ namespace LitteraCore.Controllers
             return userid+"*"+ contenid;
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -673,7 +678,7 @@ namespace LitteraCore.Controllers
             // Return the object using System.Text.Json with custom settings
             return new JsonResult(RAC, options); 
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION_wk")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -792,6 +797,8 @@ namespace LitteraCore.Controllers
             AuthDB adb = new AuthDB(_configuration);
             //List<User> lU = new List<User>();
             UserInfo lU = adb.GetUserInfo(username);
+
+
 
 
 
@@ -1016,7 +1023,7 @@ namespace LitteraCore.Controllers
 
             return Ok(token);
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GenerateActivityToken_wk")]
         [SwaggerOperation("To Generate activity token.")]
@@ -1030,7 +1037,7 @@ namespace LitteraCore.Controllers
 
             return Ok(token);
         }
-
+        [AllowAnonymous]
         [HttpGet]
         
         [Route("api/Get_Activity_Token_Info")]
@@ -1288,7 +1295,7 @@ namespace LitteraCore.Controllers
             bool  issaved = adb.Save_Login_Fail_Entry(username, reason);
         
             return Ok(issaved);
-
+    
 
 
         }
@@ -1345,7 +1352,7 @@ namespace LitteraCore.Controllers
 
 
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/SAVE_USER_LOG_wk")]
         [SwaggerOperation("To save user log entry.")]
@@ -1398,7 +1405,7 @@ namespace LitteraCore.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/User_Session_Details")]
         [SwaggerOperation("To get user's session details.")]

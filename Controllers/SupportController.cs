@@ -6,6 +6,7 @@ using LitteraCore.Common.SmsService;
 using LitteraCore.Common.Token;
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -314,7 +315,7 @@ namespace LitteraCore.Controllers
             return Ok(ischanged);
 
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/Check_First_Login_wk")]
         [SwaggerOperation("To check participant first login.")]
