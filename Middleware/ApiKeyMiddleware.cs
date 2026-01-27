@@ -58,7 +58,11 @@ namespace LitteraCore.Middleware
                 || path.Contains("/api/Learning_Time_wk")
                 || path.Contains("/api/check_content_learning_exist_wk") 
                 || path.Contains("/api/Update_Session_Status_wk")
-
+                || path.Contains("/api/GetClientData")
+                || path.Contains("/api/country")
+                || path.Contains("/api/Finacial_year")
+                || path.Contains("/api/Get_Application_Setting")
+                || path.Contains("/api/Check_Payment_Gateway_Available")
                 )
             {
                 await _next(context);

@@ -38,7 +38,7 @@ namespace LitteraCore.Controllers
             _logger = logger;
         }
 
-       
+       [AllowAnonymous]
         [HttpGet]
         [Route("api/GetClientData")]
         [SwaggerOperation("To get client specific data to show on page.")]
@@ -47,6 +47,7 @@ namespace LitteraCore.Controllers
             return ClientData.Get_Client_Data();
         }
 
+        [AllowAnonymous]
         [Route("api/country")]
          [SwaggerOperation("To get country code.")]
         [HttpGet]
@@ -57,6 +58,7 @@ namespace LitteraCore.Controllers
             CL = CDB.Get_Countries();
             return Ok(CL);
         }
+        [AllowAnonymous]
         [Route("api/Finacial_year")]
         [SwaggerOperation("To get financial years.")]
         [HttpGet]
@@ -71,6 +73,7 @@ namespace LitteraCore.Controllers
             return Ok(FINYEAR);
         }
 
+        [AllowAnonymous]
         [Route("api/Get_Application_Setting")]
         [SwaggerOperation("To get application setting data setting type=1 for mobile login data.2 for participant approval data.3 for registration fields setting,4/5 for feedback required setting,6 for OTP login required setting,7 for email send by application,8 sms send by application,9 for branch configuration,10 for masking required setting,11 for first login change password setting ")]
         [HttpGet]
@@ -154,6 +157,7 @@ namespace LitteraCore.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/Check_Payment_Gateway_Available")]
         [SwaggerOperation("To get payment gateway available or not if gateway available then this will return true.")]
