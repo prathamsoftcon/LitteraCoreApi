@@ -137,7 +137,14 @@ namespace LitteraCore.Controllers
                             Expires = DateTime.Now.AddHours(1) // Cookie expiry time
                         };
 
-                        Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                        Response.Cookies.Append("Auth_token", token.Result.AuthToken,
+    new CookieOptions {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/",
+        Expires = DateTimeOffset.UtcNow.AddHours(1)
+    });
                         AuthDB adb = new AuthDB(_configuration);
                         string ip = GetClientIp();
                         adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
@@ -183,7 +190,14 @@ namespace LitteraCore.Controllers
                                 Expires = DateTime.Now.AddHours(1) // Cookie expiry time
                             };
 
-                            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                            Response.Cookies.Append("Auth_token", token.Result.AuthToken,
+    new CookieOptions {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/",
+        Expires = DateTimeOffset.UtcNow.AddHours(1)
+    });
                             
                             string ip = GetClientIp();
                             adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
@@ -1447,7 +1461,14 @@ namespace LitteraCore.Controllers
                 Expires = DateTime.Now.AddHours(1) // Cookie expiry time
             };
 
-            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+            Response.Cookies.Append("Auth_token", token.Result.AuthToken,
+    new CookieOptions {
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Path = "/",
+        Expires = DateTimeOffset.UtcNow.AddHours(1)
+    });
             AuthDB adb = new AuthDB(_configuration);
 
 
@@ -1459,6 +1480,9 @@ namespace LitteraCore.Controllers
 
     }
 }
+
+
+
 
 
 
