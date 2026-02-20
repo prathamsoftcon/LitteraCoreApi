@@ -7,6 +7,7 @@ using LitteraCore.Common.Token;
 using LitteraCore.DBContext;
 using LitteraCore.Middleware;
 using MailKit;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
