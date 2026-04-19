@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <Folder Include="IRepository\" />
+    <Folder Include="logs\" />
   </ItemGroup>
 
   <ItemGroup>
