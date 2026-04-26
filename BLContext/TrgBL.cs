@@ -950,22 +950,22 @@ namespace LitteraCore.BLContext
             string Grade = "";
             TrainingDB WDB = new TrainingDB(_configuration);
             Training trgdetail = new Training();
-            trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
+            //trgdetail = WDB.Get_Particular_Training_Detail(trainingid);
             SessionDB sdb = new SessionDB(_configuration);
          
             List<certificate_percentage> cpl = new List<certificate_percentage>();
-            if (trgdetail.trg_Setting != null)
-            {
-                if (trgdetail.trg_Setting.certificate_setting != null)
-                {
-                    if (trgdetail.trg_Setting.certificate_setting.certificate_percentage != null)
-                    {
-                        cpl = trgdetail.trg_Setting.certificate_setting.certificate_percentage.ToList();
-                    }
-                }
-            }
+           // if (trgdetail.trg_Setting != null)
+           // {
+           //     if (trgdetail.trg_Setting.certificate_setting != null)
+           //     {
+           //         if (trgdetail.trg_Setting.certificate_setting.certificate_percentage != null)
+           //         {
+           //             cpl = trgdetail.trg_Setting.certificate_setting.certificate_percentage.ToList();
+           //         }
+           //     }
+           // }
 
-           if (cpl.Count <= 0)
+           //if (cpl.Count <= 0)
             {
                 TrainingSettings TS = new TrainingSettings();
                 string Foldername = CommonEnum.GET_JSON_FOLDER();
