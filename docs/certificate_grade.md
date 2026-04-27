@@ -10,6 +10,10 @@ The grade is derived from a participant’s learning completion percentage for a
 - `SessionDB.Get_Session_Data_By_Trg(trainingid)` for session duration.
 - `SupportBL.Learning_Report_Data(trainingid, participantid, ...)` for participant learning time.
 
+## Database Objects
+- View: `trainingplan.Vw_tp_trg_time_table` (used by `SessionDB.Get_Session_Data_By_Trg`).
+- Stored procedure: `yuser.proc_yuser_participant_learning_report` (used by `SupportDB.Learning_Report_Data`).
+
 ## Calculation Flow
 1. Load `certificate_percentage` ranges from `TrainingSettings.json`.
 2. Load all non-deleted sessions for the training.
