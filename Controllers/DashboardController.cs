@@ -129,6 +129,62 @@ namespace LitteraCore.Controllers
           
             return Ok(d);
         }
+        /// <summary>
+        /// Dashboard_Data: Returns filtered, paged dashboard training data for a user.
+        /// </summary>
+        /// <remarks>
+        /// Description:
+        /// - Retrieves training data within the requested date range, applies status filters, and enriches results with ratings and completion metrics.
+        /// - Adds participant-specific document status when the user is a participant.
+        ///
+        /// Workflow:
+        /// 1. Load training calendar data and apply filters.
+        /// 2. Resolve user-specific trainings and apply search criteria.
+        /// 3. Calculate completion percentage and rating data.
+        /// 4. Return paged results.
+        ///
+        /// Data Sources:
+        /// - TrainingDB.Get_VW_Training_calendar
+        /// - TrainingDB.Get_Users_Trg_Data
+        /// - DashboardBL.Get_Trg_Feedback_Data
+        /// - SessionDB.Get_Session_Status_summary
+        /// - SessionDB.Get_Session_Data
+        /// - ParticipantDB.Get_Participant_Additional_info
+        /// - DMSBL.GET_DMS_STATUS_DATA_FOR_SELECTED_DOCID
+        ///
+        /// Database Objects:
+        /// - Accessed via TrainingDB, SessionDB, ParticipantDB, and DashboardBL.
+        ///
+        /// Authorization:
+        /// - Required Role(s): Authenticated user
+        /// - Authentication: Yes
+        ///
+        /// Sample Request:
+        /// POST /api/Dashboard_Data?usertype=5&userid=USER_ID&startdate=2024-04-01&enddate=2024-04-30
+        /// </remarks>
+        /// <param name="usertype">User type identifier.</param>
+        /// <param name="userid">Current user identifier.</param>
+        /// <param name="startdate">Start date for the training range.</param>
+        /// <param name="enddate">End date for the training range.</param>
+        /// <param name="param">Paging parameters from the query string.</param>
+        /// <param name="searchCriterias">Search criteria posted in the request body.</param>
+        /// <param name="filter_status">Comma-separated training status filter.</param>
+        /// <param name="filter_cd">Course director filter.</param>
+        /// <param name="filter_acd">Associate course director filter.</param>
+        /// <param name="branchid">Optional branch filter.</param>
+        /// <returns>
+        /// Returns:
+        /// - 200 OK: Successful operation
+        /// - 400 BadRequest: Invalid input
+        /// - 401 Unauthorized: Authentication required
+        /// - 404 NotFound: Resource not found
+        /// - 500 InternalServerError: Unexpected error
+        /// </returns>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad Request</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Not Found</response>
+        /// <response code="500">Internal Server Error</response>
         [HttpPost]
         [Route("api/Dashboard_Data")]
         [SwaggerOperation("To get user dashboard training data.")]
