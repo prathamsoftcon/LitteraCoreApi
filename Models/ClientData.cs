@@ -100,7 +100,7 @@ namespace LitteraCore.Models
         public string LITTERA_SITE_TAGLINE { get; set; }
 
         public string LITTERA_LOGO { get; set; }
-
+        public string DEFAULT_LOGO2 { get; set; }
         public string DASHBOARD_LOGO { get; set; }
 
         public string APP_TITLE { get; set; }
@@ -327,6 +327,10 @@ namespace LitteraCore.Models
                 else if (node.SelectSingleNode("key").InnerText == "LITTERA_LOGO")
                 {
                     cinfo.LITTERA_LOGO = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "DEFAULT_LOGO2")
+                {
+                    cinfo.DEFAULT_LOGO2 = node.SelectSingleNode("value").InnerText;
                 }
                 else if (node.SelectSingleNode("key").InnerText == "DASHBOARD_LOGO")
                 {
