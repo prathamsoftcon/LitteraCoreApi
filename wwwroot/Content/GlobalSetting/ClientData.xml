@@ -1,5 +1,17 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
+
 <ClientData>
+<setting>
+		<key>PLAY_STORE_LINK</key>
+		<value>https://play.google.com/store/apps/details?id=com.mpbou.in</value>
+	</setting>
+<setting>
+	<key>CERTIFICATE_LOGO</key>
+	<value>
+		/Content/GlobalSetting/Dev/certificatelogo.png?1.1
+	</value>
+</setting>
+
 	<setting>
 		<key>LOGIN_LOGO</key>
 		<value>/Content/GlobalSetting/Dev/logo_login.png?1.1</value>
@@ -49,36 +61,38 @@
 	</setting>
 	<setting>
 		<key>FB_LINK</key>
-		<value>http://facebook.com</value>
+		<value>https://www.facebook.com/mpboubpl</value>
 	</setting>
 	<setting>
 		<key>TWT_LINK</key>
 		<!--Admin Mail id to send mail in case of admin-->
-		<value>http://twitter.com</value>
+		<value></value>
 	</setting>
 	<setting>
 		<key>LINKEDIN_LINK</key>
-		<value>http://Linkedin.com</value>
+		<value></value>
 	</setting>
 	<setting>
 		<key>SLIDER_1_IMG</key>
-		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+		<value>/content/GlobalSetting/Dev/slide1.jpg?1.8</value>
 	</setting>
 	<setting>
 		<key>SLIDER_2_IMG</key>
-		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+		<value>/content/GlobalSetting/Dev/slide2.jpg?1.8</value>
 	</setting>
 	<setting>
 		<key>SLIDER_3_IMG</key>
-		<value>/content/GlobalSetting/Dev/slide3.jpg?1.1</value>
+		<value>/content/GlobalSetting/Dev/slide3.jpg?1.8</value>
 	</setting>
 	<setting>
 		<key>WELCOME_TXT_HEADER</key>
-		<value>WELCOME TO LITTERA</value>
+		<value><![CDATA[
+		  <span>Madhya Pradesh Bhoj Open University (MPBOU) welcomes you to our learning platform!</span><br/>
+]]></value>
 	</setting>
 	<setting>
 		<key>WELCOME_TXT_DETAILS</key>
-		<value>Digital Technology are reshaping the way of learning.</value>
+		<value>Digital Technology is Reshaping the Way of Learning</value>
 	</setting>
 	<setting>
 		<key>TRENDING_TRG_Header</key>
@@ -89,25 +103,21 @@
 	<setting>
 		<key>TRENDING_TRG_TEXT</key>
 		<value>
-			Professional Trainings provide excellent avenues for developing your knowledge and skills
 		</value>
 	</setting>
 	<setting>
 		<key>TRG_CALENDAR_TEXT</key>
 		<value>
-			Our Training continues to provide you with the best possible learning experience throughout the year.
 		</value>
 	</setting>
 	<setting>
 		<key>CERTIFIED_FACULTY_TEXT</key>
 		<value>
-			More then 60 Prominent certified Faculty on our Platform.
 		</value>
 	</setting>
 	<setting>
 		<key>CERTIFICATION_TEXT</key>
 		<value>
-			More then 60 Prominent certified Faculty on our Platform.
 		</value>
 	</setting>
 	<setting>
@@ -119,38 +129,42 @@
 	<setting>
 		<key>ABT_US_VIDEO_IMG</key>
 		<value>
-			/content/GlobalSetting/Dev/about_littera.jpg?1.1
+			/content/GlobalSetting/Dev/about_littera.jpg?1.3
 		</value>
 	</setting>
 	<setting>
 		<key>ABT_US_MAIN_TXT</key>
 		<value>
-			Littera Learning platform specifically designed to provide you with a unique educational experience, whether in the classroom or virtual, to acquire the necessary skills to increase your success in conducting Training.
+			
+Madhya Pradesh Bhoj (Open) University (MPBOU), a UGC-recognized State Open University established in 1991, is dedicated to providing quality education through the Open and Distance Learning System. With its motto "Embrace, Engage, Enlighten, and Empower," MPBOU focuses on expanding educational access, especially in underserved regions. Embracing the National Education Policy (NEP) 2020, the university emphasizes innovation, equity, and global welfare. Established under the Madhya Pradesh University Act 1991, MPBOU was inaugurated by President Dr. Shankar Dayal Sharma on October 19, 1992. Its emblem reflects the wisdom of Raja Bhoj’s "Saraswati Kanthabharan".
 		</value>
 	</setting>
 	<setting>
 		<key>ABT_US_WELCOME_HEADER</key>
 		<value>
-			WELCOME TO LITTERA
+			WELCOME TO MADHYA PRADESH BHOJ OPEN UNIVERSITY (MPBOU)
 		</value>
 	</setting>
 	<setting>
 		<key>ABT_US_WELCOME_DETAIL</key>
 		<value>
-			Littera from where the knowledge sprouts
+			Our Motto - "Embrace, Engage, Enlighten, and Empower" 
 
 		</value>
 	</setting>
 	<setting>
 		<key>ABT_US_CONCEPT_HEADER</key>
 		<value>
-			Concept to Littera Learning Platform
+			MPBOU'S Learning Platform's Concept
 		</value>
 	</setting>
 	<setting>
 		<key>ABT_US_CONCEPT_DETAIL</key>
 		<value>
-			Based on our decade long expertise and using concept of Knowledge engineering, we have developed Littera Learning Platform so persons can acquire new competency. Littera Learning collection, include learning course, learning profile and learning resources. In this learning process participant will acquire new competency with outcome as knowledge, skill and abilities. Littera comes with performance indicators in reference to complexity, scope, social and psychomotor.
+
+
+We provide an inclusive learning environment, open to all regardless of age or background. Our programs combine academic excellence with technology-driven learning, equipping students with essential skills to thrive in a dynamic world. With personalized guidance and dedicated support, we empower learners for future success.
+
 		</value>
 	</setting>
 	<setting>
@@ -163,14 +177,14 @@
 		<key>ABT_US_MISSION_DETAILS</key>
 		<value>
 			<![CDATA[
-			There are three commitments we've made to the world. We've been grounded by these since day one:
+			Our core commitments since day one:  
 
-			• Increase access to high-quality education for everyone, everywhere
-
-			• Enhance teaching and learning on campus and online
-
-			• Advance teaching and learning through research
-			
+-  Self-Paced Training Sessions – Expanding access to quality education for all <br/> 
+-  Doubt Clearing Sessions – Enhancing teaching and learning experiences  <br/>
+-  Live Sessions – Advancing education through research-driven insights  <br/>
+-  Hands-On Projects – Encouraging practical application and skill development  <br/>
+-  Self-Assessments – Enabling learners to track progress and growth  <br/>
+-  Feedback Mechanism – Ensuring continuous improvement in learning outcomes<br/>
 			]]>
 
 		</value>
@@ -184,13 +198,13 @@
 	<setting>
 		<key>ABT_US_VISION_DETAIL</key>
 		<value>
-			We are building and promoting a software platform that brings together the best people from all around the world to create courses for everyone, everywhere in the world
+			To emerge as an institution of excellence in Open and Distance Learning (ODL) by integrating the vision of the "National Education Policy (NEP)" and adopting "Online Learning Platforms". With a progressive academic philosophy, innovative teaching methods, and technology-driven interventions, the institution aims to fulfill societal needs, achieve sustainable development goals, and prepare future-ready global citizens.
 		</value>
 	</setting>
 	<setting>
 		<key>ACHEIVEMENT_TEXT</key>
 		<value>
-			A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart like mine.
+			
 		</value>
 	</setting>
 	<setting>
@@ -203,26 +217,31 @@
 	<setting>
 		<key>CONTACTUS_ADDRESS</key>
 		<value>
-			9 A Amaltas, Chuna bhatti Bhopal
+<![CDATA[
+		
+			<div>Kolar Road, Bhopal Madhya Pradesh 462016</div>
+			
+			]]>
+			
 		</value>
 	</setting>
 	<setting>
 		<key>CONTACTUS_PHONENO</key>
 		<value>
-			9425008752
+			7583816957
 
 		</value>
 	</setting>
 	<setting>
 		<key>CONTACTUS_EMAIL</key>
 		<value>
-			info@littera.in		</value>
+			mpboulearningplatform@gmail.com	</value>
 	</setting>
 
 	<setting>
 		<key>READ_MORE_PAGE_HEADER</key>
 		<value>
-			What Is Littera Platform?
+			What Is MPBOU'S Platform?
 		</value>
 	</setting>
 	<setting>
@@ -233,10 +252,10 @@
 			  <p>Over the years, the challenge is in understanding what Learning really is, or how Learning is conducted effectively. Many teachers and learners are still confused as to what Learning really is?.</p>
                       <p>There’s no single technology or software that enables Learning transformation. It is a combination of cultural as well as the technological change that leads to improved performance and efficiency for a teacher and learner.</p>
                     <p>People today do not worry about the limitations of technology in achieving learning objectives but worry about choosing and eliminating the vast variety of technological tools at their disposal to teach and learn.</p>
-                    <p>In the backdrop of this Littera came into picture as a platform. </p>
-                    <p>Littera is a platform for Learning which encompasses learning process with the combination of content that is both delivered digitally and through face-to-face learning. It’s a paradigm shifts from traditional face-to-face learning to the use of web technological tools which enhances collaborative learning and presents an entirely new learning platform for students. </p>
-                    <p>It’s a platform to create training courses  by  an  institution or  individual.  Littera is  a tool  to  create and run courses  anywhere and anytime .  On littera any one can deploy and track remote training as well as gather all the info in one convenient location. </p>
-                    <p>Littera streamline content maintenance and enhance accessibility. In other words, they’re ideally suited for modern, mobile-friendly support. </p>
+                    <p>In the backdrop of this MPBOU'S platfrom  came into picture. </p>
+                    <p>This platfrom is for Learning which encompasses learning process with the combination of content that is both delivered digitally and through face-to-face learning. It’s a paradigm shifts from traditional face-to-face learning to the use of web technological tools which enhances collaborative learning and presents an entirely new learning platform for students. </p>
+                    <p>It’s a platform to create training courses  by  an  institution or  individual.  MPBOU'S  platfrom is  a tool  to  create and run courses  anywhere and anytime .  On platfrom any one can deploy and track remote training as well as gather all the info in one convenient location. </p>
+                    <p>MPBOU'S streamline content maintenance and enhance accessibility. In other words, they’re ideally suited for modern, mobile-friendly support. </p>
                     <p>Teacher/instructors or department  can create their own content or access a pre-existing learning content library that includes a mix of video, PPT, and performance support resources like e-books, Quick Reference Guides, infographics, to name a few.</p>
                     <p style="font-weight:bold">It has been designed  in such a way  that  learning  objectives  of user  can  be  met easily. It has following features</p>
 
@@ -283,7 +302,366 @@
 		<key>PRIVACY_PAGE_CONTENT</key>
 		<value>
 			<![CDATA[
-			Privacy & Policy
+			<pre style="overflow-x: auto !important;white-space: pre-wrap;word-break: break-word;text-align:justify">
+<h4><u>Privacy Policy</u></h4>
+<h5>This policy is applicable to registered users of https://learningplatform.mpbou.in & MPBOU app listed on google play store.</h5>
+<div style="font-size:15px">Effective starting: July 1, 2022.
+This Privacy Policy informs you of our policies and procedures regarding the collection, use and disclosure of personal information we receive from visitors
+and registered users of https://learningplatform.mpbou.in (this “Site”) and MPBOU app(listed on play store). This Privacy Policy applies only to information that you provide to us through this Site(or MPBOU app) and explains in
+plain language what we do with that information, how we share it, and how we handle the content you place. It also explains your rights and the choices
+available to you regarding our use of your personal information and how you can access and update this information.
+Our Privacy Policy may be updated from time to time, and we will notify you of any material changes by posting the new Privacy Policy on the Site at
+Privacy Policy and revising the “Effective Starting” date at the top of this Policy. We encourage you to review our Privacy Policy whenever you use this
+“Site(or MPBOU app)” to stay informed about our information practices and the ways you can help protect your privacy. If you disagree with any changes to this Privacy
+Policy, you will need to stop using this “Site(or MPBOU app)” and deactivate your account(s), as outlined below.
+This Privacy Policy applies to the information that we obtain through your use of “Site(or MPBOU app)” via a “Device” or when you otherwise interact with Software.
+A “Device” is any computer used to access the “Site(or MPBOU app)”, including without limitation a desktop, laptop, mobile phone, tablet, or other consumer electronic
+device. “Site(or MPBOU app)” includes the Software web site and e-learning service but does not include any other own or third party products or services for which a
+separate privacy policy is provided. These are third party products or services that you may choose to integrate with Software services, such as third
+party Add-Ons/Plugins in the Marketplace. You should always review the policies of third party products and services to make sure you are comfortable
+with the ways in which they collect and use your information.
+By accessing and using this Site, you confirm that you have read and fully understood this Privacy Policy, that you agree to the collection and the usage
+of your own and others’ personal information in accordance with the Privacy Policy and that you have the authority to provide us with all information
+submitted by you via the Site, including but not limited to personal information of third parties. By registering for or using Software Services and
+accepting the Terms of Service you consent to the collection, transfer, processing, storage, disclosure and other uses described in this Privacy Policy.
+1. Who We Are
+MADHYA PRADESH BHOJ OPEN  UNIVERSITY (MPBOU) is the IT service solution and products firm with over 10 year's of experience,MPBOU has stamped its presence of indian market.Our business spans in whole india.
+By collaborating with MADHYA PRADESH BHOJ OPEN  UNIVERSITY (MPBOU) organisation in developement and social sector garner the power of tried and tested software solutions.
+2. Collection: The Personally Identifiable Information We Collect
+Visitors and Users: In the course of using this Site, you may provide us with personally identifiable information. This refers to information about
+you that can be used to contact or identify you, and information on your use of and activities at our Site that may be connected with you
+(“Personal Information”). Personal Information that we collect may include, but is not limited to, your name and email address. When you visit the Site,
+our servers automatically record information that your browser sends whenever you visit a website. This information may include, but is not limited to,
+your Internet Protocol address, browser type, the web page you were visiting before you came to our Site and information you search for on our Site.
+Like many websites, we may also use “cookies” to collect information. A cookie is a small data file stored by your browser at your Device’s hard
+disk for record-keeping purposes. We use “session ID cookies” in order to support login and main service functionality. We may also store cookies
+of third-party providers. In particular, Google stores a Google Analytics cookie in order to be able to differentiate between users and be able
+to show us how many times people visit the website on average (not individually) and information on what pages they’ve seen, how long the duration was,
+and so on; we do not identify who the visitor was, or what is his service account (if any). We also use Google AdWords and Facebook Pixel cookies for
+running advertising campaigns over audiences that may be interested in our services; our ads will only start working when the audience is big enough
+so no third party can use this information to personally identify the users. MPBOU does not collect or store data from third-party cookies.
+You can instruct your browser, by changing its options, to stop accepting cookies or to prompt you before accepting a cookie from the websites you visit.
+If you do not accept cookies, however, you may not be able to use all portions of the Site or all functionality of our services.
+In some cases another User (such as an administrator) may create an account on your behalf and may provide your information, including Personal Information
+(most commonly when your company requests that you use our service). We collect Information under the direction of our Customers and often have no direct
+relationship with the individuals whose Personal Information we process. If you are an employee of one of our Customers and would no longer like us to
+process
+your information, please contact your employer and us at the contact information below.
+Customers:
+In addition to the data we collect about all Users, we also collect data that are required for your contract with us, such as your company affiliation,
+invoicing data and also service usage data that prove that the service is used in accordance to your subscription terms. We also collect service usage
+data in aggregate form (i.e. demographics) to improve our service. We may also acquire additional data through our Customers’ support requests to the
+extent this is required for us to resolve a technical issue or respond to a request or complaint. We also email to our Customers newsletters, announcements
+regarding our services, or marketing material. If you are a Customer and no longer wish to receive such emails you can remove yourself from the recipients
+list at any time by selecting the “unsubscribe” link provided within the e-mail footer.
+Third-party integrations in Software:
+You may access third-party services via Software. These services may include access to content, such as courses or You Tube, Twitter or Facebook by linking
+your account in Software with an account on the third-party service or by clicking on third-party buttons (such as “like” or “share” buttons), which you have
+created subject to the third party’s Terms of Use. Software may also contain links to third-party websites. Linked websites and third-party services are not
+under our control, and we are not responsible for their content.
+Third-party integrations may also enable access to functionalities, such as videoconferencing (Microsoft Teams, Zoom). Use of these third-party services is
+optional,and you may have access to them by linking your account in Software with an account on the third-party service, which you have created subject to
+the third party’s Terms of Use.
+By using one of the above third-party integrations (offering content or functionality), you agree that such third parties may process Personal Information
+you provide
+them by using their services. To the fullest extent permitted by law, we are not responsible for any third-party service’s use of Customer’s exported
+information.
+Credit Cards:
+We do not store your credit card information in our systems. All credit card transactions are processed using secure encryption – the same level
+of encryption used by leading banks.
+Card information is transmitted, stored, and processed securely at gateways on a PCI-compliant network.
+Content:
+We collect and store Content that you create, input, submit, post, upload, transmit, store or display in the process of using our “Site(or MPBOU app)”.
+Such Content includes any Personal Information or other sensitive information that you choose to include (“incidentally-collected Personal
+Information”). Although MPBOU owns the code, databases, and all rights to the Software service, Customers retain ownership, control and all
+rights to their records and data which are their property.
+Other submissions: We collect other data that you submit to our “Site(or MPBOU app)” or as you participate in any interactive features of the Software
+Services, participate in a survey, contest, activity or event, request Customer support, or otherwise communicate with us.
+3. How We Use, Process and Retain Personal Information
+Personal Information is or may be used for the following purposes:
+•	to provide and improve our Site, services, features and content,
+•	to administer your use of our Site,
+•	to enable you to enjoy and easily navigate the Site,
+•	to better understand your needs and interests,
+•	to fulfill requests you may make,
+•	to personalize your experience,
+•	to provide or offer software updates and product announcements, and
+•	to provide you with further information and offers from us or third parties that we believe you may find useful or interesting, including
+newsletters, marketing or promotional. We use information we obtain by technical means (such as the logging performed by our servers or through
+the use of cookies) for the above purposes and in order to monitor and analyze use of the Site and our services, for the Site’s technical
+administration, to increase our Site’s functionality and user-friendliness, to better tailor it to your needs, to generate and derive useful
+data and information concerning the interests, characteristics and website use behavior, and to verify that visitors to the Site meet the criteria
+required to process their requests.
+We collect and process personal data in a transparent manner, to the extent necessary for specified, explicit and legitimate purposes, and do not
+process it further in a manner incompatible with those purposes. We take care that the data we collect are accurate and, when necessary, updated.
+We take all reasonable steps to immediately delete or rectify personal data, if inaccurate. We process data in a way that guarantees their security,
+including their protection against unauthorized or unlawful processing and accidental loss, destruction or degradation, using appropriate technical
+or organizational measures. We are ready to prove at any moment how we adhere to the above principles. We take the appropriate technical and organizational
+measures for the security, confidentiality, integrity and availability of the data. We expressly declare that these measures ensure that, by definition,
+personal data are not made accessible without the intervention of the natural person to an indeterminate number of natural persons.
+Each Software instance data are retained for as long as the Customer’s paid subscription to the service or free plan lasts. If Customer elects not to
+renew a Subscription, Customer’s account is downgraded to the free version of the Services. If Customer has a free version account and does not log into
+an account for more than 365 days, that account is permanently deleted. We will provide reminder notifications before deleting Customer’s account.
+4. Information Sharing and Disclosure
+Users:
+We will display your Personal Information in your profile page and elsewhere on the Site according to the preferences you set in your account.
+Any information you choose to provide should reflect how much you want other Software users to know about you. We recommend that you guard your
+anonymity and sensitive information, and we encourage you to think carefully about what information you disclose in your profile pages. You can
+review and revise your profile information at any time. You should be aware that the administrator, as well as specially designated support
+personnel in order to provide support for technical issues you may face, may be able to: access information in and about your account; access
+communications history, including file attachments, for your account; disclose, restrict, or access information that you have provided or that
+is made available to you when using your account, including your Content; and control how your account may be accessed or deleted.
+Third Parties:
+We do not sell your Personal Information or Content and will not share or disclose any of your Personal Information or Content with third parties
+except as described in this policy. We do not share Personal Information about you with third parties for their marketing purposes
+(including direct marketing purposes).
+Service Providers, Business Partners and Others: For security, service operation and management purposes, Software also uses third-party
+services for its managed Software instances that provide the same level of protection as MPBOU. Third-party vendors and providers supply the
+necessary hardware, software, networking and storage to run the Software service instances; These third parties have access to your Personal
+Information only for purposes of performing these tasks on our behalf.
+Compliance with Laws and Law Enforcement: Software cooperates with government and law enforcement officials and private parties to enforce and
+comply with the law. We will disclose any information about you to government or law enforcement officials or private parties as we, in our
+sole discretion, believe necessary or MPBOU appropriate to respond to claims and legal process , to protect the property and rights of Software or
+a third party, to protect the safety of the public or any person, or to prevent or stop any activity we may consider to be, or to pose a risk
+of being, illegal, unethical, inappropriate or legally actionable.
+Children:
+Our services are not directed to children. We do not knowingly collect Personal Information from children. If we become aware that a child has
+provided us with Personal Information, we will take steps to delete such information. If you become aware that a child has provided us with
+Personal Information, please contact us at the contact information below.
+Business Transfers:
+We may share or transfer your Information (including your Personal Information) in connection with, or during negotiations of, any merger, sale
+of company assets, financing, or acquisition of all or a portion of our business to another company. You will be notified on any change in ownership
+or uses of your Personal Information, as well as any choices you may have regarding your Personal Information.
+5. Your Rights
+MPBOU respects your rights as a data subject. When MPBOU processes personal data on behalf of and as instructed by its Customers, our Customers are
+responsible towards the data subjects and you should contact the respective Customer to which the content of your service belongs for exercising your
+rights. In this case, MPBOU does not respond directly to your requests for the exercise of your rights that come to our knowledge, but we inform the
+Customer without delay and provide all reasonable assistance to satisfy your requests in accordance with instructions of the Customer. The service
+has all the necessary features to enable our Customers to protect the rights of the data subjects on their behalf. For example, the service provides
+the ability to obtain and manage consent, and to implement strict and secure password policies as well as to exercise the right to be forgotten.
+A synopsis of your rights as a data subject is provided below. 
+Transparency, information and answers to requests:
+MPBOU adheres to the principle of transparency in processing. For any question regarding this policy you may contact us at the email provided at the end
+of this Policy. We will respond without delay and in any case within one month upon receipt of the request.
+Access:
+You have the right to receive from MPBOU confirmation on whether your personal data are processed and in case this happens all required information
+thereof (processing means, goal, records etc.).
+Rectification:
+You have the right to require the rectification of inaccurate data relating to you without undue delay, as well as to fill in incomplete data if necessary
+for processing.
+Erasure:
+You have the right to ask for the erasure of personal data concerning you without undue delay. MPBOU by means of its designated personnel will erase the
+data where one of the following grounds applies: a) the personal data are no longer necessary in relation to the purposes of processing; or b) the person
+requesting the erasure withdraws consent on which the processing is based and there is no other legal ground for the processing; or c) the data subject
+objects to the processing and there are no overriding legitimate grounds for the processing or the data subject objects to processing for direct marketing;
+or d) the personal data have to be  erased for compliance with a legal obligation. MPBOU will not proceed to the erasure of the personal data if the data
+must be maintained for compliance with a legal obligation or in cases where the processing is required for the establishment, exercise or defence of legal claims.
+If you receive marketing emails, you can remove yourself from the recipients list by selecting the “unsubscribe” link within the e-mail.
+Restriction of processing:
+You have the right to request restriction of processing if the accuracy of personal data is disputed, for that period of time that allows MPBOU to verify the accuracy
+of personal data, or based on any other legitimate reason specified in applicable Data Protection Laws.
+Data Portability:
+You have the right to receive your personal data in a structured, commonly used and machine-readable format as well as the right to request the direct transmission of
+personal data by MPBOU to another, if this is technically feasible.
+Right to Object:
+You may oppose the processing of personal data which takes place without your consent. In this case, MPBOU no longer submits the personal data unless it demonstrates
+imperative and legitimate reasons for the processing that outweigh the interests, rights and freedoms of you as a data subject or for the foundation, exercise or support
+of legal claims. If you receive promotional emails, you can remove yourself from the recipients list by selecting the “unsubscribe” link within the e-mail content.
+You may also oppose processing at any time by contacting us at the email provided at the end of this Policy
+You may oppose the processing of personal data which takes place without your consent. In this case, MPBOU no longer submits the personal data unless it demonstrates
+imperative and legitimate reasons for the processing that outweigh the interests, rights and freedoms of you as a data subject or for the foundation, exercise or support
+of legal claims. If you receive promotional emails, you can remove yourself from the recipients list by selecting the “unsubscribe” link within the e-mail content.
+You may also oppose processing at any time by contacting us at the email provided at the end of this Policy
+6. Security
+Software is very concerned with safeguarding your information. We employ reasonable measures designed to protect your information from unauthorized access.
+7. Data Ownership
+Although MPBOU owns the code, databases, and all rights to the Software service, Customers retain ownership, control and all rights to their records and data
+which are their property.
+<h4><u>Terms and Conditions</u></h4>
+
+https://learningplatform.mpbou.in  Software as a Service Terms and Conditions
+
+PLEASE READ THESE SOFTWARE AS A SERVICE TERMS AND CONDITIONS (“Agreement”) CAREFULLY BEFORE USING THE SERVICES OFFERED BY MPBOU
+(“SUPPLIER”, AS DEFINED BELOW).  BY USING THIS WEBSITE AND THE SERVICES, YOU AGREE TO BECOME BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT ON BEHALF OF YOURSELF
+OR THE ORGANIZATION, COMPANY, OR ENTITY FOR WHICH YOU ACT (“Customer” or “you”) AND REPRESENT THAT YOU HAVE THE AUTHORITY TO BIND CUSTOMER TO THIS AGREEMENT.
+IF YOU DO NOT HAVE SUCH AUTHORITY OR YOU DO NOT AGREE TO ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT, YOU MUST NOT ACCEPT THIS AGREEMENT, AND YOU WILL NOT
+HAVE ANY RIGHT TO USE THE SERVICES OFFERED BY SUPPLIER. REGISTRATION BY “BOTS” OR OTHER AUTOMATED METHODS ARE NOT PERMITTED. SUPPLIER’S ACCEPTANCE IS EXPRESSLY
+CONDITIONED UPON YOUR ASSENT TO ALL THE TERMS AND CONDITIONS OF THIS AGREEMENT, TO THE EXCLUSION OF ALL OTHER TERMS; IF THIS AGREEMENT IS CONSIDERED AN OFFER BY
+SUPPLIER, ACCEPTANCE IS EXPRESSLY LIMITED TO THIS AGREEMENT.
+1.AGREEMENT DEFINITIONS
+“Affiliate” means any entity that, directly or indirectly, controls, is under common control with, or is controlled by a party. For this purpose, “control” means
+the power to direct or cause the direction of the management or policies of such entity, whether through beneficial ownership of voting securities, by contract or
+otherwise. “Authorized User” means Customer’s and/or Customer’s Affiliates’ employee, contractor, agent, or any other individual authorized by Customer to access
+and use the Services, via Customer’s account, for the purpose specified herein.  Customer is responsible for Authorized Users’ compliance with this Agreement.
+“Customer Delivered Training” means a training or training Customer makes available, presents, or otherwise administers to Authorized Users.
+“Documentation” means the user guides, online help, training materials and any other documentation made available to Customer regarding use of Services.
+“MPBOU Services” means services and materials relating to structuring and presenting online trainings for Authorized Users , including any available Supplier’ proprietary
+training content. “Order” means an ordering document entered into by and between Supplier and Customer.
+“Portal” means the website address assigned and/or designated by Supplier to Customer to access the Services.
+“Services” means Supplier’s hosted internet accessible enterprise learning management solution service, under the name MPBOU made available to Customer via the Portal.
+2. OVERVIEW OF SERVICES.
+The Services provided by Supplier include the MPBOU Services, as well as additional content or features that Supplier makes available from time to time.
+3. ACCESS RIGHTS
+3.1 MPBOU Services
+Subject to Customer’s compliance with the terms and conditions set forth herein, Supplier hereby grants to Customer a non-exclusive, non-assignable, limited right to
+access and use the MPBOU Services solely for Customer’s internal business operations, and up to the maximum number of Customer’s Authorized Users set forth in the
+applicable Order or Customer’s account, during the term of the applicable Subscription (as defined in Section 7.3). If Customer purchases a Subscription, Supplier will
+use commercially reasonable efforts to provide access to the Services in accordance with the Service Level Agreement .
+4. USERS
+4.1 Registration.
+Customer must register for an account to access portions of the Services. Customer agrees that the information provided for purposes of account registration is accurate
+and will be kept accurate and up-to-date at all times. Customer is solely responsible for maintaining the confidentiality of Customer’s account and password and accepts
+responsibility for all activities that occur under the account. Customer will not share passwords, authentication credentials, or other means of account access with a third
+party, except Authorized Users. If Customer has reason to believe that Customer’s account is no longer secure, Customer must immediately notify Supplier at help@info.in
+4.2 User Subscriptions.
+The maximum number of current Authorized Users the Customer may authorize to access and use the Services at any given time shall not exceed the maximum number of user subscriptions Customer
+has purchased under the Order or elected plan (unless explicitly defined otherwise under Customer elected plan).  Each user subscription shall correspond to a unique Authorized User who will
+subscribe, access and use the Services by use of a password protected access to the Portal. Each Authorized User is responsible for maintaining the security of that Authorized Users’ account
+and password. A single login shared by multiple Authorized Users is not permitted. Customer shall maintain an up-to-date list of current Authorized Users and, upon 10 days’ written notice,
+permit Supplier or its duly authorized representative to audit Customer’s records which relate to the measurement of number of Authorized Users and user subscriptions, provided that such
+audits may not be conducted more than once during any consecutive 12-month period. Any authorized person performing such audit shall protect the Customer’s Confidential Information (as defined herein)
+and abide by Customer’s reasonable security procedures.   Customer shall use all reasonable endeavours to prevent any unauthorized access to, or use of, the Services and/or the Documentation.
+4.3 Customer Delivered Trainings
+Customer may elect to charge Authorized Users to access a Customer Delivered Training. Customer is solely responsible for, and Supplier has no responsibility of any kind with respect to (a) administration
+and operation of each Customer Delivered Training, (b) support of Authorized Users with respect to participation in a Customer Delivered Training, (c) ensuring that Customer Delivered Trainings do not violate
+or infringe the intellectual property rights of a third party; and (d) ensuring that Customer Delivered Trainings are not offensive, profane, obscene, libellous or otherwise illegal.
+4.4 Agreements.
+Customer may include a separate end user license agreement (“EULA”) that will govern the relationship between Customer and Authorized Users and such Authorized Users’ access to the Services, including Customer
+Delivered Trainings. Any such applicable EULA is solely between Customer and the Authorized User. Supplier shall not be responsible, nor have any liability whatsoever, under any EULA. The EULA must include legally
+enforceable provisions that obtain all necessary licenses, rights, consents, and permissions from each Authorized User, and comply with the terms, restrictions and conditions in this Agreement and all applicable laws,
+rules and regulations
+5. RESTRICTIONS.
+Customer has no right to access or use the Services for any purposes except as may be otherwise expressly set forth in this Agreement. All use of the Services must be only as provided in this Agreement and only in
+accordance with Supplier’s applicable Documentation. Customer shall not and shall not enable or assist any third party to: (a) modify, alter, adapt, copy, translate, perform and display or create derivative works based
+on the Services or proceed to any action that may be properly characterized as copyright infringement by applicable law; (b) decompile, reverse engineer, disassemble or otherwise attempt to obtain the source code,
+object code, or underlying structure, ideas, or algorithms of the Services; (c) merge or bundle the Services with other software; (d) sell, resell, license, lease, publish, display (publicly or otherwise), distribute,
+rent, lease or otherwise transfer or by any means make available ,either directly or via another reseller, to a third party the Services or include the Services in a service bureau, time-sharing, or equivalent offering;
+(e) duplicate, copy or reuse any portion of the HTML/CSS, JavaScript, or visual design elements or concepts (including the look and feel) of the Services; (f) publicly disseminate information from any source regarding the
+performance of the Services or otherwise conduct any benchmark or stress tests; (g) access, store, distribute or transmit any viruses, worms, Trojan horses, or other harmful code that in Supplier’ sole discretion, affects
+the Services; (h) modify, disable or compromise the integrity or performance of Services, data or Supplier’s systems (including probing, scanning or testing the vulnerability of any Supplier system or network that hosts
+Services; (i) tamper with or hack Supplier’s systems, circumvent any security or authentication measures, or attempt to gain unauthorized access to the Services, related Supplier systems, networks or data;  (j)  decipher
+any transmissions to or from the servers running the Services;  (k) overwhelm or attempt to overwhelm Supplier’s infrastructure by imposing an unreasonable volume of load on Supplier’s system that consumes extraordinary
+resources (CPU’s, memory, disk space, bandwidth etc); (l)   interfere or attempt to interfere in any manner with the proper functioning of the Services; and (m) include any material during the training of its use of the
+Services that is unlawful, harmful, defamatory, infringing, facilitates illegal activity, harassing, depicts sexually explicit images and/or causes damage or injury to any person or property. Without prejudice to Supplier’s
+other rights and remedies, Supplier reserves the right, without liability to the Customer, to disable Customer’s access to any material in the event that Customer breaches the restriction provisions of this clause.
+6. Customer’s Obligations.
+Customer agrees to: (a) provide reasonable information and assistance to Supplier to enable the Services to be rendered; (b) comply with all applicable local, state, provincial, national, federal and foreign laws in connections
+with its use of the Services; (c) notify Supplier immediately upon becoming aware of any unauthorized use of the Services; (d) designate a qualified employee as Customer’s administrator for the Services;  (e) collect, input, update
+all Authorized Users data and material provided for use in connection with the Services.   
+7. PAYMENT FOR SERVICES.
+Certain features of the Services may require Customer to pay fees. Before Customer pays any fees, Customer will have an opportunity to review and accept the fees that will be charged. All fees are in Rupee and, unless explicitly
+provided otherwise herein, are non-refundable.
+7.1 Price.
+Supplier reserves the right to determine pricing for the Services. Supplier encourages
+Customer to check Supplier’s website periodically for current pricing information. Supplier may change the fees for any feature of the Services, including additional fees or charges, if Supplier gives Customer advance notice of changes
+before they apply. Supplier, at its sole discretion, may make promotional offers with different features and different pricing to any of Supplier’s customers. These promotional offers, unless made to Customer, will not apply to Customer’s
+offer or this Agreement. The fees set forth in the applicable Order or ordering interface are exclusive of all federal, state, municipal, or other government excise, sales, use, value added or other taxes now in force or enacted in the future,
+and Customer shall pay any such tax (excluding taxes on Supplier’ net income) that Supplier may be required to collect or pay now or at any time in the future with respect to such fees. Unless otherwise set forth in the Order, Customer shall
+pay all Supplier’ undisputed invoices within 30 days after Customer receives invoice.  Payment of the amounts due to Supplier shall be made in accordance with the payment schedule set forth on the Order or other ordering interface.
+7.2 Authorization.
+Customer authorizes Supplier or a third party payment processor to charge all sums for the Orders Customer enters into, orders that Customer makes and any level of Services Customer selects as described in this Agreement or published by Supplier,
+including all applicable taxes, to the payment method specified in Customer’s account. If Customer pays any fees with a credit card, a third party payment processor may seek pre-authorization of Customer’s credit card account prior to the Customer’s
+purchase to verify that the credit card is valid and has the necessary funds or credit available to cover the Customer’s purchase.
+7.3 Subscription Services.
+The paid Services may include automatically recurring payments for periodic charges (“Subscription”). The price, term, and restrictions of any Subscription will be set forth in an applicable Order. If Customer activates a Subscription, Customer
+authorizes Supplier to periodically charge, on a going-forward basis and until cancellation of either the recurring payments or Customer’s account, all accrued sums on or before the payment due date for the accrued sums. The “Subscription Billing Date”
+is the date when Customer purchases its first Subscription. Customer’s account will be charged automatically on the Subscription Billing Date all applicable
+fees and taxes for the next Subscription period. The Subscription will continue unless and until Customer cancels its Subscription or it is terminated by Supplier. Customer must cancel its Subscription before it renews in order to avoid billing of the next periodic
+Subscription Fee to its account. Supplier will bill the periodic Subscription Fee to the payment method provided by Customer during registration (or to a different payment method if Customer changes its payment information). Customer may cancel the Subscription via
+its Portal (under Account and Settings) or by contacting Supplier at mpboulearningplatform@gmail.com If Customer elects not to renew a Subscription, Customer acknowledges and accepts that this may result to Customer Content becoming inaccessible or permanently deleted.
+7.4 Delinquent Accounts.
+Supplier may suspend or terminate access to the Services, including fee-based portions of the Services, for any account for which any amount is due but unpaid. In addition to the amount due for the Services, a delinquent account will be charged with fees or charges
+that are incidental to any chargeback or collection of any the unpaid amount, including collection fees.
+8. PAYMENTS TO CUSTOMER.
+If Customer offers Authorized Users a Customer Delivered Training, as applicable, in exchange for a fee, then Customer may receive the fees charged less certain fees and expenses (“Customer Fees”) using Supplier’s third-party service provider (e.g., pscon). Customer may
+select the fee, as well as the bundling of materials in exchange for a discount, if Supplier makes such option available. Customer may be required to have an account with that third-party service provider or with another financial institution in order to receive its Customer Fees,
+and Customer may be charged fees for any related processing services. Any fees charged by Supplier’s third-party service provider or by any other financial institution are between Customer and that provider or institution and may be subject to their terms and conditions or any
+agreement Customer has with them. Supplier may place limits on the balance of Customer Fees needed in order for Customer to cash out and on the amount of Customer Fees that Customer may cash out in any given day or transaction, and Supplier may update these limits
+from time to time at its discretion.
+9. TERM AND TERMINATION.
+9.1 Term of Agreement.
+The term of this Agreement will commence on the Effective Date and will continue in effect unless terminated in accordance with this Agreement (the “Term”). On the effective date of termination of this Agreement, all then-current Subscriptions under the Agreement will also terminate
+unless otherwise agreed by Supplier and Customer.
+9.2 Termination for Cause.
+Either party shall have the right at any time, by giving notice, to terminate this Agreement without liability to the other on the occurrence of any of the following events: (a) if the other party commits a breach of any of the terms and conditions of this Agreement and such breach has
+not been rectified within thirty (30) days after receipt of notice to rectify served on the defaulting party by the other party; (b) if the other party becomes insolvent, makes a general assignment for the benefit of creditors, suffers or permits an appointment of a receiver for its
+business or assets, becomes subject to any proceedings under any bankruptcy or insolvency law, whether domestic or foreign, is liquidated, voluntarily or otherwise, or suffers any similar action in consequence of debt; or (c) if the other party engages in illegal activities.
+9.3 Termination for Convenience.
+Customer may terminate this Agreement any time without cause upon 30 days’ prior written notice to Supplier, in which case any active Subscription will be deemed terminated as well. Customer acknowledges that should Customer terminate for convenience, any pre-paid fees to Supplier
+corresponding to the unused Subscription term are non-refundable.   
+9.4 Effect of Non-Subscription.
+If Customer has a limited free trial version account that will be permanently deleted within 30 days unless Customer purchases a Subscription.  Upon such account deletion, all Customer Content will become inaccessible and may be permanently deleted.
+9.5 Effect of Termination.
+Upon termination of these this Agreement: (a) Customer’s license rights will terminate and Customer must immediately cease all use of the Services; (b) Customer will no longer be authorized to access its account or the Services; (c) Customer must pay Supplier any unpaid amount that was
+due prior to termination; and (d) all payment obligations accrued prior to termination and Sections 1, 5, 7, 9.5, 9.6, 10, 13, 15, 16.3, 17, 18 , 19, 20, and 21 will survive.
+9.6 Modification of the Services.
+Supplier reserves the right to modify or discontinue the Services at any time (including by limiting or discontinuing certain features of the Services), temporarily or permanently,
+without notice to Customer.  Supplier will have no liability for any change to the Services or any suspension or termination of Customer’s access to or use of the Services.
+10. Ownership of Intellectual Property.
+Supplier and its licensors retain all intellectual property rights in and to the Services and its components, including the source code, Documentation, Portals, URLs, appearance, structure, organization, preparatory design material, and all other elements of the Services (“Materials”). All Materials in the Services are the property of Supplier or its third-party licensors. Other than the right to use the Services for the Term provided in this Agreement, nothing in this Agreement grants Customer any right in the Services. Supplier reserves all rights to the Materials not granted expressly in this Agreement. To the extent Customer provides Supplier with any feedback relating to the Services (including feedback related to usability, performance, interactivity, bug reports and test results) (“Feedback”), Supplier will own all right, title and interest in and to such Feedback (and Customer hereby makes all assignments necessary to achieve such ownership). Customer shall report promptly to Supplier any third-party claim served on Customer relating to the intellectual property rights in the Services or the Documentation.
+11. THIRD-PARTY TERMS.
+11.1 Third-Party Services and Linked Websites.
+Supplier may provide tools through the Services that enable Customer to export information, including Customer Content, to third-party services, including through features that allow Customer to link its account on Supplier with an account on the third-party service, such as Twitter or Facebook, or through Supplier’s implementation of third-party buttons (such as “like” or “share” buttons). By using one of these tools, Customer agrees that Supplier may transfer that information to the applicable third-party service. Third-party services are not under Supplier’s control, and, to the fullest extent permitted by law, Supplier is not responsible for any third-party service’s use of Customer’s exported information. The Services may also contain links to third-party websites. Linked websites are not under Supplier’s control, and Supplier is not responsible for their content.
+11.2 Third-Party Software.
+The Services may include or incorporate third-party software components that are generally available free of charge under licenses granting recipients broad rights to copy, modify, and distribute those components (“Third-Party Components”). Although the Services are provided to Customer subject to this Agreement, nothing in this Agreement prevents, restricts, or is intended to prevent or restrict Customer from obtaining Third-Party Components under the applicable third-party licenses or to limit Customer’s use of Third-Party Components under those third-party licenses.
+12. Customer Content
+12.1 Customer Content Generally.
+Certain features of the Services may permit users to upload trainings and other content to the Services, including messages, reviews, photos, video, images, folders, data, text, and other types of works (“Customer Content”) and to publish Customer Content on the Services. Customer retains any copyright and other proprietary rights that it may hold in the Customer Content that Customer posts to the Services.
+12.2 Limited License Grant to Supplier.
+By providing Customer Content to or via the Services, Customer grants Supplier a worldwide, non-exclusive, royalty-free, fully paid right and license (with the right to sublicense) to host, store, transfer, display, perform, reproduce, modify for the purpose of formatting for display, and distribute its Customer Content, in whole or in part, for providing the Services as described in this Agreement.
+12.3 Limited License Grant to Other Customers.
+By providing Customer By providing Customer Content to or via the Services to other users of the Services, Customer grants those users a non-exclusive license to access and use that Customer Content as permitted by this Agreement and the functionality of the Services.
+12.4 Customer Content Representations and Warranties.
+Supplier disclaims any and all liability in connection with Customer Content. Customer is solely responsible for its Customer Content and the consequences of providing Customer Content via the Services. By providing Customer Content via the Services, Customer affirms, represents, and warrants to Supplier that:
+(a) Customer is the creator and owner of the Customer Content, or has the necessary licenses, rights, consents, and permissions to authorize Supplier and users of the Services to use and distribute its Customer Content as necessary to exercise the licenses granted by Customer in this Section, in the manner contemplated by Supplier, the Services, and this Agreement;
+(b) Customer Content, and the use of Customer Content as contemplated by this Agreement, does not and will not: (i) infringe, violate, or misappropriate any third-party right, including intellectual property rights; (ii) slander, defame, libel, or invade the right of privacy, publicity or other property rights of any other person; or (iii) cause Supplier to violate any law or regulation; and
+(c) Customer Content could not be deemed by a reasonable person to be objectionable, profane, indecent, pornographic, harassing, threatening, embarrassing, hateful, or otherwise inappropriate.
+(d) Customer has all necessary approvals and authorizations to convey all licenses to Supplier hereunder
+12.5 Monitoring Content.
+Supplier does not control and does not have any obligation to monitor: (a) Customer Content; (b) any content made available by third parties; or (c) the use of the Services by its users. Customer acknowledges and agrees that Supplier reserves the right to, and may from time to time, monitor any and all information transmitted or received through the Services for operational purposes. If at any time Supplier chooses to monitor the content, Supplier still assumes no responsibility or liability for content or any loss or damage incurred as a result of the use of content.
+13. Copyright and Intellectual Property Protection
+13.1 Customer Content Disclaimer.
+Supplier is under no obligation to edit or control Customer Content that Customer or other users post or publish, and will not be in any way responsible or liable for Customer Content. Supplier may, however, at any time and without prior notice, screen, remove, edit, or block any Customer Content that in its sole judgment violates this Agreement or is otherwise objectionable. Customer understands that when using the Services it will be exposed to Customer Content from a variety of sources and acknowledges that Customer Content may be inaccurate, offensive, indecent, or objectionable. Customer agrees to waive, and does waive, any legal or equitable right or remedy it has or may have against Supplier with respect to Customer Content. If notified by a user or content owner that Customer Content allegedly does not conform to this Agreement, Supplier may investigate the allegation and determine in its sole discretion whether to remove the Customer Content, which Supplier reserves the right to do at any time and without notice. For clarity, Supplier does not permit copyright-infringing activities on the Services.
+14. Customer’s Data.
+14.1 Customer hereby acknowledges and agrees that Supplier’ performance of this Agreement requires Supplier to process, transmit and store personal data under the documented instructions of the Customer .
+14.2 Customer hereby also acknowledges and agrees that Supplier processes personal data related to Customer, and or Customer’s Affiliates, and/or their employees or representatives and/or the Authorized Users and/or Customer’s (including Affiliates) connection data created through the use and operation of the Services, in order to administer or manage Supplier’ delivery of Services, as well as information about the contractual commitments between Supplier and Customer, for the purpose of billing and collection of payments, and of observing compliance with Customer’s obligations under this Agreement. Customer hereby acknowledges and agrees that Supplier also processes information and personal data that the Supplier collects, when Customer submits a request for support services or other troubleshooting, including information about hardware, software and other details related to the support incident, such as authentication information, information about the condition of the service, and error-tracking files. Supplier processes such personal data in order to respond to the request and solve the problem eventually reported.
+14.3 Supplier shall process information and personal data under this paragraph for the Term of the Agreement and until collection of payments, unless processing after the Term is necessary for compliance with a legal obligation or for the establishment, exercise or defense of legal claims.
+14.4 Customer hereby acknowledges and agrees that Supplier shall process the name and email address of the Customer to communicate with the Customer for the presentation and promotion of the Services or of new services. Customer may at any time, free of charge, unsubscribe from such electronic communication, easily by clicking the button “unsubscribe” contained in the electronic communication.
+15. Confidential Information.
+During the Term, in connection with this Agreement, each party (a “Disclosing Party”) may disclose to the other party (a “Receiving Party”) confidential or proprietary materials and information of the first party (“Confidential Information”). All materials and information disclosed by Disclosing Party to Receiving Party under this Agreement and identified at the time of disclosure as “Confidential” or bearing a similar legend, and all such other information that the Receiving Party reasonably should have known was the confidential information of the Disclosing Party, will be considered “Confidential Information”; for the avoidance of doubt, the Services, all pricing information and terms of this Agreement, are Confidential Information of Supplier. Receiving Party will maintain the confidentiality of the Confidential Information and will not disclose such information to any third-party without the prior written consent of Disclosing Party. Receiving Party will only use the Confidential Information internally for the purposes contemplated under this Agreement. The obligations in this Section 15 will not apply to any information that: (a) is made generally available to the public without breach of this Agreement, (b) is developed by the Receiving Party independently from the Disclosing Party’s Confidential Information, (c) is disclosed to Receiving Party by a third-party without restriction, or (d) was in the Receiving Party’s lawful possession prior to the disclosure to the Receiving Party and was not obtained by the Receiving Party either directly or indirectly from the Disclosing Party. Receiving Party may disclose Confidential Information as required by law or court order; provided that, Receiving Party provides Disclosing Party with prompt written notice thereof and uses its best efforts to limit disclosure. At any time, upon Disclosing Party’s request, Receiving Party will return to Disclosing Party all Disclosing Party’s Confidential Information in its possession, including all copies and extracts thereof. Notwithstanding the foregoing, (i) Receiving Party may disclose Confidential Information to any third-party to the limited extent necessary to exercise its rights, or perform its obligations, under this Agreement; provided that, all such third parties are bound in writing by obligations of confidentiality and non-use at least as protective of the Disclosing Party’s Confidential Information as the terms of this Agreement and (ii) all Feedback be solely, as between the parties, Confidential Information of Supplier.
+16. Limited Warranty and Disclaimer
+16.1 Each party warrants that: (a) it is a validly existing and duly incorporated company in accordance with respective local laws; (b) it has full power, legal right and authority to enter into this Agreement, and to do all acts and things and execute and deliver all other documents as are required hereunder to be done, observed or performed by it in accordance with its the terms of this Agreement; and (c) it has taken all necessary corporate action to authorize the creation, execution, delivery and performance of this Agreement, and to observe and perform the provisions of this Agreement in accordance with their terms.
+16.2 Supplier further warrants that during throughout the Term, when utilized in accordance with their current Documentation and under normal use and circumstances, the Services will operate in material conformance with the Documentation under normal use and circumstances.
+16.3 EXCEPT AS SET FORTH IN THIS SECTION 16, SUPPLIER MAKES NO REPRESENTATIONS OR WARRANTIES OR CONDITIONS OF ANY KIND CONCERNING THE SERVICES, THE MATERIALS, OR THEIR USE, ACCURACY, OR FUNCTION. SPECIFICALLY, SUPPLIER PROVIDES THE SERVICES ON AN “AS-IS” BASIS AND “AS-AVAILABLE BASIS” AND DISCLAIMS ALL WARRANTIES, EXPRESS, IMPLIED, OR STATUTORY, REGARDING THE SERVICES, INCLUDING ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. NO REPRESENTATION OR OTHER AFFIRMATION OF FACT REGARDING THE SERVICES SHALL BE DEEMED A WARRANTY OR GUARANTEE FOR ANY PURPOSE OR GIVE RISE TO ANY SUPPLIER’ LIABILITY OF THIRD PARTIES WHATSOEVER. CUSTOMER ACKNOWLEDGES THAT IT RELIED ON NO WARRANTIES OR STATEMENTS OTHER THAN AS MAY BE SET FORTH HEREIN. SUPPLIER DOES NOT WARRANT THAT THE SERVICES OR CONTENT OFFERED THROUGH THE SERVICES, WILL BE UNINTERRUPTED, SECURE, OR FREE OF ERRORS, VIRUSES, OR OTHER HARMFUL COMPONENTS, AND SUPPLIER DOES NOT WARRANT THAT ANY OF THOSE ISSUES WILL BE CORRECTED. CUSTOMER IS SOLELY RESPONSIBLE FOR DETERMINING FEES CHARGED TO AUTHORIZED USERS, AND SUPPLIER WILL NOT BE LIABLE FOR ANY DISCREPANCY BETWEEN FEES CHARGED TO AUTHORIZED USERS AND FEES CUSTOMER OWES TO SUPPLIER. THE LIMITATIONS, EXCLUSIONS, AND DISCLAIMERS IN THIS SECTION 16.3 APPLY TO THE FULLEST EXTENT PERMITTED BY LAW. SUPPLIER DOES NOT DISCLAIM ANY WARRANTY OR OTHER RIGHT THAT SUPPLIER IS PROHIBITED FROM DISCLAIMING UNDER APPLICABLE LAW.
+17. Limitation of liability
+17.1 TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT WILL SUPPLIER AND ITS AFFILIATES BE LIABLE TO CUSTOMER FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES (INCLUDING DAMAGES FOR LOSS OF PROFITS, GOODWILL, OR ANY OTHER INTANGIBLE LOSS) ARISING OUT OF OR RELATING TO CUSTOMER’S ACCESS TO OR USE OF, OR CUSTOMER’S INABILITY TO ACCESS OR USE, THE SERVICES, WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE), STATUTE, OR ANY OTHER LEGAL THEORY, AND WHETHER OR NOT ANY SUPPLIER ENTITY HAS BEEN INFORMED OF THE POSSIBILITY OF DAMAGE. TO THE FULLEST EXTENT PERMITTED BY LAW, THE AGGREGATE LIABILITY OF THE SUPPLIER ENTITIES TO CUSTOMER FOR ALL CLAIMS ARISING OUT OF OR RELATING TO THE USE OF OR ANY INABILITY TO USE ANY PORTION OF THE SERVICES OR OTHERWISE UNDER THIS AGREEMENT, WHETHER IN CONTRACT, TORT, OR OTHERWISE, IS LIMITED TO THE GREATER OF: (A) THE AMOUNT CUSTOMER HAS PAID TO SUPPLIER FOR ACCESS TO AND USE OF THE SERVICES IN THE 12 MONTHS PRIOR TO THE EVENT OR CIRCUMSTANCE GIVING RISE TO CLAIM; OR (B) Rs.1000.
+17.2 EACH PROVISION OF THIS AGREEMENT THAT PROVIDES FOR A LIMITATION OF LIABILITY, DISCLAIMER OF WARRANTIES, OR EXCLUSION OF DAMAGES IS INTENDED TO AND DOES ALLOCATE THE RISKS BETWEEN THE PARTIES UNDER THIS AGREEMENT. THIS ALLOCATION IS AN ESSENTIAL ELEMENT OF THE BASIS OF THE BARGAIN BETWEEN THE PARTIES. EACH OF THESE PROVISIONS IS SEVERABLE AND INDEPENDENT OF ALL OTHER PROVISIONS OF THIS AGREEMENT. THE LIMITATIONS IN THIS SECTION 17 WILL APPLY EVEN IF ANY LIMITED REMEDY FAILS OF ITS ESSENTIAL PURPOSE.
+18. Indemnification.
+Customer will defend, indemnify, and hold Supplier harmless from and against all third-party claims, actions, proceedings, regulatory investigations, damages, losses, judgments, settlements, costs and expenses (including attorneys’ fees), arising from or in connection with: (a) Customer’s breach of any laws or regulations (including with respect to privacy); (b) Customer’s or any Authorized User’s use of the services; and (c) Customer’s violation of any agreements it has with any Authorized User.
+19. MODIFICATION.
+Supplier reserves the right to change this Agreement on a going-forward basis at any time upon seven days’ notice. Please check this Agreement periodically for changes. If a change to this Agreement materially modifies Customer’s rights or obligations, Supplier may require that Customer accept the modified Agreement in order to continue to use the Services. Customer must accept the modifications to continue accessing or using the Services. If Customer objects to the modifications, its exclusive remedy is to cease any and all access and use of the Services. If the effective date of the modifications is during the term of a Subscription and Customer objects to the modifications, then (as its exclusive remedy) Customer may terminate its affected Subscription upon notice to Supplier, and Supplier will refund to Customer any fees it has pre-paid for use of the Services for the terminated portion of the term of the applicable Subscription. To exercise this right, Customer must provide Supplier with notice of its objection and termination within 30 days after Supplier provides notice of the modifications. Material modifications are effective upon Customer’s acceptance of the modified version of the Agreement. Immaterial modifications are effective upon publication. Except as expressly permitted in this Section 17, this Agreement may be amended only by a written agreement signed by authorized representatives of the parties to this Agreement. Disputes arising under this Agreement will be resolved in accordance with the version of this Agreement that was in effect at the time the dispute arose.
+20. Export Controls.
+Customer acknowledges that the Services may be subject to Indian and international export control laws and regulations. Customer agrees to comply with all applicable export and reexport control laws and regulations.
+21.1 Notices.
+Any notice, request, instruction or other document to be given under this Agreement to any party hereunder shall be in the English language, in writing, and sent by first class mail, confirmed facsimile or major commercial rapid delivery courier service to the address specified on the Customer’s account or, to Supplier at  9, Amaltas – Phase II, Chuna Bhatti, Kolar Road, Bhopal-16  M.P. India (or such other address as may be properly specified by written notice hereunder). Email notice will be permitted by Supplier if sent to the Customer’s account email address.
+21.2 Entire Agreement.
+The Agreement, including any applicable Order  constitutes the entire Agreement and contains the entire and exclusive understanding between the parties with respect to the matters referenced herein. No terms other than those expressly set out herein are deemed to be implied herein. No amendment or modification of this Agreement shall be valid and binding unless made and confirmed in writing or otherwise signed by the parties hereto.
+21.3 Severability.
+In the event of any one or more provisions of this Agreement becoming invalid or unenforceable, that provision will be limited or eliminated to the minimum extent necessary so that this Agreement will otherwise remain in full force and effect and enforceable.
+21.4 Waiver.
+No waiver by either party of any default shall be deemed as a waiver of any prior or subsequent default of the same or other provisions of this Agreement.
+21.5 Force Majeure.
+Any delay in or failure of performance by either party under this Agreement will not be considered a breach of this Agreement and will be excused to the extent caused by any occurrence beyond the reasonable control of such party including accident, acts of God, fire or water damage, criminal conduct, neglect, acts of war, riots, strikes, lightening, electrical disturbances or other similar causes. Such events, occurrences or causes do not include inability to meet financial obligations. The time of performance hereunder is extended by a period of time lost because of such delay. Notwithstanding any other provisions of this section, should the Force Majeure Event last for more than 30 days, the non-affected party may terminate this Agreement immediately upon written notice to the affected party.
+21.6 Marketing.
+During the Term: (a) Customer agrees to participate in case studies and other similar marketing efforts reasonably requested by Supplier; (b) Supplier may disclose that Customer is a customer of Supplier to third parties; and (c) Supplier may include on and in Supplier’ website, case studies, marketing materials, and conference presentations and other speaking opportunities, Customer’s testimonials and other feedback regarding the Services, name, website URL, use case, and logo and other marks. Upon request from Customer, Supplier will promptly stop making the disclosure and use described in the foregoing sentence except to the extent already included in any then-existing materials.
+21.7 Assignment.
+This Agreement is not assignable or transferable by Customer except with Supplier’ prior written consent; provided, however, that Customer may, upon prior written notice to Supplier, transfer and assign its rights and obligations under this Agreement to an Affiliate or in connection with a merger, acquisition, corporate reorganization, or sale of all or substantially all of its assets to which this Agreement relate. If such a transfer or assignment is made in favor of a direct competitor of Supplier, then Supplier may terminate this Agreement upon written notice to Customer. Supplier may freely assign this Agreement. Any assignment in violation of the foregoing is void. .
+21.8 Governing law, Jurisdiction.
+Any dispute arising hereunder shall be exclusively construed in accordance with the laws of the State of Madhay Pradesh without regard to principles of conflict of laws. For the purpose of this Agreement, Customer consents to the personal jurisdiction and venue of the courts located in the State of Madhya Pradesh
+<div>
+<h4><u>Cancellation and Refund</u></h4>
+No Cancellation and refund is entrtained.
+</pre>
 			]]>
 		</value>
 	</setting>
@@ -293,24 +671,27 @@
 	</setting>
 	<setting>
 		<key>LITTERA_SITE_TAGLINE</key>
-		<value>Littera from where the knowledge sprouts</value>
+		<value>MADHYA PRADESH BHOJ OPEN UNIVERSITY (MPBOU)</value>
 	</setting>
 	<setting>
 		<key>LITTERA_LOGO</key>
-		<value>/Content/GlobalSetting/Dev/default_logo.png?1.1</value>
+		<value>/Content/GlobalSetting/Dev/default_logo.png?1.3</value>
 	</setting>
-	
+	<setting>
+		<key>DEFAULT_LOGO2</key>
+		<value>/Content/GlobalSetting/Dev/default_logo2.png?1.3</value>
+	</setting>
 	<setting>
 		<key>DASHBOARD_LOGO</key>
-		<value>/Content/GlobalSetting/Dev/logo_Dashboard.png?1.1</value>
+		<value>/Content/GlobalSetting/Dev/logo_Dashboard.png?1.6</value>
 	</setting>
 	<setting>
 		<key>APP_TITLE</key>
-		<value>LITTERA LEARNING PLATFORM</value>
+		<value>MPBOU'S LEARNING PLATFORM</value>
 	</setting>
 	<setting>
 		<key>FAV_ICON</key>
-		<value>/content/GlobalSetting/Dev/logo.png?1.1</value>
+		<value>/content/GlobalSetting/Dev/logo.png?1.4</value>
 	</setting>
 	<setting>
 		<key>ASSIGNMENT_UPLOAD_PATH</key>
@@ -318,7 +699,7 @@
 	</setting>
 <setting>
 		<key>PLATFORM_NAME</key>
-		<value>Littera Learning Platform</value>
+		<value>MPBOU'S Learning Platform</value>
 	</setting>
 	<setting>
 		<key>APP_LOGIN_LOGO</key>
@@ -358,40 +739,6 @@
 		<key>CERTIFICATION_Header</key>
 		<value>
 			Certification
-		</value>
-	</setting>
-	<setting>
-		<key>CERTIFICATE_LOGO</key>
-		<value>
-			/Content/GlobalSetting/Dev/certificatelogo.png?1.1
-		</value>
-	</setting>
-	<setting>
-		<key>INSTRUCTION_URL</key>
-		<value>
-			/Content/GlobalSetting/Dev/certificatelogo.png?1.1
-		</value>
-	</setting>
-	<setting>
-		<key>MENULIST</key>
-		<value>
-			[
-  {
-    "menu_name": "Home",
-    "redirect_url": "https://www.example.com/home",
-    "redirect_self_window": true
-  },
-  {
-    "menu_name": "About Us",
-    "redirect_url": "https://www.example.com/about",
-    "redirect_self_window": false
-  },
-  {
-    "menu_name": "Contact",
-    "redirect_url": "https://www.example.com/contact",
-    "redirect_self_window": true
-  }
-]
 		</value>
 	</setting>
 	
