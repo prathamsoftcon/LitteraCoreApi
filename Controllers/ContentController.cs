@@ -32,6 +32,17 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Route("api/Get_GLOBAL_FILE_TYPE")]
+        [SwaggerOperation("To get different content types[pdf/video/wysiwyg/document].")]
+        public IActionResult Get_Global_File_Type()
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            List<contentType> AL = new List<contentType>();
+            AL = CBL.Get_Global_File_Type();
+            return Ok(AL);
+        }
+
+        [HttpGet]
         [Route("api/Trg_Content")]
         [SwaggerOperation("To get particular training/session contents.")]
         public IActionResult Trg_Content([FromQuery] PaginationParam filter, string trainingid = null, string sessionid = null, string tags = null)

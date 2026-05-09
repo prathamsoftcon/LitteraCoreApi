@@ -56,6 +56,11 @@ namespace LitteraCore.DBContext
             return AL;
         }
 
+        public List<contentType> Get_Global_File_Type()
+        {
+            return Get_Content_Type_All();
+        }
+
         public List<contentType> Get_Content_Type_All()
         {
 

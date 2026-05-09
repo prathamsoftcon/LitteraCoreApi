@@ -21,6 +21,14 @@ namespace LitteraCore.BLContext
             return lCT;
         }
 
+        public List<contentType> Get_Global_File_Type()
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            List<contentType> lCT = new List<contentType>();
+            lCT = CDB.Get_Global_File_Type();
+            return lCT;
+        }
+
         public PagedResult<Content> Get_Trg_Content(string trainingid = null, string sessionid = null,string tags=null, PaginationParam param = null)
         {
             ContentDB CDB = new ContentDB(_configuration);
