@@ -43,6 +43,16 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Route("api/Get_Folder_Data")]
+        [SwaggerOperation("To get content folders.")]
+        public IActionResult Get_Folder_Data(string? folderid = null)
+        {
+            ContentBL CBL = new ContentBL(_configuration);
+            List<ContentFolder> folders = CBL.Get_Content_Folder_Data(folderid);
+            return Ok(folders);
+        }
+
+        [HttpGet]
         [Route("api/Trg_Content")]
         [SwaggerOperation("To get particular training/session contents.")]
         public IActionResult Trg_Content([FromQuery] PaginationParam filter, string trainingid = null, string sessionid = null, string tags = null)

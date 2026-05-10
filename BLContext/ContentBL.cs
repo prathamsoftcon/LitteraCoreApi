@@ -29,6 +29,12 @@ namespace LitteraCore.BLContext
             return lCT;
         }
 
+        public List<ContentFolder> Get_Content_Folder_Data(string? folderid = null)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            return CDB.Get_Content_Folder_Data(folderid);
+        }
+
         public PagedResult<Content> Get_Trg_Content(string trainingid = null, string sessionid = null,string tags=null, PaginationParam param = null)
         {
             ContentDB CDB = new ContentDB(_configuration);

@@ -56,6 +56,48 @@ namespace LitteraCore.DBContext
             return AL;
         }
 
+        public List<ContentFolder> Get_Content_Folder_Data(string? folderid = null)
+        {
+            List<ContentFolder> folders = new List<ContentFolder>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            SqlCommand cmd = new SqlCommand("[Content].[tbl_Content_FolderSelect]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            if (!string.IsNullOrWhiteSpace(folderid))
+            {
+                cmd.Parameters.AddWithValue("@GlobalContentFolderID", folderid);
+            }
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                folders.Add(new ContentFolder
+                {
+                    globalcontentfolderid = Convert.ToString(row["GlobalContentFolderID"]),
+                    globalcontentfoldername = Convert.ToString(row["GlobalContentFolderName"]),
+                    createdbyagencyid = Convert.ToString(row["CreatedbyAgencyID"]),
+                    createdon = Convert.ToString(row["CreatedOn"]),
+                    modifiedbyagencyid = Convert.ToString(row["ModifiedbyAgencyID"]),
+                    modifiedon = Convert.ToString(row["ModifiedOn"]),
+                    status = Convert.ToString(row["Status"])
+                });
+            }
+
+            return folders;
+        }
+
         public List<contentType> Get_Global_File_Type()
         {
             return Get_Content_Type_All();
