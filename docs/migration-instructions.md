@@ -514,3 +514,497 @@ Transform old VB.NET procedural APIs into:
 ✅ Mobile-Friendly JSON APIs  
 ✅ Swagger Documented APIs  
 ✅ Production-Ready APIs
+
+# ASP.NET Core 6 Migration Instructions
+## Existing Project Structure Based Migration
+
+This project already uses the following architecture:
+
+Controllers/
+BLContext/
+DBContext/
+Models/
+
+Example:
+
+Controllers/
+    ContentController.cs
+
+BLContext/
+    ContentBL.cs
+
+DBContext/
+    ContentDB.cs
+
+Models/
+    Content.cs
+
+Copilot MUST follow this existing structure.
+Do NOT introduce unnecessary Clean Architecture or Repository folders unless explicitly requested.
+
+---
+
+# EXISTING ARCHITECTURE RULES
+
+## Controller Layer
+
+Location:
+
+```text
+Controllers/
+```
+
+Responsibilities:
+- API routes
+- HTTP request handling
+- validation
+- calling BL layer
+- returning IActionResult
+
+Controllers must NOT:
+- contain SQL
+- contain DataTable logic
+- contain business logic
+
+Example:
+
+```csharp
+[HttpGet]
+[Route("api/Get_Session_Avg_Learning_Time")]
+public IActionResult Get_Session_Avg_Learning_Time(
+    string trainingid)
+{
+    ContentBL CBL = new ContentBL(_configuration);
+
+    var result =
+        CBL.Avg_Learning_data_sessionwise(trainingid);
+
+    return Ok(result);
+}
+```
+
+---
+
+# BLContext RULES
+
+Location:
+
+```text
+BLContext/
+```
+
+Responsibilities:
+- business logic
+- filtering
+- aggregation
+- calculations
+- validation
+- combining DB results
+
+BL classes:
+- may call DBContext
+- may transform models
+- may apply calculations
+
+BL classes must NOT:
+- execute inline SQL
+- use HTTP objects
+- use Request/Response directly
+
+Example:
+
+```csharp
+public List<Avg_Learning_data_Sessionwise>
+Avg_Learning_data_sessionwise(string trainingid)
+{
+    ContentDB CDB = new ContentDB(_configuration);
+
+    var data =
+        CDB.Get_trg_avg_learning_Time(trainingid);
+
+    return data;
+}
+```
+
+---
+
+# DBContext RULES
+
+Location:
+
+```text
+DBContext/
+```
+
+Responsibilities:
+- database access
+- stored procedure execution
+- SQL execution
+- data mapping
+
+DBContext classes:
+- may use ADO.NET
+- may use Dapper
+- must use parameterized queries
+
+---
+
+# IMPORTANT SECURITY RULES
+
+## NEVER USE INLINE SQL CONCATENATION
+
+BAD:
+
+```csharp
+"where id='" + id + "'"
+```
+
+GOOD:
+
+```csharp
+cmd.Parameters.AddWithValue("@id", id);
+```
+
+---
+
+# DATABASE ACCESS RULES
+
+Preferred:
+- Dapper
+
+Allowed:
+- ADO.NET
+
+Avoid:
+- DataSet-heavy architecture
+- DataTable-heavy filtering
+
+---
+
+# MODEL RULES
+
+Location:
+
+```text
+Models/
+```
+
+Models should contain:
+- entity models
+- response models
+- request models
+
+Example:
+
+```csharp
+public class Content
+{
+    public string ttsam_id { get; set; }
+
+    public string ttsad_title { get; set; }
+}
+```
+
+---
+
+# OLD VB.NET PARAMETERS RULE
+
+Legacy APIs used:
+
+```text
+Domain
+isonline
+TableIndex
+APIKEY
+```
+
+DO NOT add these parameters in new ASP.NET Core APIs unless explicitly required for backward compatibility.
+
+BAD:
+
+```csharp
+GetData(
+    string domain,
+    string isonline,
+    int tableIndex,
+    string apiKey)
+```
+
+GOOD:
+
+```csharp
+Get_Session_Avg_Learning_Time(
+    string trainingid)
+```
+
+---
+
+# API DESIGN RULES
+
+New APIs must be:
+- feature-specific
+- strongly typed
+- async where possible
+- business-oriented
+
+Avoid generic APIs like:
+
+```text
+Get_Common_Data
+```
+
+---
+
+# RESPONSE RULES
+
+DO NOT use:
+
+```vb
+Dictionary(Of String,Object)
+JavaScriptSerializer
+```
+
+Use:
+- typed models
+- IActionResult
+- automatic JSON serialization
+
+GOOD:
+
+```csharp
+return Ok(result);
+```
+
+---
+
+# ASYNC RULES
+
+Preferred:
+
+```csharp
+public async Task<IActionResult>
+```
+
+Preferred DB calls:
+
+```csharp
+await cmd.ExecuteReaderAsync();
+```
+
+---
+
+# CONFIGURATION RULES
+
+Use:
+
+```csharp
+IConfiguration
+```
+
+DO NOT use:
+
+```vb
+ConfigurationManager
+```
+
+---
+
+# LOGGING RULES
+
+Use:
+
+```csharp
+ILogger<T>
+```
+
+DO NOT use:
+- log4net in new APIs
+
+---
+
+# AUTHENTICATION RULES
+
+Avoid:
+
+```text
+?APIKEY=XXXX
+```
+
+Preferred:
+- JWT
+- middleware
+- authorization filters
+
+---
+
+# ERROR HANDLING RULES
+
+Use:
+- try/catch only where needed
+- centralized exception handling preferred
+
+---
+
+# SWAGGER RULES
+
+All APIs should include:
+
+```csharp
+[SwaggerOperation]
+```
+
+Example:
+
+```csharp
+[SwaggerOperation(
+    Summary = "Get Session Avg Learning Time"
+)]
+```
+
+---
+
+# SERIALIZATION RULES
+
+ASP.NET Core automatically serializes JSON.
+
+DO NOT use:
+- JavaScriptSerializer
+
+---
+
+# FILE MIGRATION RULES
+
+When migrating old VB.NET APIs:
+
+1. Preserve business logic
+2. Preserve stored procedure calls
+3. Preserve DB structure
+4. Convert syntax to C#
+5. Remove obsolete VB.NET patterns
+6. Simplify architecture gradually
+
+---
+
+# EXPECTED COPILOT OUTPUT
+
+Copilot should generate:
+
+1. Controller methods
+2. BLContext methods
+3. DBContext methods
+4. Model classes
+5. Swagger annotations
+6. Parameterized SQL
+7. Async support
+8. Proper IActionResult responses
+
+using the CURRENT project structure only.
+
+---
+
+# FINAL GOAL
+
+Modernize APIs while preserving existing architecture:
+
+Controllers/
+BLContext/
+DBContext/
+Models/
+
+without forcing unnecessary architecture changes.
+
+# STORED PROCEDURE RULES
+
+This project is heavily dependent on SQL Server stored procedures.
+
+Copilot should:
+
+- preserve stored procedure names
+- preserve parameter names
+- preserve output structure
+- avoid rewriting SP business logic unnecessarily
+
+GOOD:
+
+```csharp
+SqlCommand cmd = new SqlCommand(
+    "Trainingplan.proc_tp_get_upload_session_attachement",
+    con);
+
+cmd.CommandType = CommandType.StoredProcedure;
+```
+
+Avoid converting stable stored procedures into LINQ or EF queries unless explicitly requested.
+# PAGINATION RULES
+
+Preserve existing pagination structure.
+
+Use:
+- PaginationParam
+- PagedResult<T>
+
+Avoid introducing new pagination libraries unless requested.
+
+Example:
+
+```csharp
+PagedList<Content>.ToPagedList(
+    data,
+    param.PageNumber,
+    param.PageSize
+)
+```
+# NULL SAFETY RULES
+
+Always add null checks for:
+- DataRow values
+- DataTable rows
+- request parameters
+- string conversions
+
+Preferred:
+
+```csharp
+Convert.ToString(row["name"] ?? "")
+```
+
+Avoid:
+
+```csharp
+row["name"].ToString()
+```
+
+# RESPONSE COMPATIBILITY RULES
+
+Preserve existing JSON property names whenever possible.
+
+Do NOT rename fields unnecessarily.
+
+Example:
+
+```csharp
+ttsam_id
+ttsad_title
+GlobalFilePath
+```
+
+These fields may already be used by:
+- mobile apps
+- React frontend
+- old Android apps
+- reporting systems
+
+# MIGRATION PRIORITY
+
+Priority during migration:
+
+1. Convert VB.NET syntax to C#
+2. Preserve API behavior
+3. Preserve response structure
+4. Preserve stored procedure calls
+5. Remove obsolete VB.NET dependencies
+6. Improve security
+7. Improve async support
+8. Improve architecture gradually
+
+Avoid massive rewrites during initial migration.
