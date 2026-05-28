@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <Reference Include="YEncryptDecryptData">
-      <HintPath>E:\Prathamsoftwares\Backup\K A S H  A N _ T A S K S\YEncryptDecryptData\YEncryptDecryptData\YEncryptDecryptData\bin\Debug\YEncryptDecryptData.dll</HintPath>
+      <HintPath>dlllib\YEncryptDecryptData.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -2,7 +2,9 @@
 using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
+using Microsoft.PowerBI.Api.Models;
 using System.Data;
+using System.Diagnostics.Metrics;
 using System.IO;
 using static System.Net.WebRequestMethods;
 
@@ -81,6 +83,8 @@ namespace LitteraCore.DBContext
             da.Fill(dt);
             con.Close();
 
+            //rowno GlobalContentFolderID   GlobalContentFolderName IsActive    CreatedByAgencyID CreatedOn
+
             foreach (DataRow row in dt.Rows)
             {
                 folders.Add(new ContentFolder
@@ -89,9 +93,7 @@ namespace LitteraCore.DBContext
                     globalcontentfoldername = Convert.ToString(row["GlobalContentFolderName"]),
                     createdbyagencyid = Convert.ToString(row["CreatedbyAgencyID"]),
                     createdon = Convert.ToString(row["CreatedOn"]),
-                    modifiedbyagencyid = Convert.ToString(row["ModifiedbyAgencyID"]),
-                    modifiedon = Convert.ToString(row["ModifiedOn"]),
-                    status = Convert.ToString(row["Status"])
+                    IsActive = Convert.ToString(row["IsActive"])
                 });
             }
 

@@ -8,9 +8,7 @@ namespace LitteraCore.Models
         public string? globalcontentfoldername { get; set; }
         public string? createdbyagencyid { get; set; }
         public string? createdon { get; set; }
-        public string? modifiedbyagencyid { get; set; }
-        public string? modifiedon { get; set; }
-        public string? status { get; set; }
+        public string? IsActive { get; set; }
     }
 
     public class Content
