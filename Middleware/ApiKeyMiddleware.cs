@@ -12,12 +12,15 @@ namespace LitteraCore.Middleware
         }
         public async Task Invoke(HttpContext context)
         {
-            var endpoint = context.GetEndpoint().ToString();
-            if (!endpoint.Contains("Get_Activity_Token_Info") && !endpoint.Contains("Littera_Events") && !endpoint.Contains("User_Session_Details") && !endpoint.Contains("trainingplan")
-&& !endpoint.Contains("UserInfo_wk") && !endpoint.Contains("GenerateOTP_wk") && !endpoint.Contains("VerifyOTP_wk") && !endpoint.Contains("Participants_training_wk") && !endpoint.Contains("TRG_PARTICIPANT_DETAILS_wk")
-&& !endpoint.Contains("GET_CONTENT_DETAILS_wk") && !endpoint.Contains("GenerateActivityToken_wk") && !endpoint.Contains("GET_REACT_APP_CONFIGURATION_wk") && !endpoint.Contains("Check_First_Login_wk") && !endpoint.Contains("SAVE_USER_LOG_wk") && !endpoint.Contains("Save_Audit_Trail_wk")
-&& !endpoint.Contains("Learning_Time_wk") && !endpoint.Contains("check_content_learning_exist_wk") && !endpoint.Contains("Update_Session_Status_wk")
-)
+            if (context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                await _next.Invoke(context);
+                return;
+            }
+
+            var path = context.Request.Path.Value ?? string.Empty;
+
+            if (!IsExcludedPath(path))
             {
                 string apiKey = context.Request.Headers[ApiKeyName].FirstOrDefault();
 
@@ -40,6 +43,34 @@ namespace LitteraCore.Middleware
             await _next.Invoke(context);
         }
 
+        private bool IsExcludedPath(string path)
+        {
+            var excludedPaths = new[]
+            {
+                "Get_Activity_Token_Info",
+                "Littera_Events",
+                "User_Session_Details",
+                "trainingplan",
+                "UserInfo_wk",
+                "GenerateOTP_wk",
+                "VerifyOTP_wk",
+                "Participants_training_wk",
+                "TRG_PARTICIPANT_DETAILS_wk",
+                "GET_CONTENT_DETAILS_wk",
+                "GenerateActivityToken_wk",
+                "GET_REACT_APP_CONFIGURATION_wk",
+                "Check_First_Login_wk",
+                "SAVE_USER_LOG_wk",
+                "Save_Audit_Trail_wk",
+                "Learning_Time_wk",
+                "check_content_learning_exist_wk",
+                "Update_Session_Status_wk"
+            };
+
+            return excludedPaths.Any(excludedPath =>
+                path.Contains(excludedPath, StringComparison.OrdinalIgnoreCase));
+        }
+
         private bool IsValidApiKey(string apiKey, string validapiKey)
         {
             // Implement your logic to validate API keys here (e.g., check against a database)
@@ -47,7 +78,24 @@ namespace LitteraCore.Middleware
             //var validApiKeys = new List<string> { "your-api-key-1", "your-api-key-2" };
 
 
-            return (validapiKey == apiKey) || (validapiKey == Encoding.UTF8.GetString(Convert.FromBase64String(apiKey)));
+            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(validapiKey))
+            {
+                return false;
+            }
+
+            if (validapiKey == apiKey)
+            {
+                return true;
+            }
+
+            try
+            {
+                return validapiKey == Encoding.UTF8.GetString(Convert.FromBase64String(apiKey));
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
     }
 

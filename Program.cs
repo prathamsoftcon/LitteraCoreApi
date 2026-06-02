@@ -20,6 +20,8 @@ using MailKit;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+bool swaggerEnabled =
+    builder.Configuration.GetValue<bool>("Swagger:Enabled");
 
 //var columnOptions = new ColumnOptions
 //{
@@ -99,15 +101,32 @@ builder.Services.AddSingleton<OtpManager>();
 builder.Services.AddTransient<IEmailService, SmtpEmailService>();
 builder.Services.AddTransient<ISmsService, SmsService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+// builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen(c =>
+// {
+//     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Littera.Core", Version = "v1" });
+
+//     c.OperationFilter<AddRequiredHeaderParameter>();
+//     c.EnableAnnotations();
+
+// });
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+if (swaggerEnabled)
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Littera.Core", Version = "v1" });
+    builder.Services.AddEndpointsApiExplorer();
 
-    c.OperationFilter<AddRequiredHeaderParameter>();
-    c.EnableAnnotations();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "Littera.Core",
+            Version = "v1"
+        });
 
-});
+        c.OperationFilter<AddRequiredHeaderParameter>();
+        c.EnableAnnotations();
+    });
+}
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<IDatabaseConnectionFactory, DatabaseConnectionFactory>();
 
@@ -115,8 +134,14 @@ builder.Services.AddSingleton<IDatabaseConnectionFactory, DatabaseConnectionFact
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI();
+// app.UseSwagger();
+// app.UseSwaggerUI();
+// Configure the HTTP request pipeline.
+if (swaggerEnabled)
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
