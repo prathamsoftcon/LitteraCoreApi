@@ -666,7 +666,8 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select  * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid=(select top 1 tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id='" + participantid + "')", con);
+            SqlCommand cmd = new SqlCommand("select * FROM YUser.tbl_yuser_audit_trail WHERE tyat_event_name = 'Onload Change Password' and tyat_userid = (select top 1 tyuam_userid from YUser.tbl_yuser_user_agency_mapping where tyuam_agency_id = @ParticipantId)", con);
+            cmd.Parameters.Add("@ParticipantId", SqlDbType.NVarChar, 100).Value = participantid ?? string.Empty;
 
             cmd.CommandType = CommandType.Text;
 

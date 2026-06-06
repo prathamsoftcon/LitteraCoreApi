@@ -364,7 +364,8 @@ namespace LitteraCore.DBContext
             if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand(@"select GlobalWysiwagText,ttsam_trg_id,ttsam_ttttt_session_id from trainingplan.tbl_tp_session_attachment_master tam
 inner join Content.tbl_ContentMaster cm on tam.ttsam_globalcontentid = cm.GlobalContentID
-where ttsam_id = '"+ ttsam_id + "'", con);
+where ttsam_id = @ContentId", con);
+            cmd.Parameters.Add("@ContentId", SqlDbType.NVarChar, 100).Value = ttsam_id ?? string.Empty;
          
             cmd.CommandType = CommandType.Text;
 
@@ -397,7 +398,9 @@ where ttsam_id = '"+ ttsam_id + "'", con);
 inner join YUser.AgencyMaster am on ai.Participantid=am.AgencyId 
 inner join YUser.tbl_yuser_user_agency_mapping amp on amp.tyuam_agency_id=am.AgencyId
 where TrainingId = (select ttsam_trg_id from TrainingPlan.tbl_tp_session_attachment_master
-where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'", con);
+where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
+            cmd.Parameters.Add("@ContentId", SqlDbType.NVarChar, 100).Value = contentid ?? string.Empty;
+            cmd.Parameters.Add("@ParticipantId", SqlDbType.NVarChar, 100).Value = participantid ?? string.Empty;
 
 
             cmd.CommandType = CommandType.Text;
@@ -481,12 +484,14 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             SqlCommand cmd = new SqlCommand();
             if (activityid != null)
             {
-                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+agencyid+"' and tpad_activity_id='"+activityid+"'", con);
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id = act.tpad_ttpai_id where ai.Participantid = @AgencyId and tpad_activity_id = @ActivityId", con);
+                 cmd.Parameters.Add("@ActivityId", SqlDbType.NVarChar, 100).Value = activityid;
             }
             else
             {
-                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act  inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id=act.tpad_ttpai_id  where ai.Participantid='"+ agencyid + "'", con);
+                 cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data act inner join TrainingPlan.tbl_tp_participant_additional_info ai on ai.ttpai_id = act.tpad_ttpai_id where ai.Participantid = @AgencyId", con);
             }
+            cmd.Parameters.Add("@AgencyId", SqlDbType.NVarChar, 100).Value = agencyid ?? string.Empty;
           
             cmd.CommandType = CommandType.Text;
 
@@ -534,7 +539,8 @@ where ttsam_id = '"+ contentid + "') and Participantid = '"+ participantid + "'"
             if (con.State != ConnectionState.Open) { con.Open(); }
 
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data where tpad_id='" + tpad_id + "'", con);
+            cmd = new SqlCommand("select * from TrainingPlan.tbl_tp_activity_data where tpad_id = @ActivityDataId", con);
+            cmd.Parameters.Add("@ActivityDataId", SqlDbType.NVarChar, 100).Value = tpad_id ?? string.Empty;
 
             cmd.CommandType = CommandType.Text;
 

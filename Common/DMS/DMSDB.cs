@@ -90,7 +90,12 @@ namespace LitteraCore.Common.DMS
             if (con.State != ConnectionState.Open) { con.Open(); }
             string docno = "";
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no]('" + docdate + "','" + branchid + "','" + tat_type_id + "','" + prefix + "','" + repeaton + "') ", con);
+            cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no](@DocDate, @BranchId, @TatTypeId, @Prefix, @RepeatOn)", con);
+            cmd.Parameters.Add("@DocDate", SqlDbType.NVarChar, 50).Value = docdate ?? string.Empty;
+            cmd.Parameters.Add("@BranchId", SqlDbType.NVarChar, 100).Value = branchid ?? string.Empty;
+            cmd.Parameters.Add("@TatTypeId", SqlDbType.Int).Value = tat_type_id;
+            cmd.Parameters.Add("@Prefix", SqlDbType.NVarChar, 50).Value = prefix ?? string.Empty;
+            cmd.Parameters.Add("@RepeatOn", SqlDbType.NVarChar, 50).Value = repeaton ?? string.Empty;
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
             docno = (string)cmd.ExecuteScalar();
@@ -160,12 +165,14 @@ namespace LitteraCore.Common.DMS
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)
             {
-                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id='" + tdds_doc_id + "' and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id = @DocId and tdds_tat_type_id = @TatTypeId", con);
+                cmd.Parameters.Add("@DocId", SqlDbType.NVarChar, 100).Value = tdds_doc_id;
             }
             else
             {
-                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_tat_type_id = @TatTypeId", con);
             }
+            cmd.Parameters.Add("@TatTypeId", SqlDbType.Int).Value = tdds_tat_type_id;
 
 
             cmd.CommandType = CommandType.Text;
@@ -218,7 +225,11 @@ namespace LitteraCore.Common.DMS
             if (con.State != ConnectionState.Open) { con.Open(); }
             string docno = "";
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no_for_agency]('" + docdate + "','" + branchid + "','" + prefix + "','" + repeaton + "') ", con);
+            cmd = new SqlCommand("select [DMS].[f_dms_doc_ref_no_for_agency](@DocDate, @BranchId, @Prefix, @RepeatOn)", con);
+            cmd.Parameters.Add("@DocDate", SqlDbType.NVarChar, 50).Value = docdate ?? string.Empty;
+            cmd.Parameters.Add("@BranchId", SqlDbType.NVarChar, 100).Value = branchid ?? string.Empty;
+            cmd.Parameters.Add("@Prefix", SqlDbType.NVarChar, 50).Value = prefix ?? string.Empty;
+            cmd.Parameters.Add("@RepeatOn", SqlDbType.NVarChar, 50).Value = repeaton ?? string.Empty;
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
             docno = (string)cmd.ExecuteScalar();
@@ -607,7 +618,9 @@ namespace LitteraCore.Common.DMS
             if (con.State != ConnectionState.Open) { con.Open(); }
             DataTable dt = new DataTable();
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_created_on,tdds_status,tdds_sendby_empid,tdds_fwd_empid,tdds_remark,tdds_status from dms.VW_dms_doc_all_status where tdds_doc_id='" + tdds_doc_id + "' and tdds_tat_type_id='"+ tdds_tat_type_id + "' order by tdds_process_id asc", con);
+            cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_created_on,tdds_status,tdds_sendby_empid,tdds_fwd_empid,tdds_remark,tdds_status from dms.VW_dms_doc_all_status where tdds_doc_id = @DocId and tdds_tat_type_id = @TatTypeId order by tdds_process_id asc", con);
+            cmd.Parameters.Add("@DocId", SqlDbType.NVarChar, 100).Value = tdds_doc_id ?? string.Empty;
+            cmd.Parameters.Add("@TatTypeId", SqlDbType.Int).Value = tdds_tat_type_id;
 
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
@@ -666,18 +679,30 @@ namespace LitteraCore.Common.DMS
             SqlCommand cmd = new SqlCommand();
             if (documentno != null)
             {
-                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_doc_no='" + documentno + "'", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_doc_no = @DocumentNo", con);
+                cmd.Parameters.Add("@DocumentNo", SqlDbType.NVarChar, 100).Value = documentno;
             }
             else
             {
+                if (!DateTime.TryParse(fromdate, out DateTime parsedFromDate))
+                {
+                    throw new ArgumentException("Invalid from date.", nameof(fromdate));
+                }
+                if (!DateTime.TryParse(todate, out DateTime parsedToDate))
+                {
+                    throw new ArgumentException("Invalid to date.", nameof(todate));
+                }
                 if (employeeid != null)
                 {
-                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "') and tdds_fwd_empid='" + employeeid + "'", con);
+                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= @FromDate and tdds_created_on <= dateadd(day, 1, @ToDate) and tdds_fwd_empid = @EmployeeId", con);
+                    cmd.Parameters.Add("@EmployeeId", SqlDbType.NVarChar, 100).Value = employeeid;
                 }
                 else
                 {
-                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= '" + fromdate + "' and  tdds_created_on <=dateadd( day,1,'" + todate + "')", con);
+                    cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_id,tdds_doc_no,tdds_doc_date,tdds_tat_type_id,tddi_description,tddi_hdescription,tdds_sendby_empid,tdds_created_on,tdds_fwd_empid,tdds_status,tdds_remark from DMS.VW_dms_doc_last_status where tdds_created_on >= @FromDate and tdds_created_on <= dateadd(day, 1, @ToDate)", con);
                 }
+                cmd.Parameters.Add("@FromDate", SqlDbType.DateTime2).Value = parsedFromDate;
+                cmd.Parameters.Add("@ToDate", SqlDbType.DateTime2).Value = parsedToDate;
             }
 
 
@@ -793,12 +818,34 @@ namespace LitteraCore.Common.DMS
             SqlCommand cmd = new SqlCommand();
             if (tdds_doc_id != null)
             {
-                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id in (" + tdds_doc_id + ") and  tdds_tat_type_id='" + tdds_tat_type_id.ToString() + "'", con);
+                string[] rawDocIds = tdds_doc_id.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                List<Guid> docIds = new List<Guid>();
+                foreach (string rawDocId in rawDocIds)
+                {
+                    string candidate = rawDocId.Trim().Trim('\'', '"');
+                    if (!Guid.TryParse(candidate, out Guid docId))
+                    {
+                        throw new ArgumentException("Invalid document id list.", nameof(tdds_doc_id));
+                    }
+                    docIds.Add(docId);
+                }
+                if (docIds.Count == 0)
+                {
+                    throw new ArgumentException("Document id list cannot be empty.", nameof(tdds_doc_id));
+                }
+
+                string[] parameterNames = docIds.Select((_, index) => $"@DocId{index}").ToArray();
+                cmd = new SqlCommand($"select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_doc_id in ({string.Join(", ", parameterNames)}) and tdds_tat_type_id = @TatTypeId", con);
+                for (int index = 0; index < docIds.Count; index++)
+                {
+                    cmd.Parameters.Add(parameterNames[index], SqlDbType.UniqueIdentifier).Value = docIds[index];
+                }
             }
             else
             {
-                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where  tdds_tat_type_id in (" + tdds_tat_type_id.ToString() + ")", con);
+                cmd = new SqlCommand("select tdds_tat_type_id,tdds_doc_no,tdds_doc_id,tdds_doc_id,tdds_status from DMS.VW_dms_doc_last_status where tdds_tat_type_id = @TatTypeId", con);
             }
+            cmd.Parameters.Add("@TatTypeId", SqlDbType.Int).Value = tdds_tat_type_id;
 
 
             cmd.CommandType = CommandType.Text;

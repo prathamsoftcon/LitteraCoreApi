@@ -32,7 +32,8 @@ namespace LitteraCore.DBContext
             if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
 
-            cmd = new SqlCommand("select * from  trainingplan.Vw_tp_trg_time_table where TrainingId='" + trainingid + "' and ttttt_status=0", con);
+            cmd = new SqlCommand("select * from trainingplan.Vw_tp_trg_time_table where TrainingId = @TrainingId and ttttt_status = 0", con);
+            cmd.Parameters.Add("@TrainingId", SqlDbType.NVarChar, 100).Value = trainingid ?? string.Empty;
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -1186,21 +1187,18 @@ namespace LitteraCore.DBContext
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
-            string sessionstartdate = "";
-            if (Sessiondt.HasValue)
-            {
-                sessionstartdate = Sessiondt.HasValue ? Sessiondt.Value.ToString("yyyy/MM/dd") : string.Empty;
-            }
-
 
             if (Sessiondt.HasValue == true)
             {
-                cmd = new SqlCommand("select trainingid,trainingcode,T_Name,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,trg_setting from  trainingplan.Vw_tp_trg_time_table where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' and ttttt_session_dt='" + sessionstartdate + "' and ttttt_timetableid is not null", con);
+                cmd = new SqlCommand("select trainingid,trainingcode,T_Name,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,trg_setting from trainingplan.Vw_tp_trg_time_table where (T_StartDate >= @FromDate or T_ClosingDate >= @FromDate) and T_StartDate <= @ToDate and ttttt_session_dt = @SessionDate and ttttt_timetableid is not null", con);
+                cmd.Parameters.Add("@SessionDate", SqlDbType.DateTime2).Value = Sessiondt.Value.Date;
             }
             else
             {
-                cmd = new SqlCommand("select trainingid,trainingcode,T_Name,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,trg_setting from  trainingplan.Vw_tp_trg_time_table where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' and ttttt_timetableid is not null", con);
+                cmd = new SqlCommand("select trainingid,trainingcode,T_Name,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,trg_setting from trainingplan.Vw_tp_trg_time_table where (T_StartDate >= @FromDate or T_ClosingDate >= @FromDate) and T_StartDate <= @ToDate and ttttt_timetableid is not null", con);
             }
+            cmd.Parameters.Add("@FromDate", SqlDbType.DateTime2).Value = fromdate.Date;
+            cmd.Parameters.Add("@ToDate", SqlDbType.DateTime2).Value = todate.Date;
 
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
@@ -3318,7 +3316,8 @@ namespace LitteraCore.DBContext
             if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
 
-            cmd = new SqlCommand("select trainingid,TrainingCategoryId,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_complimentory,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,ttttt_facultyid,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,ttttt_module_no,ttttt_completion_type,ttttt_session_id from  trainingplan.Vw_tp_trg_time_table where ttttt_session_id='" + sessionid + "'", con);
+            cmd = new SqlCommand("select trainingid,TrainingCategoryId,ttttt_session_row_no,ttttt_session_id,ttttt_timetableid,ttttt_facultyid,ttttt_content_desc,ttttt_session_dt,ttttt_session_time,ttttt_session_duration,ttttt_session_day,ttttt_is_joint_session,ttttt_session_end_time,ttttt_session_no,ttttt_status,tttttf_status,ttttt_remark,ttttt_session_week,ttttt_type,ttttt_session_duration_type,ttttt_complimentory,ttttt_tag,ttttt_subject,participant_seession_required,facultyname,hfacultyname,ttttt_facultyid,facultyimgpath,Attendance,ttttt_session_duration_type,ttttt_completion_type,ttttt_module_no,ttttt_completion_type,ttttt_session_id from trainingplan.Vw_tp_trg_time_table where ttttt_session_id = @SessionId", con);
+            cmd.Parameters.Add("@SessionId", SqlDbType.NVarChar, 100).Value = sessionid ?? string.Empty;
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;

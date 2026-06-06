@@ -28,12 +28,15 @@ namespace LitteraCore.DBContext
             SqlCommand cmd = new SqlCommand();
             if (status != null)
             {
-                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' and TrainingStatus in ('" + status+"') order by T_StartDate desc", con);
+                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= @FromDate or T_ClosingDate >= @FromDate) and T_StartDate <= @ToDate and TrainingStatus in (@TrainingStatus) order by T_StartDate desc", con);
+                 cmd.Parameters.Add("@TrainingStatus", SqlDbType.NVarChar, 100).Value = status;
             }
             else
             {
-                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= '" + fromdate.ToString("yyyy/MM/dd") + "' or T_ClosingDate>='" + fromdate.ToString("yyyy/MM/dd") + "') and T_StartDate <='" + todate.ToString("yyyy/MM/dd") + "' order by T_StartDate desc", con);
+                 cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,trg_setting,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus from  trainingplan.VW_Training_calendar where  (T_StartDate >= @FromDate or T_ClosingDate >= @FromDate) and T_StartDate <= @ToDate order by T_StartDate desc", con);
             }
+            cmd.Parameters.Add("@FromDate", SqlDbType.DateTime2).Value = fromdate.Date;
+            cmd.Parameters.Add("@ToDate", SqlDbType.DateTime2).Value = todate.Date;
           
            
             cmd.CommandType = CommandType.Text;
@@ -246,7 +249,11 @@ namespace LitteraCore.DBContext
             SqlConnection con = new SqlConnection(connectionString);
 
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select * from [TrainingPlan].[Ft_tp_get_trgid_for_usertype]('" + usertype + "','" + userid + "','" + fromdate.ToString("yyyy/MM/dd") + "','" + todate.ToString("yyyy/MM/dd") + "')", con);
+            SqlCommand cmd = new SqlCommand("select * from [TrainingPlan].[Ft_tp_get_trgid_for_usertype](@UserType, @UserId, @FromDate, @ToDate)", con);
+            cmd.Parameters.Add("@UserType", SqlDbType.NVarChar, 50).Value = usertype ?? string.Empty;
+            cmd.Parameters.Add("@UserId", SqlDbType.NVarChar, 100).Value = userid ?? string.Empty;
+            cmd.Parameters.Add("@FromDate", SqlDbType.DateTime2).Value = fromdate.Date;
+            cmd.Parameters.Add("@ToDate", SqlDbType.DateTime2).Value = todate.Date;
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
@@ -417,7 +424,9 @@ namespace LitteraCore.DBContext
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
             SqlCommand cmd = new SqlCommand();
-            cmd = new SqlCommand("select  *  from [trainingplan].[ft_tp_get_week_day_count]('" + fromdate + "','" + todate + "')", con);
+            cmd = new SqlCommand("select * from [trainingplan].[ft_tp_get_week_day_count](@FromDate, @ToDate)", con);
+            cmd.Parameters.Add("@FromDate", SqlDbType.NVarChar, 50).Value = fromdate ?? string.Empty;
+            cmd.Parameters.Add("@ToDate", SqlDbType.NVarChar, 50).Value = todate ?? string.Empty;
             cmd.CommandType = CommandType.Text;
 
 
@@ -621,7 +630,8 @@ namespace LitteraCore.DBContext
             using (SqlConnection con = new SqlConnection(connectionString))
             {
                 if (con.State != ConnectionState.Open) { con.Open(); }
-                SqlCommand cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus,trg_setting from trainingplan.VW_Training_calendar where trainingno ='" + trainingcode + "'", con);
+                SqlCommand cmd = new SqlCommand("select TrainingId,TrainingNo,Trainingcode,CourseCode,T_Name,T_Details,SPONSOR_AG_ID,DueFees,ReceivedFees,SponsorName,HSponsorName,ParticipantLevel,LevelId,LevelDescription,HLevelDescription,CourseDirector,CourseDirectorName,HCourseDirectorName,AssociateDirector,AssociateDirectorName,HAssociateDirectorName,Duration,DurationType,T_StartDate,T_EndDate,NoOfParticipants,T_ClosingDate,NoOfParticipants_Registered,TrainingCategoryId,TrainingCategoryName,HTrainingCategoryName,TrainingStatus,StatusUpdateDate,StatusReason,HallName,HHallName,financialyear,Training_SponsorType,StartDate,CourseId,benefitted,objective,prerequiste,img_path,tttf_id,trg_type,trg_validity,tttt_name,tttt_hname,exptype,resident_status,CourseName,HCourseName,DepartmentReferenceNo,participation_type,proposed_amt,participant_type,ChcekListType,FeedbackType,trg_type,participant_type,participation_type,participant_type,TrainingStatus,trg_setting from trainingplan.VW_Training_calendar where trainingno = @TrainingCode", con);
+                cmd.Parameters.Add("@TrainingCode", SqlDbType.NVarChar, 100).Value = trainingcode ?? string.Empty;
                 cmd.CommandType = CommandType.Text;
                 cmd.CommandTimeout = 5000;
 
@@ -1208,7 +1218,12 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("DECLARE @ttcgs_agenyid UNIQUEIDENTIFIER = '"+ agencyid + "';SELECT COUNT(*) AS certificates FROM trainingplan.tbl_tp_certificate_generate_status WHERE ttcgs_agenyid = @ttcgs_agenyid", con);
+            if (!Guid.TryParse(agencyid, out Guid agencyGuid))
+            {
+                throw new ArgumentException("Invalid agency id.", nameof(agencyid));
+            }
+            SqlCommand cmd = new SqlCommand("SELECT COUNT(*) AS certificates FROM trainingplan.tbl_tp_certificate_generate_status WHERE ttcgs_agenyid = @AgencyId", con);
+            cmd.Parameters.Add("@AgencyId", SqlDbType.UniqueIdentifier).Value = agencyGuid;
             cmd.CommandType = CommandType.Text;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;

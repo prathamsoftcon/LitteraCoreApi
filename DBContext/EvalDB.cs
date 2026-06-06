@@ -319,7 +319,8 @@ namespace LitteraCore.DBContext
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
             if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("select tm.TrainingCategoryId,tq.SkillTag from Eval.TestQuestions tq inner join TrainingPlan.TrainingBasicDetails tm on tm.TrainingId=tq.[Training.TrainingID] where TestID='"+ testis + "' ", con);
+            SqlCommand cmd = new SqlCommand("select tm.TrainingCategoryId,tq.SkillTag from Eval.TestQuestions tq inner join TrainingPlan.TrainingBasicDetails tm on tm.TrainingId = tq.[Training.TrainingID] where TestID = @TestId", con);
+            cmd.Parameters.Add("@TestId", SqlDbType.NVarChar, 100).Value = testis ?? string.Empty;
             cmd.CommandType = CommandType.Text;
         
             cmd.Connection = con;
