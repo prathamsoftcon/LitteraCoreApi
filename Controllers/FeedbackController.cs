@@ -432,7 +432,7 @@ namespace LitteraCore.Controllers
         [HttpGet]
         [Route("api/Feedback360_Survey_DESC_Detail_Questionwise")]
         [SwaggerOperation("To get feedback 360 survey detail questionwise report.")]
-        public IActionResult Feedback360_Survey_DESC_Detail_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        public IActionResult Feedback360_Survey_DESC_Detail_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
             if (responsee_mobileno == "")
@@ -457,7 +457,7 @@ namespace LitteraCore.Controllers
         [HttpGet]
         [Route("api/Feedback360_Survey_Result_Rating_Summery_Questionwise")]
         [SwaggerOperation("To get feedback 360 survey result questionwise rating summary.")]
-        public IActionResult Feedback360_Survey_Result_Rating_Summery_Questionwise(string APIKEY, string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
+        public IActionResult Feedback360_Survey_Result_Rating_Summery_Questionwise(string surveyid, string groupid, string sharefeedbackid = null, string responsee_mobileno = null, string responsee_emailid = null)
         {
             //Handle Null
             if (responsee_mobileno == "")

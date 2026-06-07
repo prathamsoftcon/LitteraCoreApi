@@ -169,17 +169,14 @@ if (swaggerEnabled)
             Version = "v1"
         });
 
-        c.OperationFilter<AddRequiredHeaderParameter>();
         c.EnableAnnotations();
 
         c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
-            Name = "Authorization",
-            Type = SecuritySchemeType.ApiKey,
-            Scheme = "Bearer",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
             BearerFormat = "JWT",
-            In = ParameterLocation.Header,
-            Description = "Enter: Bearer {your JWT token}"
+            Description = "Enter the JWT token without the Bearer prefix."
         });
 
         c.AddSecurityRequirement(new OpenApiSecurityRequirement
