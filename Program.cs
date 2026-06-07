@@ -29,6 +29,9 @@ var builder = WebApplication.CreateBuilder(args);
 #region Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
+    .MinimumLevel.Override(
+        "Microsoft.AspNetCore.Hosting.Diagnostics",
+        LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.File(
@@ -49,13 +52,25 @@ builder.Host.UseSerilog();
 #endregion
 
 #region CORS
-var allowedOrigins = builder.Configuration.GetSection("CORSHost").Get<string[]>();
+var allowedOrigins =
+    builder.Configuration.GetSection("CORSHost").Get<string[]>()
+    ?? Array.Empty<string>();
+
+if (allowedOrigins.Any(origin =>
+        string.IsNullOrWhiteSpace(origin)
+        || origin.Contains('*')
+        || !Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+        || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+{
+    throw new InvalidOperationException(
+        "CORSHost must contain only exact HTTP or HTTPS origins without wildcards.");
+}
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("allowedOrigins", policy =>
     {
-        policy.WithOrigins(allowedOrigins ?? Array.Empty<string>())
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -90,24 +105,18 @@ builder.Services.AddControllers(options =>
 builder.Services.AddSingleton<OtpManager>();
 builder.Services.AddTransient<IEmailService, SmtpEmailService>();
 builder.Services.AddTransient<ISmsService, SmsService>();
-builder.Services.AddSingleton<IAppAuthService, AppAuthService>();
+var authSecuritySettings =
+    AuthSecuritySettings.FromConfiguration(builder.Configuration);
+builder.Services.AddSingleton(authSecuritySettings);
+builder.Services.AddSingleton<AppAuthService>();
+builder.Services.AddSingleton<IAppAuthService>(
+    services => services.GetRequiredService<AppAuthService>());
+builder.Services.AddSingleton<AuthCookieService>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<IDatabaseConnectionFactory, DatabaseConnectionFactory>();
 #endregion
 
 #region JWT Authentication
-var jwtKey =
-    Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? builder.Configuration["JWT:Key"];
-
-if (string.IsNullOrWhiteSpace(jwtKey))
-{
-    throw new InvalidOperationException(
-        "JWT secret not configured. Set JWT_SECRET env var or JWT:Key in appsettings.json.");
-}
-
-var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -117,24 +126,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                if (string.IsNullOrWhiteSpace(context.Token)
-                    && context.Request.Cookies.TryGetValue("Auth_token", out var cookieToken))
+                var authorizationHeader =
+                    context.Request.Headers.Authorization.ToString();
+                var hasBearerHeader =
+                    authorizationHeader.StartsWith(
+                        "Bearer ",
+                        StringComparison.OrdinalIgnoreCase);
+
+                if (!hasBearerHeader
+                    && context.Request.Cookies.TryGetValue(
+                        AuthSecuritySettings.CookieName,
+                        out var cookieToken))
                 {
                     context.Token = cookieToken;
+                    context.HttpContext.Items[
+                        AuthSecuritySettings.AuthenticationSourceItem] =
+                        AuthSecuritySettings.CookieAuthenticationSource;
                 }
 
                 return Task.CompletedTask;
             }
         };
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30)
-        };
+        options.TokenValidationParameters =
+            authSecuritySettings.CreateTokenValidationParameters();
     });
 
 builder.Services.AddAuthorization();
@@ -194,8 +208,19 @@ app.Use(async (context, next) =>
     LogContext.PushProperty("RequestProtocol", context.Request.Protocol);
     LogContext.PushProperty("RemoteIpAddress", context.Connection.RemoteIpAddress);
 
+    var sensitiveNameFragments =
+        new[] { "token", "authorization", "password", "otp", "secret", "apikey" };
     var queryParams = string.Join("&",
-        context.Request.Query.Select(q => $"{q.Key}={q.Value}"));
+        context.Request.Query.Select(q =>
+        {
+            var normalizedName = new string(
+                q.Key.Where(char.IsLetterOrDigit).ToArray());
+            var isSensitive = sensitiveNameFragments.Any(fragment =>
+                normalizedName.Contains(
+                    fragment,
+                    StringComparison.OrdinalIgnoreCase));
+            return $"{q.Key}={(isSensitive ? "[REDACTED]" : q.Value.ToString())}";
+        }));
     LogContext.PushProperty("RequestParams", queryParams);
 
     context.Request.EnableBuffering();
@@ -208,7 +233,7 @@ app.Use(async (context, next) =>
 
         if (!string.IsNullOrWhiteSpace(body))
         {
-            LogContext.PushProperty("BodyParam",(body));
+            LogContext.PushProperty("BodyParam", "[REDACTED]");
         }
     }
 
@@ -239,6 +264,7 @@ app.Use(async (context, next) =>
 #endregion
 
 app.UseAuthentication();
+app.UseCookieOriginValidation();
 app.UseAuthorization();
 
 // API Key middleware now acts as SECONDARY / INTERNAL protection
