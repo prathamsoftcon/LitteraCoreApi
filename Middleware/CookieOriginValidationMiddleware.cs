@@ -1,4 +1,5 @@
 using LitteraCore.Common.Token;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LitteraCore.Middleware
 {
@@ -33,16 +34,21 @@ namespace LitteraCore.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+            var endpointAllowsAnonymous =
+                context.GetEndpoint()?
+                    .Metadata
+                    .GetMetadata<IAllowAnonymous>() != null;
             var usesCookieAuthentication =
                 string.Equals(
                     context.Items[AuthSecuritySettings.AuthenticationSourceItem] as string,
                     AuthSecuritySettings.CookieAuthenticationSource,
                     StringComparison.Ordinal);
 
-            if (usesCookieAuthentication
+            if (!endpointAllowsAnonymous
+                && usesCookieAuthentication
                 && context.User.Identity?.IsAuthenticated == true
                 && !SafeMethods.Contains(context.Request.Method)
-                && !IsAllowedOrigin(context.Request.Headers.Origin))
+                && !IsAllowedOrigin(context))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await context.Response.WriteAsync(
@@ -53,10 +59,22 @@ namespace LitteraCore.Middleware
             await _next(context);
         }
 
-        private bool IsAllowedOrigin(string originHeader)
+        private bool IsAllowedOrigin(HttpContext context)
         {
-            var origin = NormalizeOrigin(originHeader);
-            return origin != null && _allowedOrigins.Contains(origin);
+            var origin = NormalizeOrigin(context.Request.Headers.Origin);
+            if (origin == null)
+            {
+                return false;
+            }
+
+            var requestOrigin = NormalizeOrigin(
+                $"{context.Request.Scheme}://{context.Request.Host}");
+
+            return string.Equals(
+                       origin,
+                       requestOrigin,
+                       StringComparison.OrdinalIgnoreCase)
+                   || _allowedOrigins.Contains(origin);
         }
 
         private static string? NormalizeOrigin(string? origin)
