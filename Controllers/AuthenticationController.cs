@@ -554,7 +554,7 @@ namespace LitteraCore.Controllers
 
 
 
-
+        [AllowAnonymous]    
         [HttpGet]
         [Route("api/UserInfo")]
         [SwaggerOperation("To get particular user info.")]
