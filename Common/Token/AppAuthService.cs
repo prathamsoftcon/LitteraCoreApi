@@ -24,9 +24,14 @@ namespace LitteraCore.Common.Token
     public class AppAuthService : IAppAuthService
     {
         private readonly IConfiguration _configuration;
-        public AppAuthService(IConfiguration configuration)
+        private readonly AuthSecuritySettings _securitySettings;
+
+        public AppAuthService(
+            IConfiguration configuration,
+            AuthSecuritySettings securitySettings)
         {
             _configuration = configuration;
+            _securitySettings = securitySettings;
         }
         public async Task<UserToken> Authenticate(string username)
         {
@@ -59,15 +64,10 @@ namespace LitteraCore.Common.Token
             //var claims = await _parmissionservice.GetClaimsAsync((Guid)userlogin.userid);
             var claims = "";
             var tokenHandler = new JwtSecurityTokenHandler();
-            // var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
-            var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
-
-           
-
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                //Issuer = "",
-                //Audience ="",
+                Issuer = _securitySettings.Issuer,
+                Audience = _securitySettings.Audience,
                 Subject = new ClaimsIdentity(new List<Claim>
                     {
                           new Claim(ClaimTypes.Name, claimname),
@@ -84,8 +84,10 @@ namespace LitteraCore.Common.Token
                           new Claim("m_name",a.ag_m_name),
                           new Claim("l_name",a.ag_l_name)
                     }),
-                Expires = DateTime.UtcNow.AddDays(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
+                Expires = DateTime.UtcNow.Add(_securitySettings.SessionLifetime),
+                SigningCredentials = new SigningCredentials(
+                    _securitySettings.CreateSecurityKey(),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
           
@@ -161,22 +163,15 @@ namespace LitteraCore.Common.Token
 
         public ClaimsPrincipal ValidateJwtToken(string token)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"])); // Wrap byte[] in SymmetricSecurityKey
             var tokenHandler = new JwtSecurityTokenHandler();
 
             try
             {
                 // Validate the token and extract claims
-                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = true, // Ensure the token is not expired
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = securityKey, // Use SymmetricSecurityKey here
-                                                    // ValidIssuer = "your_issuer",
-                                                    // ValidAudience = "your_audience"
-                }, out SecurityToken validatedToken);
+                var principal = tokenHandler.ValidateToken(
+                    token,
+                    _securitySettings.CreateTokenValidationParameters(),
+                    out SecurityToken validatedToken);
 
                 return principal;  // Returns the validated claims
             }
@@ -220,8 +215,6 @@ namespace LitteraCore.Common.Token
             //var claims = await _parmissionservice.GetClaimsAsync((Guid)userlogin.userid);
             var claims = "";
             var tokenHandler = new JwtSecurityTokenHandler();
-            // var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
-            var tokenKey = Encoding.UTF8.GetBytes(_configuration["JWT:Key"]);
             var validapiKey = _configuration.GetSection("ApiKey").Value;
 
             REACT_APP_CONFIGURATION RAC = new REACT_APP_CONFIGURATION();
@@ -236,8 +229,8 @@ namespace LitteraCore.Common.Token
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                //Issuer = "",
-                //Audience ="",
+                Issuer = _securitySettings.Issuer,
+                Audience = _securitySettings.Audience,
                 Subject = new ClaimsIdentity(new List<Claim>
                     {
                           new Claim(ClaimTypes.Name, claimname),
@@ -249,8 +242,10 @@ namespace LitteraCore.Common.Token
                           new Claim("redirect_path",redirect_path.ToString())
 
                     }),
-                Expires = DateTime.UtcNow.AddDays(30),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
+                Expires = DateTime.UtcNow.Add(_securitySettings.SessionLifetime),
+                SigningCredentials = new SigningCredentials(
+                    _securitySettings.CreateSecurityKey(),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
 

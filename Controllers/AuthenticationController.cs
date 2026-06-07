@@ -7,6 +7,7 @@ using LitteraCore.Common.Token;
 using LitteraCore.DBContext;
 using LitteraCore.Models; 
 using LitteraCore.Models.SmsSettings;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace LitteraCore.Controllers
    
     [ApiController]
 
-    
+    [Route("api/[controller]")]
     public class AuthenticationController : ControllerBase
     {
         
@@ -38,13 +39,23 @@ namespace LitteraCore.Controllers
         private readonly IConfiguration _configuration;
         private readonly ISmsService _smsService;
         private readonly IEmailService _mailService;
+        private readonly AppAuthService _authService;
+        private readonly AuthCookieService _authCookieService;
 
-        public AuthenticationController(IConfiguration configuration, OtpManager otpManager,ISmsService smsService, IEmailService emailService)
+        public AuthenticationController(
+            IConfiguration configuration,
+            OtpManager otpManager,
+            ISmsService smsService,
+            IEmailService emailService,
+            AppAuthService authService,
+            AuthCookieService authCookieService)
         {
             _configuration = configuration;
             _otpManager = otpManager;
             _smsService = smsService;
             _mailService = emailService;
+            _authService = authService;
+            _authCookieService = authCookieService;
            
         }
 
@@ -98,10 +109,11 @@ namespace LitteraCore.Controllers
         //}
 
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/GetToken")]
         [SwaggerOperation("To generate token.")]
-        public IActionResult GetToken(UserLogin u)
+        public IActionResult GetToken([FromBody]UserLogin u)
         {
             try
             {
@@ -125,17 +137,11 @@ namespace LitteraCore.Controllers
 
                     if (Convert.ToBoolean(isValid.Result))
                     {
-                        AppAuthService auth = new AppAuthService(_configuration);
+                        var auth = _authService;
                         var token = auth.Authenticate(username);
-                        var cookieOptions = new CookieOptions
-                        {
-                            HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
-                            Secure = true,                // Only send the cookie over HTTPS
-                            SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
-                            Expires = DateTime.Now.AddHours(1) // Cookie expiry time
-                        };
-
-                        Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                        _authCookieService.Append(
+                            Response,
+                            token.Result.AuthToken);
                         AuthDB adb = new AuthDB(_configuration);
                         string ip = GetClientIp();
                         adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
@@ -149,7 +155,7 @@ namespace LitteraCore.Controllers
                 }
                 else
                 {
-                    AppAuthService auth = new AppAuthService(_configuration);
+                    var auth = _authService;
                     AuthDB adb = new AuthDB(_configuration);
                     //Code to password Login
                     List<User> lU = new List<User>();
@@ -173,15 +179,9 @@ namespace LitteraCore.Controllers
                         {
 
                             var token = auth.Authenticate(username);
-                            var cookieOptions = new CookieOptions
-                            {
-                                HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
-                                Secure = true,                // Only send the cookie over HTTPS
-                                SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
-                                Expires = DateTime.Now.AddHours(1) // Cookie expiry time
-                            };
-
-                            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+                            _authCookieService.Append(
+                                Response,
+                                token.Result.AuthToken);
                             
                             string ip = GetClientIp();
                             adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
@@ -219,13 +219,14 @@ namespace LitteraCore.Controllers
 
 
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GenerateOTP")]
         [SwaggerOperation("To Generate and send OTP.")]
         public async Task<IActionResult> GenerateMobileOTP(string username,int utilityOTP=0)
         {
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             AuthDB adb = new AuthDB(_configuration);
             //List<User> lU = new List<User>();
             UserInfo lU = adb.GetUserInfo(username);
@@ -299,13 +300,14 @@ namespace LitteraCore.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GenerateOTP_wk")]
         [SwaggerOperation("To Generate and send OTP.")]
         public async Task<IActionResult> GenerateOTP_wk(string username, int utilityOTP = 0)
         {
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             AuthDB adb = new AuthDB(_configuration);
             //List<User> lU = new List<User>();
             UserInfo lU = adb.GetUserInfo(username);
@@ -377,7 +379,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/VerifyOTP")]
         [SwaggerOperation("To verify OTP .")]
@@ -401,6 +403,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/VerifyOTP_wk")]
         [SwaggerOperation("To verify OTP .")]
@@ -498,7 +501,7 @@ namespace LitteraCore.Controllers
         public IActionResult UpdatePassword(Update_Password u)
         {
             //Code to check old password
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             List<User> lU = new List<User>();
             AuthDB adb = new AuthDB(_configuration);
             lU = adb.GET_LOGIN_DETAIL(u.username);
@@ -535,7 +538,6 @@ namespace LitteraCore.Controllers
 
 
 
-
         [HttpGet]
         [Route("api/UserInfo")]
         [SwaggerOperation("To get particular user info.")]
@@ -543,11 +545,15 @@ namespace LitteraCore.Controllers
         {
             try
             {
-                AppAuthService auth = new AppAuthService(_configuration);
-                AuthDB ADB = new AuthDB(_configuration);
-                //UserInfo U = ADB.GetUserInfo(username);
-                var token = auth.Authenticate(username);
-                Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken));
+                if (!IsCurrentIdentity(username))
+                {
+                    return Forbid();
+                }
+
+                var token = _authService.Authenticate(username);
+                _authCookieService.Append(
+                    Response,
+                    token.Result.AuthToken);
                 return Ok(token);
             }
             catch (Exception ex)
@@ -561,7 +567,6 @@ namespace LitteraCore.Controllers
 
         }
 
-
         [HttpGet]
         [Route("api/UserInfo_wk")]
         [SwaggerOperation("To get particular user info.")]
@@ -569,11 +574,15 @@ namespace LitteraCore.Controllers
         {
             try
             {
-                AppAuthService auth = new AppAuthService(_configuration);
-                AuthDB ADB = new AuthDB(_configuration);
-                //UserInfo U = ADB.GetUserInfo(username);
-                var token = auth.Authenticate(username);
-                Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken));
+                if (!IsCurrentIdentity(username))
+                {
+                    return Forbid();
+                }
+
+                var token = _authService.Authenticate(username);
+                _authCookieService.Append(
+                    Response,
+                    token.Result.AuthToken);
                 return Ok(token);
             }
             catch (Exception ex)
@@ -595,9 +604,12 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To generate token .")]
         public async Task<IActionResult> GenerateOAuthToken(string username)
         {
-            //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
-            var token = auth.Authenticate(username).Result.AuthToken;
+            if (!IsCurrentIdentity(username))
+            {
+                return Forbid();
+            }
+
+            var token = _authService.Authenticate(username).Result.AuthToken;
             var isValid = _otpManager.SetOauthToken(username,token.ToString());
 
 
@@ -610,7 +622,7 @@ namespace LitteraCore.Controllers
         public async Task<IActionResult> CheckOAuthToken(string username)
         {
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             
             var isValid = _otpManager.CheckOauthToken(username);
 
@@ -654,7 +666,7 @@ namespace LitteraCore.Controllers
             return userid+"*"+ contenid;
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -673,7 +685,7 @@ namespace LitteraCore.Controllers
             // Return the object using System.Text.Json with custom settings
             return new JsonResult(RAC, options); 
         }
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION_wk")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -754,7 +766,7 @@ namespace LitteraCore.Controllers
         {
             try
             {
-                AppAuthService auth = new AppAuthService(_configuration);
+                var auth = _authService;
                 AuthDB ADB = new AuthDB(_configuration);
                 bool ischanged = ADB.is_password_changed(userid);
                 return Ok(ischanged);
@@ -788,10 +800,12 @@ namespace LitteraCore.Controllers
         public async Task<IActionResult> Send_OTP(string username)
         {
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             AuthDB adb = new AuthDB(_configuration);
             //List<User> lU = new List<User>();
             UserInfo lU = adb.GetUserInfo(username);
+
+
 
 
 
@@ -899,7 +913,7 @@ namespace LitteraCore.Controllers
         public async Task<IActionResult> Get_Token_Info(string token)
         {
             // Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
 
             var principal = auth.ValidateJwtToken(token); // Validate token and get claims
 
@@ -985,7 +999,7 @@ namespace LitteraCore.Controllers
         {
             string username = "";
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
 
             bool isValid = _otpManager.CheckOauthToken(username).Result;
             if (isValid == true)
@@ -1008,29 +1022,56 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To Generate activity token.")]
         public async Task<IActionResult> GenerateActivityToken(string ttsm_id,string apipath, string? userid=null, string? ttpai_id=null)
         {
-            //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
-            var token = auth.Activity_Token(userid, ttpai_id, ttsm_id, apipath).Result.AuthToken;
+            var currentUserId = User.FindFirst("userid")?.Value;
+            if (string.IsNullOrWhiteSpace(currentUserId)
+                || (!string.IsNullOrWhiteSpace(userid)
+                    && !string.Equals(
+                        userid,
+                        currentUserId,
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                return Forbid();
+            }
+
+            userid = currentUserId;
+            var token = _authService.Activity_Token(
+                userid,
+                ttpai_id,
+                ttsm_id,
+                apipath).Result.AuthToken;
             var isValid = _otpManager.SetOauthToken(userid, token.ToString());
 
 
             return Ok(token);
         }
-
         [HttpGet]
         [Route("api/GenerateActivityToken_wk")]
         [SwaggerOperation("To Generate activity token.")]
         public async Task<IActionResult> GenerateActivityToken_wk(string ttsm_id, string apipath, string? userid = null, string? ttpai_id = null)
         {
-            //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
-            var token = auth.Activity_Token(userid, ttpai_id, ttsm_id, apipath).Result.AuthToken;
+            var currentUserId = User.FindFirst("userid")?.Value;
+            if (string.IsNullOrWhiteSpace(currentUserId)
+                || (!string.IsNullOrWhiteSpace(userid)
+                    && !string.Equals(
+                        userid,
+                        currentUserId,
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                return Forbid();
+            }
+
+            userid = currentUserId;
+            var token = _authService.Activity_Token(
+                userid,
+                ttpai_id,
+                ttsm_id,
+                apipath).Result.AuthToken;
             var isValid = _otpManager.SetOauthToken(userid, token.ToString());
 
 
             return Ok(token);
         }
-
+        [AllowAnonymous]
         [HttpGet]
         
         [Route("api/Get_Activity_Token_Info")]
@@ -1038,9 +1079,7 @@ namespace LitteraCore.Controllers
         public async Task<IActionResult> Get_Activity_Token_Info(string token)
         {
             // Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
-
-            var principal = auth.ValidateJwtToken(token); // Validate token and get claims
+            var principal = _authService.ValidateJwtToken(token);
 
             if (principal != null)
             {
@@ -1126,7 +1165,7 @@ namespace LitteraCore.Controllers
         public async Task<IActionResult> Send_General_OTP(string username)
         {
             //Check Valid User
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             AuthDB adb = new AuthDB(_configuration);
             //List<User> lU = new List<User>();
             var otp = await _otpManager.GenerateOtpAsync(username.ToString());
@@ -1283,10 +1322,10 @@ namespace LitteraCore.Controllers
         public IActionResult Login_Fail_Entry(string username, string? reason=null)
         {
             //Code to check old password
-           
+
             LoginBL adb = new LoginBL(_configuration);
             bool  issaved = adb.Save_Login_Fail_Entry(username, reason);
-        
+
             return Ok(issaved);
 
 
@@ -1301,7 +1340,7 @@ namespace LitteraCore.Controllers
         public IActionResult Match_Password(Update_Password u)
         {
             //Code to check old password
-            AppAuthService auth = new AppAuthService(_configuration);
+            var auth = _authService;
             List<User> lU = new List<User>();
             AuthDB adb = new AuthDB(_configuration);
             lU = adb.GET_LOGIN_DETAIL(u.username);
@@ -1345,7 +1384,7 @@ namespace LitteraCore.Controllers
 
 
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/SAVE_USER_LOG_wk")]
         [SwaggerOperation("To save user log entry.")]
@@ -1398,7 +1437,7 @@ namespace LitteraCore.Controllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet]
         [Route("api/User_Session_Details")]
         [SwaggerOperation("To get user's session details.")]
@@ -1430,17 +1469,10 @@ namespace LitteraCore.Controllers
             {
                 username = CommonEnum.default_org;
             }
-            AppAuthService auth = new AppAuthService(_configuration);
-            var token = auth.Authenticate(username);
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,              // Make sure the cookie is not accessible via JavaScript
-                Secure = true,                // Only send the cookie over HTTPS
-                SameSite = SameSiteMode.None, // For cross-origin requests, use SameSite=None
-                Expires = DateTime.Now.AddHours(1) // Cookie expiry time
-            };
-
-            Response.Cookies.Append("Auth_token", Convert.ToString(token.Result.AuthToken), cookieOptions);
+            var token = _authService.Authenticate(username);
+            _authCookieService.Append(
+                Response,
+                token.Result.AuthToken);
             AuthDB adb = new AuthDB(_configuration);
 
 
@@ -1448,11 +1480,40 @@ namespace LitteraCore.Controllers
             return Ok(token);
         }
 
+        [HttpPost]
+        [Route("api/Logout")]
+        [SwaggerOperation("To end the authenticated browser session.")]
+        public IActionResult Logout()
+        {
+            _authCookieService.Delete(Response);
+            return Ok(true);
+        }
+
+        private bool IsCurrentIdentity(string? requestedIdentity)
+        {
+            if (string.IsNullOrWhiteSpace(requestedIdentity))
+            {
+                return false;
+            }
+
+            var identityClaims = new[]
+            {
+                User.FindFirst("username")?.Value,
+                User.FindFirst("userid")?.Value,
+                User.FindFirst("mobileno")?.Value,
+                User.FindFirst("emailid")?.Value,
+                User.Identity?.Name
+            };
+
+            return identityClaims.Any(value =>
+                !string.IsNullOrWhiteSpace(value)
+                && string.Equals(
+                    value,
+                    requestedIdentity,
+                    StringComparison.OrdinalIgnoreCase));
+        }
+
 
 
     }
 }
-
-
-
-
