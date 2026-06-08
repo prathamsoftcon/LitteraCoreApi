@@ -1316,6 +1316,7 @@ namespace LitteraCore.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/Login_Fail_Entry")]
         [SwaggerOperation("To Make Login Fail Entry.")]
