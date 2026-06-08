@@ -803,6 +803,7 @@ namespace LitteraCore.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("api/Upcoming_Events")]
         [SwaggerOperation("To get upcoming trainings.")]
