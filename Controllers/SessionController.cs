@@ -44,6 +44,7 @@ namespace LitteraCore.Controllers
 
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/TrgSessions")]
         [SwaggerOperation("To get training sessions.")]
         public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null,string branchid=null)
@@ -774,7 +775,7 @@ namespace LitteraCore.Controllers
 
             
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [Route("api/Update_Session_Status_wk")]
         [SwaggerOperation("To update participat session status.")]

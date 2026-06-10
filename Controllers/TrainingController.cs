@@ -60,6 +60,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Training_Details")]
         [SwaggerOperation("To get trainings details.")]
         public IActionResult Training_Details (string trainingid,string? usertype=null,string? loginuserid=null,string? branchid=null)
@@ -326,6 +327,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/TRG_SPONSOR")]
         [SwaggerOperation("To get particular training sponsor list.")]
         public IActionResult TRG_SPONSOR(string trainingid)
@@ -350,6 +352,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/TRG_PARTICIPANT_DETAILS_wk")]
         [SwaggerOperation("To particular participant detail in training.")]
         public IActionResult TRG_PARTICIPANT_DETAILS_wk(string trainingid, string participantid = null, string branchid = null)
@@ -1103,7 +1106,7 @@ namespace LitteraCore.Controllers
 
             return Ok(ut);
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/Participants_training_wk")]
         [SwaggerOperation("To Generate certificate and get certificate html.")]

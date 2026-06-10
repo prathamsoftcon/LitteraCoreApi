@@ -10,7 +10,6 @@ using MailKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
@@ -83,9 +82,6 @@ builder.Services.AddCors(options =>
 #region Controllers (SECURED BY DEFAULT)
 builder.Services.AddControllers(options =>
 {
-    //ALL APIs REQUIRE AUTHENTICATION BY DEFAULT
-    options.Filters.Add(new AuthorizeFilter());
-
     options.AllowEmptyInputInBodyModelBinding = true;
 })
 .AddJsonOptions(options =>
@@ -151,9 +147,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.TokenValidationParameters =
             authSecuritySettings.CreateTokenValidationParameters();
-    });
+    })
+    .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+        ApiKeyAuthenticationDefaults.AuthenticationScheme,
+        _ => { });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    var jwtPolicy = new AuthorizationPolicyBuilder(
+            JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+
+    options.DefaultPolicy = jwtPolicy;
+    options.FallbackPolicy = jwtPolicy;
+    options.AddPolicy(
+        ApiKeyAuthenticationDefaults.PolicyName,
+        policy =>
+        {
+            policy.AddAuthenticationSchemes(
+                ApiKeyAuthenticationDefaults.AuthenticationScheme);
+            policy.RequireAuthenticatedUser();
+        });
+});
 #endregion
 
 #region Swagger
@@ -179,20 +195,17 @@ if (swaggerEnabled)
             Description = "Enter the JWT token without the Bearer prefix."
         });
 
-        c.AddSecurityRequirement(new OpenApiSecurityRequirement
-        {
+        c.AddSecurityDefinition(
+            ApiKeyAuthenticationDefaults.AuthenticationScheme,
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            },
-        });
+                Type = SecuritySchemeType.ApiKey,
+                In = ParameterLocation.Header,
+                Name = ApiKeyAuthenticationDefaults.HeaderName,
+                Description = "API key used by the trusted React server proxy."
+            });
+
+        c.OperationFilter<ApiSecurityOperationFilter>();
     });
 }
 #endregion
@@ -279,9 +292,6 @@ app.Use(async (context, next) =>
 app.UseAuthentication();
 app.UseCookieOriginValidation();
 app.UseAuthorization();
-
-// API Key middleware now acts as SECONDARY / INTERNAL protection
-app.UseApiKeyMiddleware();
 
 app.MapControllers();
 app.Run();

@@ -109,7 +109,7 @@ namespace LitteraCore.Controllers
         //}
 
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [Route("api/GetToken")]
         [SwaggerOperation("To generate token.")]
@@ -219,7 +219,7 @@ namespace LitteraCore.Controllers
 
 
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/GenerateOTP")]
         [SwaggerOperation("To Generate and send OTP.")]
@@ -300,7 +300,7 @@ namespace LitteraCore.Controllers
         }
 
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/GenerateOTP_wk")]
         [SwaggerOperation("To Generate and send OTP.")]
@@ -379,7 +379,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/VerifyOTP")]
         [SwaggerOperation("To verify OTP .")]
@@ -403,7 +403,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/VerifyOTP_wk")]
         [SwaggerOperation("To verify OTP .")]
@@ -666,7 +666,7 @@ namespace LitteraCore.Controllers
             return userid+"*"+ contenid;
         }
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -685,7 +685,7 @@ namespace LitteraCore.Controllers
             // Return the object using System.Text.Json with custom settings
             return new JsonResult(RAC, options); 
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/GET_REACT_APP_CONFIGURATION_wk")]
         [SwaggerOperation("To get react app configuration from config.json.")]
@@ -795,6 +795,7 @@ namespace LitteraCore.Controllers
 
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Send_OTP")]
         [SwaggerOperation("To Send OTP.")]
         public async Task<IActionResult> Send_OTP(string username)
@@ -1071,7 +1072,7 @@ namespace LitteraCore.Controllers
 
             return Ok(token);
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         
         [Route("api/Get_Activity_Token_Info")]
@@ -1160,6 +1161,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Send_General_OTP")]
         [SwaggerOperation("To Send General OTP.")]
         public async Task<IActionResult> Send_General_OTP(string username)
@@ -1199,6 +1201,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/VerifyOTPWithLogin")]
         [SwaggerOperation("To Verify login OTP.")]
         public async Task<IActionResult> VerifyOTPWithLogin(string username, string otp,string user_id)
@@ -1385,7 +1388,7 @@ namespace LitteraCore.Controllers
 
 
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [Route("api/SAVE_USER_LOG_wk")]
         [SwaggerOperation("To save user log entry.")]
@@ -1438,7 +1441,7 @@ namespace LitteraCore.Controllers
         }
 
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/User_Session_Details")]
         [SwaggerOperation("To get user's session details.")]

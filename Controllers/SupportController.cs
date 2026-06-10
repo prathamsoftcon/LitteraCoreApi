@@ -315,7 +315,7 @@ namespace LitteraCore.Controllers
             return Ok(ischanged);
 
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/Check_First_Login_wk")]
         [SwaggerOperation("To check participant first login.")]

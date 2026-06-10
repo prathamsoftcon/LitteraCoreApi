@@ -61,6 +61,7 @@ namespace LitteraCore.Controllers
 
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Agency")]
         [SwaggerOperation("To get Agencies on basis of agency type")]
         public IActionResult getAgency(string agencytype = null,string filters = null, string agencyid = null, string tat_type_id = null, [FromQuery] PaginationParam param=null,string filter=null)
@@ -145,6 +146,7 @@ namespace LitteraCore.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Salutation")]
         [SwaggerOperation("To get agency salutation data.")]
         public IActionResult Salutation()
@@ -172,6 +174,7 @@ namespace LitteraCore.Controllers
 
 
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Branches")]
         [SwaggerOperation("To get branches.")]
         public IActionResult Branches(string agencytypeid, string parentid=null)
@@ -267,7 +270,7 @@ namespace LitteraCore.Controllers
             }
 
         }
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet("api/trainingplan")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult trainingplan()

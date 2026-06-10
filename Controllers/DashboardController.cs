@@ -1291,7 +1291,7 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
-        [AllowAnonymous]
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/Littera_Events")]
         [SwaggerOperation("To get Littera Events to share with external user's with different secret key.")]
