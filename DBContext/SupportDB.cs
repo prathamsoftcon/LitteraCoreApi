@@ -247,7 +247,7 @@ namespace LitteraCore.DBContext
         public List<Support_Analytical_Report> Password_Not_Updated(string fromdate, string todate, int pageno = 1, int pagesize = 1, SearchParam filter = null)
         {
             string searchcolumn = null; string searchvalue = null;
-            if (filter != null)
+            if (filter?.SearchCriteria?.Length > 0)
             {
                 searchcolumn = filter.SearchCriteria.FirstOrDefault().Column;
                 searchvalue = filter.SearchCriteria.FirstOrDefault().Value;
@@ -299,7 +299,7 @@ namespace LitteraCore.DBContext
                         mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
                         total=Convert.ToInt32(dr["total"]),
-                        usercode = Convert.ToString(dr["usercode"])
+                        usercode = GetOptionalString(dr, "usercode")
                     }
                     );
             }
@@ -310,7 +310,7 @@ namespace LitteraCore.DBContext
         public List<Support_Analytical_Report> Password_Updated(string fromdate, string todate, int pageno = 1, int pagesize = 1, SearchParam filter = null)
         {
             string searchcolumn = null; string searchvalue = null;
-            if (filter != null)
+            if (filter?.SearchCriteria?.Length > 0)
             {
                 searchcolumn = filter.SearchCriteria.FirstOrDefault().Column;
                 searchvalue = filter.SearchCriteria.FirstOrDefault().Value;
@@ -361,12 +361,19 @@ namespace LitteraCore.DBContext
                         mobileno = CommonDB.Get_MaskData(ismaskingrequired, Convert.ToString(dr["ag_mobileno"]), f, (int)Common.CommonEnum.MaskingColumn.MOBILENO),
                         eventdate = Convert.ToString(dr["eventdate"]),
                         total = Convert.ToInt32(dr["total"]),
-                        usercode = Convert.ToString(dr["usercode"])
+                        usercode = GetOptionalString(dr, "usercode")
                     }
                     );
             }
 
             return L;
+        }
+
+        private static string GetOptionalString(DataRow row, string columnName)
+        {
+            return row.Table.Columns.Contains(columnName)
+                ? Convert.ToString(row[columnName])
+                : string.Empty;
         }
 
 

@@ -107,6 +107,12 @@ namespace LitteraCore.Controllers
         public IActionResult User_Analytics_Data(string? fromdate = null, string? todate = null,int type=1, [FromQuery] PaginationParam? param = null, [FromBody] SearchParam? searchCriterias = null)
         {
             //type=1 First Login ,2-Password not updated,3-Password Updated
+            param ??= new PaginationParam
+            {
+                PageNumber = 1,
+                PageSize = 10
+            };
+
             List<Support_Analytical_Report> s = new List<Support_Analytical_Report>();
             SupportBL SBL = new SupportBL(_configuration);
 

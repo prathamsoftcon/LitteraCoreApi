@@ -176,6 +176,45 @@ namespace LitteraCore.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("api/ParticipantLookup")]
+        [SwaggerOperation(
+            "Looks up participant registration details without changing the current session.")]
+        public IActionResult ParticipantLookup(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return BadRequest("Mobile number or email is required.");
+            }
+
+            AuthDB authDb = new AuthDB(_configuration);
+            UserInfo userDetails = authDb.GetUserInfo(username.Trim());
+            if (string.IsNullOrWhiteSpace(userDetails.userid)
+                || string.IsNullOrWhiteSpace(userDetails.agencyid))
+            {
+                return NotFound("User not found.");
+            }
+
+            AgencyDB agencyDb = new AgencyDB(_configuration);
+            Agency agencyDetails = agencyDb
+                .Get_Agency_Data_For_Login(
+                    null,
+                    userDetails.agencyid,
+                    1,
+                    1,
+                    null)
+                .FirstOrDefault();
+
+            return Ok(new
+            {
+                result = new
+                {
+                    userdetails = userDetails,
+                    agencydetail = agencyDetails
+                }
+            });
+        }
+
         private void SendUserCreationEmail(LoginUser user, string APPURL)
         {
             if (string.IsNullOrWhiteSpace(APPURL))
