@@ -163,6 +163,15 @@
         public string createdby { get; set; }
         public user_branches branches { get; set; }
     }
+
+    public class RegisterWithOtpRequest
+    {
+        public string verifiedIdentifier { get; set; }
+        public string otp { get; set; }
+        public LoginUser user { get; set; }
+        public string? appUrl { get; set; }
+    }
+
     public class user_branches
     {
         public string branchtype { get; set; }

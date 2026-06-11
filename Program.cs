@@ -4,6 +4,7 @@ using LitteraCore.Common.EmailService;
 using LitteraCore.Common.OTP;
 using LitteraCore.Common.SmsService;
 using LitteraCore.Common.Token;
+using LitteraCore.BLContext;
 using LitteraCore.DBContext;
 using LitteraCore.Middleware;
 using MailKit;
@@ -110,6 +111,7 @@ builder.Services.AddSingleton<AppAuthService>();
 builder.Services.AddSingleton<IAppAuthService>(
     services => services.GetRequiredService<AppAuthService>());
 builder.Services.AddSingleton<AuthCookieService>();
+builder.Services.AddTransient<UserRegistrationService>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSingleton<IDatabaseConnectionFactory, DatabaseConnectionFactory>();
 #endregion

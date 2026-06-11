@@ -17,6 +17,9 @@ using Newtonsoft.Json;
 using System.Data;
 using static QRCoder.PayloadGenerator;
 using Swashbuckle.AspNetCore.Annotations;
+using LitteraCore.Common.OTP;
+using LitteraCore.Common.Token;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LitteraCore.Controllers
 {
@@ -24,72 +27,113 @@ namespace LitteraCore.Controllers
     public class UserController :  Controller
     {
         private readonly ILogger<AgencyController> _logger;
-
         private readonly IConfiguration _configuration;
-        public UserController(IConfiguration configuration, ILogger<AgencyController> logger)
+        private readonly OtpManager _otpManager;
+        private readonly AppAuthService _authService;
+        private readonly AuthCookieService _authCookieService;
+        private readonly UserRegistrationService _userRegistrationService;
+
+        public UserController(
+            IConfiguration configuration,
+            ILogger<AgencyController> logger,
+            OtpManager otpManager,
+            AppAuthService authService,
+            AuthCookieService authCookieService,
+            UserRegistrationService userRegistrationService)
         {
             _configuration = configuration;
             _logger = logger;
+            _otpManager = otpManager;
+            _authService = authService;
+            _authCookieService = authCookieService;
+            _userRegistrationService = userRegistrationService;
         }
+
+        [Authorize(Policy = "PublicApiKey")]
+        [HttpPost]
+        [Route("api/RegisterWithOtp")]
+        [SwaggerOperation(
+            "Verifies OTP, creates a new user, and returns the normal authentication response.")]
+        public async Task<IActionResult> RegisterWithOtp(
+            [FromBody] RegisterWithOtpRequest request)
+        {
+            if (request == null
+                || string.IsNullOrWhiteSpace(request.verifiedIdentifier)
+                || string.IsNullOrWhiteSpace(request.otp))
+            {
+                return BadRequest(
+                    "Verified identifier and OTP are required.");
+            }
+
+            var identifier = request.verifiedIdentifier.Trim();
+            var authDb = new AuthDB(_configuration);
+            if (!string.IsNullOrWhiteSpace(
+                    authDb.GetUserInfo(identifier).userid))
+            {
+                return Conflict("User already exists. Use GetToken with OTP.");
+            }
+
+            if (request.user?.agency == null)
+            {
+                return BadRequest("User details are required for a new account.");
+            }
+
+            if (!IdentifierMatchesUser(identifier, request.user))
+            {
+                return BadRequest(
+                    "Verified identifier must match the user's email or mobile number.");
+            }
+
+            if (!await _otpManager.VerifyOtpAsync(identifier, request.otp))
+            {
+                return Unauthorized("Invalid or expired OTP.");
+            }
+
+            try
+            {
+                var registration = _userRegistrationService.Create(request.user);
+                if (!registration.Created)
+                {
+                    return BadRequest("User could not be created.");
+                }
+
+                var token = await _authService.Authenticate(identifier);
+                if (token?.userdetails?.userid == null)
+                {
+                    return StatusCode(
+                        StatusCodes.Status500InternalServerError,
+                        "User was created, but authentication could not be completed. Request a new OTP and sign in.");
+                }
+
+                _authCookieService.Append(Response, token.AuthToken);
+                authDb.Make_Login_Entry(
+                    token.userdetails.userid,
+                    "0",
+                    GetClientIp());
+
+                return Ok(token);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "RegisterWithOtp failed.");
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "Registration failed after OTP verification. Request a new OTP before retrying.");
+            }
+        }
+
         [HttpPost]
         [Route("api/CreateUser")]
         [SwaggerOperation("To create new user.")]
         public IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
         {
-            UserBL UBL = new UserBL(_configuration);
-            if (user.branchid == null)
-            {
-                user.branchid = CommonEnum.Branchid;
-            }
-            bool isUserCreationMail = true;
-            //variable to check need to send user creation mail or not.
-            //*************Code to check already exists user
-            //Check mobile
-            if (user.mobileno != null)
-            {
-                Agency amob = new Agency();
-                amob = UBL.Check_Mobile(user.mobileno, null, user.agency.AgencyTypeId);
-                if (amob.agencyid != null)
-                {
-                    if (amob.userid.ToString().ToUpper() != user.userid.ToString().ToUpper())
-                    {
-                        throw new Exception("This mobile no already registerd with another user.");
-                    }
-                    // if agency already exist then not need to send mail
-                    isUserCreationMail = false;
-
-                }
-            }
-
-
-
-
-
-            //Check email
-            if (user.emailid != null)
-            {
-                Agency aemail = new Agency();
-                aemail = UBL.Check_Mobile(user.emailid, null, user.agency.AgencyTypeId);
-
-                if (aemail.agencyid != null)
-                {
-                    if (aemail.userid.ToString().ToUpper() != user.userid.ToString().ToUpper())
-                    {
-                        throw new Exception("This email id already registerd with another user.");
-                    }
-                    // if agency already exist then not need to send mail
-                    isUserCreationMail = false;
-                }
-            }
-
-
-            //***********
-
-
-
-
-            bool issaved = false;
-            issaved = UBL.Save_User_Data(user);
+            var registration = _userRegistrationService.Create(user);
+            bool isUserCreationMail = registration.ShouldSendCreationEmail;
+            bool issaved = registration.Created;
             if (issaved == true)
             {
                 if (isUserCreationMail == true)
@@ -191,6 +235,41 @@ namespace LitteraCore.Controllers
 
 
 
+        }
+
+        private static bool IdentifierMatchesUser(
+            string identifier,
+            LoginUser user)
+        {
+            var isEmail = identifier.Contains('@');
+            var candidates = isEmail
+                ? new[] { user.emailid, user.agency.ag_email }
+                : new[] { user.mobileno, user.agency.ag_mobileno };
+
+            return candidates.Any(candidate =>
+                !string.IsNullOrWhiteSpace(candidate)
+                && string.Equals(
+                    candidate.Trim(),
+                    identifier,
+                    isEmail
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal));
+        }
+
+        private string GetClientIp()
+        {
+            var clientIp =
+                HttpContext.Connection.RemoteIpAddress?.ToString()
+                ?? string.Empty;
+
+            if (HttpContext.Request.Headers.TryGetValue(
+                    "X-Forwarded-For",
+                    out var forwardedFor))
+            {
+                clientIp = forwardedFor.FirstOrDefault() ?? clientIp;
+            }
+
+            return clientIp;
         }
 
     }

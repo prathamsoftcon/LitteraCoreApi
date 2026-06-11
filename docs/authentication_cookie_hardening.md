@@ -66,8 +66,10 @@ A JWT alone does not authorize them.
 | `GET` | `/api/Finacial_year` |
 | `GET` | `/api/Get_Application_Setting` |
 | `GET` | `/api/Check_Payment_Gateway_Available` |
+| `POST` | `/api/Save_Audit_Trail` |
 | `POST` | `/api/Save_Audit_Trail_wk` |
 | `POST` | `/api/GetToken` |
+| `POST` | `/api/RegisterWithOtp` |
 | `GET` | `/api/GenerateOTP` |
 | `GET` | `/api/GenerateOTP_wk` |
 | `GET` | `/api/VerifyOTP` |
@@ -102,6 +104,74 @@ These are the only live controller actions currently marked
 | `POST` | `/api/Login_Fail_Entry` |
 | `POST` | `/api/Upcoming_Events` |
 
+## Adding New Endpoints
+
+Every new controller action must explicitly follow one of these access models.
+
+### JWT or Cookie Endpoint
+
+No authorization attribute is required. The fallback policy automatically
+requires the normal JWT authentication scheme:
+
+```csharp
+[HttpGet]
+[Route("api/Example")]
+public IActionResult Example()
+{
+    return Ok();
+}
+```
+
+Use claims from `User` for user, agency, and branch ownership. Do not trust
+ownership identifiers supplied by the client.
+
+### API-Key-Only Endpoint
+
+Use this only for a route called by the trusted server-side proxy:
+
+```csharp
+[Authorize(Policy = "PublicApiKey")]
+[HttpPost]
+[Route("api/ProxyExample")]
+public IActionResult ProxyExample()
+{
+    return Ok();
+}
+```
+
+The proxy must send `ApiKey: <configured-key>`. A JWT alone will not authorize
+the action. Never place the API key in browser code or a public React environment
+variable.
+
+### Credential-Free Endpoint
+
+Use anonymous access only when the action is intentionally public:
+
+```csharp
+[AllowAnonymous]
+[HttpGet]
+[Route("api/PublicExample")]
+public IActionResult PublicExample()
+{
+    return Ok();
+}
+```
+
+Do not combine `[AllowAnonymous]` with `[Authorize]`. Anonymous actions require
+strict input validation, limited response data, and rate limiting where abuse is
+possible.
+
+### Required Maintenance
+
+1. Add the route to the matching inventory in this document when using
+   `PublicApiKey` or `AllowAnonymous`.
+2. Confirm Swagger shows `ApiKey` for proxy routes, Bearer for normal routes,
+   and no security requirement for anonymous routes.
+3. Verify expected responses with no credential, API key only, and JWT only.
+4. Run `dotnet build LitteraCore.sln --no-restore`.
+5. Review request logging so tokens, API keys, OTPs, and passwords remain
+   redacted.
+
 ## React Changes
 
 ### 1. Call API-Key Routes Through the Server Proxy
@@ -125,6 +195,53 @@ POST /api/GetToken
 
 The proxy adds the API key. The response still contains `authToken` and the API
 also sets the protected `Auth_token` cookie.
+
+New users use the atomic registration route:
+
+```text
+POST /api/RegisterWithOtp
+```
+
+The request contains `verifiedIdentifier`, `otp`, `user`, and optional `appUrl`.
+The identifier must match the supplied email or mobile fields. The endpoint
+verifies and consumes the OTP, invokes the existing `/api/CreateUser` logic,
+generates the normal JWT, sets `Auth_token`, and returns the standard `UserToken`
+response. Existing users continue using `/api/GetToken` with OTP.
+
+The endpoint checks whether the identifier already exists before requiring the
+new-user payload or consuming the OTP. A `409` response therefore allows the
+client to submit the same OTP to `/api/GetToken`. For a new identifier, omitting
+`user` returns `400` without consuming the OTP.
+
+User records are saved through the existing `Save_User_Data` SQL transaction.
+OTP consumption and JWT generation are outside that database transaction. If an
+unexpected failure occurs after OTP verification, the response instructs the
+client to request a new OTP. If the account was committed before token creation
+failed, the next attempt follows the existing-user `/api/GetToken` path.
+
+```json
+{
+  "verifiedIdentifier": "user@example.com",
+  "otp": "123456",
+  "appUrl": "https://app.example.com",
+  "user": {
+    "username": "user@example.com",
+    "emailid": "user@example.com",
+    "userid": "server-or-client-generated-user-id",
+    "usertype": "5",
+    "createdby": "server-or-client-generated-user-id",
+    "branchid": "configured-branch-id",
+    "agency": {
+      "agencyId": "server-or-client-generated-agency-id",
+      "agencyTypeId": "00051",
+      "agencyName": "Example User",
+      "ag_first_name": "Example",
+      "ag_l_name": "User",
+      "ag_email": "user@example.com"
+    }
+  }
+}
+```
 
 Do not call `UserInfo_wk` to create the initial authentication token. It is now
 an authenticated compatibility endpoint.

@@ -205,9 +205,7 @@ namespace LitteraCore.Controllers
 
             return Unauthorized();
         }
-
-
-
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [SwaggerOperation("To sav audit trail")]
         [Route("api/Save_Audit_Trail")]
