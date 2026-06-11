@@ -34,10 +34,18 @@ namespace LitteraCore.Middleware
 
         public async Task Invoke(HttpContext context)
         {
+            var endpoint = context.GetEndpoint();
             var endpointAllowsAnonymous =
-                context.GetEndpoint()?
+                endpoint?.Metadata.GetMetadata<IAllowAnonymous>() != null;
+            var endpointUsesPublicApiKey =
+                endpoint?
                     .Metadata
-                    .GetMetadata<IAllowAnonymous>() != null;
+                    .GetOrderedMetadata<IAuthorizeData>()
+                    .Any(metadata =>
+                        string.Equals(
+                            metadata.Policy,
+                            ApiKeyAuthenticationDefaults.PolicyName,
+                            StringComparison.Ordinal)) == true;
             var usesCookieAuthentication =
                 string.Equals(
                     context.Items[AuthSecuritySettings.AuthenticationSourceItem] as string,
@@ -45,6 +53,7 @@ namespace LitteraCore.Middleware
                     StringComparison.Ordinal);
 
             if (!endpointAllowsAnonymous
+                && !endpointUsesPublicApiKey
                 && usesCookieAuthentication
                 && context.User.Identity?.IsAuthenticated == true
                 && !SafeMethods.Contains(context.Request.Method)

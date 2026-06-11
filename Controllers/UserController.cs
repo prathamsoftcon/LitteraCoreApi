@@ -131,110 +131,98 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To create new user.")]
         public IActionResult CreateParticipantUser([FromBody] LoginUser user, string APPURL = null)
         {
-            var registration = _userRegistrationService.Create(user);
-            bool isUserCreationMail = registration.ShouldSendCreationEmail;
-            bool issaved = registration.Created;
-            if (issaved == true)
+            try
             {
-                if (isUserCreationMail == true)
+                var registration = _userRegistrationService.Create(user);
+                bool isUserCreationMail = registration.ShouldSendCreationEmail;
+                bool issaved = registration.Created;
+                if (issaved == true)
                 {
-                    if (user.emailid != null)
+                    if (isUserCreationMail == true)
                     {
-                        //Code to send Mail on user creation
-
-                        string mailpassword = "";
-                        if (user.password_enc != null)
+                        if (user.emailid != null)
                         {
-                            mailpassword = (YEncryptDecryptData.YEncryptDecryptData.Decrypt(user.password_enc, true));
-                        }
-                        if (APPURL != null && APPURL != "")
-                        {
-                            EmailTemplate es = new EmailTemplate();
-                            
-                            es = SmtpEmailService.Get_EMAIL_TEMPLATE("USERREGISTRATION");
-
-                            string mailsubject = es.subject;
-                            string mailtext = es.text;
-                            mailsubject = mailsubject.Replace("(#name#)", user.agency.ag_first_name);
-                            mailtext = mailtext.Replace("(#name#)", user.agency.ag_first_name);
-                            mailtext = mailtext.Replace("(#regname#)", user.agency.ag_first_name);
-                            mailtext = mailtext.Replace("(#domain#)", APPURL);
-                            mailtext = mailtext.Replace("(#pwd#)", mailpassword);
-
-                         
-                            SmtpEmailService s = new SmtpEmailService(_configuration);
-                            s.SendEmailAsync(user.emailid, mailsubject, mailtext);
-
-
-                            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
-                            EMAIL_SEND_BY_APPLICATION ems = new EMAIL_SEND_BY_APPLICATION();
-                            DataTable dt = a.Get_Application_Setting("7");
-                            ems = JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
-                            if(ems.EMAILSETTING.MAIL_CC_TO != null)
+                            try
                             {
-                                string cctext = "New user" + user.agency.ag_first_name + " has been successfully registered.";
-                                s.SendEmailAsync(ems.EMAILSETTING.MAIL_CC_TO, mailsubject, cctext);
+                                // User creation is already committed. Notification failure
+                                // must not report the registration itself as failed.
+                                SendUserCreationEmail(user, APPURL);
                             }
-
-                       
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(
+                                    ex,
+                                    "User {UserId} was created, but the creation email failed.",
+                                    user.userid);
+                            }
                         }
-
                     }
 
-                    ////********************
-                    ////Code to send SMS
-                    //if (user.mobileno != null)
-                    //{
-                    //    if (APPURL != null && APPURL != "")
-                    //    {
-                    //        var request = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_TEMPLATE?APIKEY=" + Common.StaticData.APPKEY + "&messageid=11");
-                    //        var response = (HttpWebResponse)request.GetResponse();
-                    //        var responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-
-                    //        JObject j = JObject.Parse(responseString);
-                    //        SMSTemplate st = j.ToObject<SMSTemplate>();
-
-                    //        //  Hashtable td = JsonConvert.SerializeObject(responseString);
-
-                    //        string finalmessage = "";
-
-                    //        finalmessage = st.text.ToString().Replace("{#var#}", APPURL);
-
-
-
-                    //        SMSSetting s = new SMSSetting();
-
-                    //        var request2 = (HttpWebRequest)WebRequest.Create(APPURL + "/TrainingAPI/Get_XML_SMS_SETTING?APIKEY=" + Common.StaticData.APPKEY + "");
-                    //        var response2 = (HttpWebResponse)request2.GetResponse();
-                    //        var responseString2 = new StreamReader(response2.GetResponseStream()).ReadToEnd();
-                    //        // var p = JsonConvert.SerializeObject(responseString);
-                    //        JObject j1 = JObject.Parse(responseString2);
-                    //        s = j1.ToObject<SMSSetting>();
-                    //        CommonDB c = new CommonDB();
-                    //        string smsapi = c.Get_SMS_API_URL(0);
-                    //        if (smsapi != "")
-                    //        {
-                    //            c.sendSMS(user.mobileno, finalmessage, st.DLT_CT_ID.ToString(), smsapi);
-                    //        }
-
-                    //    }
-
-                    //}
+                    return Ok(true);
                 }
 
-
-                //*******************
-
-                return Ok(true);
+                return BadRequest("User could not be created.");
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(true);
+                return Conflict(ex.Message);
             }
-            //return Ok(true);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CreateUser failed for {UserId}.", user?.userid);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    "User could not be created.");
+            }
+        }
 
+        private void SendUserCreationEmail(LoginUser user, string APPURL)
+        {
+            if (string.IsNullOrWhiteSpace(APPURL))
+            {
+                return;
+            }
 
+            string mailpassword = "";
+            if (user.password_enc != null)
+            {
+                mailpassword = YEncryptDecryptData.YEncryptDecryptData.Decrypt(
+                    user.password_enc,
+                    true);
+            }
 
+            EmailTemplate template =
+                SmtpEmailService.Get_EMAIL_TEMPLATE("USERREGISTRATION");
+            string mailsubject = template.subject
+                .Replace("(#name#)", user.agency.ag_first_name);
+            string mailtext = template.text
+                .Replace("(#name#)", user.agency.ag_first_name)
+                .Replace("(#regname#)", user.agency.ag_first_name)
+                .Replace("(#domain#)", APPURL)
+                .Replace("(#pwd#)", mailpassword);
+
+            SmtpEmailService smtp = new SmtpEmailService(_configuration);
+            _ = smtp.SendEmailAsync(user.emailid, mailsubject, mailtext);
+
+            ApplicationConfigDB configDb =
+                new ApplicationConfigDB(_configuration);
+            DataTable settings = configDb.Get_Application_Setting("7");
+            if (settings.Rows.Count == 0)
+            {
+                return;
+            }
+
+            EMAIL_SEND_BY_APPLICATION emailSettings =
+                JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(
+                    settings.Rows[0]["SettingValue"].ToString());
+            string ccAddress = emailSettings?.EMAILSETTING?.MAIL_CC_TO;
+            if (!string.IsNullOrWhiteSpace(ccAddress))
+            {
+                string ccText =
+                    "New user " + user.agency.ag_first_name
+                    + " has been successfully registered.";
+                _ = smtp.SendEmailAsync(ccAddress, mailsubject, ccText);
+            }
         }
 
         private static bool IdentifierMatchesUser(
