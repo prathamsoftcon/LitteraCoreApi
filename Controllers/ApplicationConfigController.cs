@@ -231,6 +231,7 @@ namespace LitteraCore.Controllers
             return true;
 
         }
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [SwaggerOperation("To save error log.")]
         [Route("api/Save_Error_Log")]

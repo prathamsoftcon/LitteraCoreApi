@@ -68,6 +68,7 @@ A JWT alone does not authorize them.
 | `GET` | `/api/Check_Payment_Gateway_Available` |
 | `POST` | `/api/Save_Audit_Trail` |
 | `POST` | `/api/Save_Audit_Trail_wk` |
+| `POST` | `/api/Save_Error_Log` |
 | `POST` | `/api/GetToken` |
 | `POST` | `/api/RegisterWithOtp` |
 | `GET` | `/api/GenerateOTP` |
