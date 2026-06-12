@@ -105,7 +105,8 @@ namespace LitteraCore.DBContext
                 cmd.Parameters.AddWithValue("@tyat_recordid", at.tyat_recordid);
             }
      
-            cmd.Parameters.AddWithValue("tyat_ip", at.tyat_ip);
+            cmd.Parameters.Add("@tyat_ip", SqlDbType.VarChar, 45).Value =
+                (object?)at.tyat_ip ?? DBNull.Value;
             string jsonString = JsonConvert.SerializeObject(at.device_Info);
             // cmd.Parameters.AddWithValue("deciceinfo", at.tyat_ip);
 

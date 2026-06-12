@@ -283,15 +283,12 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To get client -IP.")]
         public string GetClientIp()
         {
-            string clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
-            // If the application is behind a proxy (like a load balancer), you might need to check the X-Forwarded-For header.
-            if (HttpContext.Request.Headers.ContainsKey("X-Forwarded-For"))
-            {
-                clientIp = HttpContext.Request.Headers["X-Forwarded-For"];
-            }
+            if (!string.IsNullOrWhiteSpace(forwardedFor))
+                return forwardedFor.Split(',')[0].Trim();
 
-            return clientIp;
+            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
         }
 
 
