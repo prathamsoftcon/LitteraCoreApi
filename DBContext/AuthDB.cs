@@ -39,8 +39,28 @@ namespace LitteraCore.DBContext
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);
             con.Close();
-            dt.DefaultView.RowFilter = "active='1'";
-            dt = dt.DefaultView.ToTable();
+
+            var requiredColumns = new[]
+            {
+                "active",
+                "usertype",
+                "UserID",
+                "EMPLOYEEID",
+                "EmailId",
+                "MobileNo",
+                "f_name",
+                "uploadpath"
+            };
+            if (requiredColumns.Any(column => !dt.Columns.Contains(column)))
+            {
+                return u;
+            }
+
+            if (dt.Columns.Contains("active"))
+            {
+                dt.DefaultView.RowFilter = "active='1'";
+                dt = dt.DefaultView.ToTable();
+            }
 
             List<UserInfo_usertype> usertype = new List<UserInfo_usertype>();
             //procedure required to get user typewise role

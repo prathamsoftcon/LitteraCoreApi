@@ -67,8 +67,20 @@ namespace LitteraCore.Controllers
 
             var identifier = request.verifiedIdentifier.Trim();
             var authDb = new AuthDB(_configuration);
-            if (!string.IsNullOrWhiteSpace(
-                    authDb.GetUserInfo(identifier).userid))
+            UserInfo existingUser = null;
+            try
+            {
+                existingUser = authDb.GetUserInfo(identifier);
+            }
+            catch (Exception ex) when (
+                ex.Message.Contains(
+                    "UserName/Password not valid",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                // The legacy lookup reports an unknown identifier as an exception.
+            }
+
+            if (!string.IsNullOrWhiteSpace(existingUser?.userid))
             {
                 return Conflict("User already exists. Use GetToken with OTP.");
             }
@@ -106,10 +118,21 @@ namespace LitteraCore.Controllers
                 }
 
                 _authCookieService.Append(Response, token.AuthToken);
-                authDb.Make_Login_Entry(
-                    token.userdetails.userid,
-                    "0",
-                    GetClientIp());
+                try
+                {
+                    authDb.Make_Login_Entry(
+                        token.userdetails.userid,
+                        "0",
+                        GetClientIp());
+                }
+                catch (Exception ex)
+                {
+                    // Login auditing must not fail a completed registration.
+                    _logger.LogError(
+                        ex,
+                        "Login audit failed after RegisterWithOtp for user {UserId}.",
+                        token.userdetails.userid);
+                }
 
                 return Ok(token);
             }
@@ -187,8 +210,20 @@ namespace LitteraCore.Controllers
                 return BadRequest("Mobile number or email is required.");
             }
 
-            AuthDB authDb = new AuthDB(_configuration);
-            UserInfo userDetails = authDb.GetUserInfo(username.Trim());
+            UserInfo userDetails;
+            try
+            {
+                AuthDB authDb = new AuthDB(_configuration);
+                userDetails = authDb.GetUserInfo(username.Trim());
+            }
+            catch (Exception ex) when (
+                ex.Message.Contains(
+                    "UserName/Password not valid",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return NotFound("User not found.");
+            }
+
             if (string.IsNullOrWhiteSpace(userDetails.userid)
                 || string.IsNullOrWhiteSpace(userDetails.agencyid))
             {
@@ -293,7 +328,16 @@ namespace LitteraCore.Controllers
                     "X-Forwarded-For",
                     out var forwardedFor))
             {
-                clientIp = forwardedFor.FirstOrDefault() ?? clientIp;
+                var forwardedClient = forwardedFor
+                    .FirstOrDefault()?
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .FirstOrDefault()?
+                    .Trim();
+
+                if (!string.IsNullOrWhiteSpace(forwardedClient))
+                {
+                    clientIp = forwardedClient;
+                }
             }
 
             return clientIp;
