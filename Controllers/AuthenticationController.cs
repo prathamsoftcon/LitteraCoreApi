@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.Annotations;
+using Serilog;
 using System.Data;
 using System.Net;
 using System.Reflection;
@@ -281,13 +282,14 @@ namespace LitteraCore.Controllers
                         }
                         catch (Exception ex)
                         {
-
+                            Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
                         }
                       
                     }
 
-                    return Ok(new {otp= otp, userid= lU.userid,agencyid=lU.agencyid});
-
+                    // return Ok(new {otp= otp, userid= lU.userid,agencyid=lU.agencyid});
+                    return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
+ 
                 }
                 else
                 {
@@ -367,7 +369,8 @@ namespace LitteraCore.Controllers
 
                     }
 
-                    return Ok(new { otp = otp, userid = lU.userid, agencyid = lU.agencyid });
+                   // return Ok(new { otp = otp, userid = lU.userid, agencyid = lU.agencyid });
+                    return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
 
                 }
                 else
