@@ -1,5 +1,12 @@
 # Documentation
 
+## Auth Notes
+
+- [`authentication_cookie_hardening.md`](authentication_cookie_hardening.md)
+- [`authentication_jwt_flow_update.md`](authentication_jwt_flow_update.md)
+- [`frontend_auth_migration_instructions.md`](frontend_auth_migration_instructions.md)
+- [`qa_auth_flow_instructions.md`](qa_auth_flow_instructions.md)
+
 ## `DashboardController.Dashboard_Data`
 
 ### Purpose

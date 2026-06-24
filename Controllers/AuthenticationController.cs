@@ -110,112 +110,78 @@ namespace LitteraCore.Controllers
         //}
 
 
+        private IActionResult IssueJwtAndSetCookie(string username)
+        {
+            var token = _authService.Authenticate(username);
+            _authCookieService.Append(
+                Response,
+                token.Result.AuthToken);
+
+            AuthDB adb = new AuthDB(_configuration);
+            string ip = GetClientIp();
+            adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
+
+            return Ok(token);
+        }
+
         [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
-        [Route("api/GetToken")]
-        [SwaggerOperation("To generate token.")]
-        public IActionResult GetToken([FromBody]UserLogin u)
+        [Route("api/Login")]
+        [SwaggerOperation("To sign in with password.")]
+        public IActionResult Login([FromBody]UserLogin u)
         {
             try
             {
-               
+                if (u == null)
+                {
+                    return BadRequest("Login payload is required.");
+                }
+
                 if (u.OTP != null)
                 {
-                    string username = "";
+                    return BadRequest("Use /VerifyOTP for OTP login.");
+                }
 
-                    if (u.Mobileno != null)
-                    {
-                        username = u.Mobileno.ToString();
+                var auth = _authService;
+                AuthDB adb = new AuthDB(_configuration);
+                List<User> lU = new List<User>();
 
-                    }
-                    else
-                    {
-                        username = u.emailid.ToString();
+                string username = "";
 
-                    }
-                    //Code to OTP Login
-                    var isValid = _otpManager.VerifyOtpAsync(username, u.OTP.ToString());
-
-                    if (Convert.ToBoolean(isValid.Result))
-                    {
-                        var auth = _authService;
-                        var token = auth.Authenticate(username);
-                        _authCookieService.Append(
-                            Response,
-                            token.Result.AuthToken);
-                        AuthDB adb = new AuthDB(_configuration);
-                        string ip = GetClientIp();
-                        adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
-                        return Ok(token);
-                    }
-                    else
-                    {
-                        return Unauthorized("Invalid Otp");
-                    }
+                if (u.Mobileno != null)
+                {
+                    username = u.Mobileno.ToString();
 
                 }
                 else
                 {
-                    var auth = _authService;
-                    AuthDB adb = new AuthDB(_configuration);
-                    //Code to password Login
-                    List<User> lU = new List<User>();
-
-                    string username = "";
-
-                    if (u.Mobileno != null)
-                    {
-                        username = u.Mobileno.ToString();
-
-                    }
-                    else
-                    {
-                        username = u.emailid.ToString();
-
-                    }
-                    lU = adb.GET_LOGIN_DETAIL(username);
-                    if (lU.Count > 0)
-                    {
-                        if (auth.VerifyPassword(lU.FirstOrDefault().password, u.salt, u.Password) == true)
-                        {
-
-                            var token = auth.Authenticate(username);
-                            _authCookieService.Append(
-                                Response,
-                                token.Result.AuthToken);
-                            
-                            string ip = GetClientIp();
-                            adb.Make_Login_Entry(token.Result.userdetails.userid, "0", ip);
-                            return Ok(token);
-                        }
-                        else
-                        {
-                            //Code to update loginAttempt
-                            AuthDB ADB = new AuthDB(_configuration);
-                            UserInfo U = ADB.GetUserInfo(username, lU.FirstOrDefault().loginattempt.ToString());
-                            return Unauthorized();
-                        }
-                    }
-                    else
-                    {
-                        return NotFound("User not found.");
-                    }
-
-
+                    username = u.emailid.ToString();
 
                 }
-
-                return Unauthorized("");
+                lU = adb.GET_LOGIN_DETAIL(username);
+                if (lU.Count > 0)
+                {
+                    if (auth.VerifyPassword(lU.FirstOrDefault().password, u.salt, u.Password) == true)
+                    {
+                        return IssueJwtAndSetCookie(username);
+                    }
+                    else
+                    {
+                        //Code to update loginAttempt
+                        AuthDB ADB = new AuthDB(_configuration);
+                        UserInfo U = ADB.GetUserInfo(username, lU.FirstOrDefault().loginattempt.ToString());
+                        return Unauthorized();
+                    }
+                }
+                else
+                {
+                    return NotFound("User not found.");
+                }
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
-
             }
-
-
-
-
         }
 
 
@@ -287,7 +253,6 @@ namespace LitteraCore.Controllers
                       
                     }
 
-                    // return Ok(new {otp= otp, userid= lU.userid,agencyid=lU.agencyid});
                     return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
  
                 }
@@ -388,15 +353,11 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To verify OTP .")]
         public async Task<IActionResult> VerifyOTP(string username,string otp)
         {
-            //Check Valid User
-        
-
             var isValid = _otpManager.VerifyOtpAsync(username, otp);
 
             if (Convert.ToBoolean(isValid.Result))
             {
-            
-                return Ok(true);
+                return IssueJwtAndSetCookie(username);
             }
             else
             {
@@ -412,15 +373,11 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To verify OTP .")]
         public async Task<IActionResult> VerifyOTP_wk(string username, string otp)
         {
-            //Check Valid User
-
-
             var isValid = _otpManager.VerifyOtpAsync(username, otp);
 
             if (Convert.ToBoolean(isValid.Result))
             {
-
-                return Ok(true);
+                return IssueJwtAndSetCookie(username);
             }
             else
             {

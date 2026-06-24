@@ -69,7 +69,7 @@ A JWT alone does not authorize them.
 | `POST` | `/api/Save_Audit_Trail` |
 | `POST` | `/api/Save_Audit_Trail_wk` |
 | `POST` | `/api/Save_Error_Log` |
-| `POST` | `/api/GetToken` |
+| `POST` | `/api/Login` |
 | `POST` | `/api/RegisterWithOtp` |
 | `GET` | `/api/GenerateOTP` |
 | `GET` | `/api/GenerateOTP_wk` |
@@ -188,10 +188,10 @@ Do not set this header in browser-side Axios or `fetch` code.
 
 ### 2. Use the Login Response
 
-Login is now an API-key-only proxy route:
+Login now happens through the normal auth route:
 
 ```text
-POST /api/GetToken
+POST /api/Login
 ```
 
 The proxy adds the API key. The response still contains `authToken` and the API
@@ -207,18 +207,18 @@ The request contains `verifiedIdentifier`, `otp`, `user`, and optional `appUrl`.
 The identifier must match the supplied email or mobile fields. The endpoint
 verifies and consumes the OTP, invokes the existing `/api/CreateUser` logic,
 generates the normal JWT, sets `Auth_token`, and returns the standard `UserToken`
-response. Existing users continue using `/api/GetToken` with OTP.
+response. Existing users continue using `/api/VerifyOTP` with OTP.
 
 The endpoint checks whether the identifier already exists before requiring the
 new-user payload or consuming the OTP. A `409` response therefore allows the
-client to submit the same OTP to `/api/GetToken`. For a new identifier, omitting
+client to submit the same OTP to `/api/VerifyOTP`. For a new identifier, omitting
 `user` returns `400` without consuming the OTP.
 
 User records are saved through the existing `Save_User_Data` SQL transaction.
 OTP consumption and JWT generation are outside that database transaction. If an
 unexpected failure occurs after OTP verification, the response instructs the
 client to request a new OTP. If the account was committed before token creation
-failed, the next attempt follows the existing-user `/api/GetToken` path.
+failed, the next attempt follows the existing-user `/api/VerifyOTP` path.
 
 ```json
 {
@@ -273,7 +273,7 @@ After login:
 
 ```javascript
 const response = await api.post(
-  "/api/GetToken",
+  "/api/Login",
   loginRequest
 );
 
@@ -289,7 +289,7 @@ Applications using `fetch` must include credentials:
 
 ```javascript
 const response = await fetch(
-  `${proxyUrl}/api/GetToken`,
+  `${proxyUrl}/api/Login`,
   {
     method: "POST",
     credentials: "include",
