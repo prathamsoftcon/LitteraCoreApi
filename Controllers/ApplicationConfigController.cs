@@ -177,6 +177,7 @@ namespace LitteraCore.Controllers
         }
 
 
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [Route("api/Send_Mail")]
         [SwaggerOperation("To send mail for single user.")]

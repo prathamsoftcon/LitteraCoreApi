@@ -36,6 +36,7 @@ namespace LitteraCore.Controllers
             _env = env;
         }
 
+        [Authorize(Policy = "PublicApiKey")]
         [HttpPost]
         [Route("api/SupportQuery")]
         [SwaggerOperation("To save support query.")]
@@ -62,6 +63,7 @@ namespace LitteraCore.Controllers
 
         }
 
+        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
         [Route("api/SupportQuery")]
         [SwaggerOperation("To get support enquiries.")]

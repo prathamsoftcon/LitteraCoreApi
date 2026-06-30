@@ -1,5 +1,5 @@
 # Frontend Auth Migration Instructions
-
+#C:\Projects\LitteraCoreReactAPI\docs\authentication_jwt_flow_update.md
 ## Purpose
 
 This note describes the frontend changes required after moving JWT issuance into
