@@ -5,7 +5,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
+<PropertyGroup>
+  <AssemblyName>LitteraCore</AssemblyName>
+  <OutputType>Exe</OutputType>
+  <UseAppHost>true</UseAppHost>
+</PropertyGroup>
   <ItemGroup>
     <Compile Remove="DBContext\BaseRepository.cs" />
   </ItemGroup>
