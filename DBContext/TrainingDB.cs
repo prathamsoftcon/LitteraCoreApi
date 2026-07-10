@@ -416,6 +416,108 @@ namespace LitteraCore.DBContext
             return LI;
         }
 
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Save" action). Old page called this exact
+        // procedure via the generic /TrainingApi/RCVP_Training_Type_Save_Data
+        // dispatcher (ProcedureName=[TrainingPlan].proc_tp_ins_upd_training_category_new),
+        // confirmed by tracing JS_frm_Master_Configuration.js ->
+        // TRAININGAPIController.vb -> dm.Save_Common_Data(Domain, IsOnline,
+        // ProcedureName, ...). Params below match exactly what the old JS sent.
+        public bool Save_Training_Category(TrainingCategory category)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].proc_tp_ins_upd_training_category_new", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@TrainingCategoryId", category.TrainingCategoryId);
+            cmd.Parameters.AddWithValue("@TrainingCategoryName", category.TrainingCategoryName);
+            cmd.Parameters.AddWithValue("@HTrainingCategoryName", category.HTrainingCategoryName);
+            cmd.Parameters.AddWithValue("@CreatedBy", category.CreatedBy);
+            cmd.Parameters.AddWithValue("@BranchId", category.BranchId);
+            cmd.Parameters.AddWithValue("@Issessiongrouping", category.Issessiongrouping);
+            // Old page only sent @parentcategoryid when a parent was actually
+            // selected (ddlparentcategory.selectedIndex > 0) - mirror that here
+            // rather than always sending it, since the procedure signature was
+            // never confirmed to accept a NULL/empty value for this param.
+            if (!string.IsNullOrEmpty(category.parentcategoryid))
+            {
+                cmd.Parameters.AddWithValue("@parentcategoryid", category.parentcategoryid);
+            }
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Delete" action). Old page called this exact
+        // procedure via the generic /TrainingAPI/RCVP_Training_Type_Delete_Data
+        // dispatcher (ProcedureName=TrainingPlan.TP_DeleteTRainingCategory,
+        // Parameters=[{'@TrainingCategoryId':'<id>'}] - confirmed by tracing
+        // JS_frm_Master_Configuration.js line 1941). Confirmed gap - this
+        // procedure is not called anywhere else in this file or any other
+        // DBContext file as of 2026-07-09 (checked all 20).
+        public bool Delete_Training_Category(string trainingCategoryId)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.TP_DeleteTRainingCategory", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@TrainingCategoryId", trainingCategoryId);
+
+            SqlDataAdapter da2 = new SqlDataAdapter(cmd);
+            da2.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "in use?" check shown before edit/delete). Old
+        // page's dm.CHK_CATEGORY_IN_USE was found in the REAL old
+        // C:\Projects\TraininingERP_old\API_ERP\API_ERP_TRAINING\Datamanager.vb
+        // (L2979) - NOT the reference-only LitteraCoreReactAPI\DBContext\old\
+        // copy, which is off-limits per the user. That method calls this exact
+        // SQL scalar function via ExecuteScalar, not a stored procedure.
+        // Parameterized here (unlike the old VB, which concatenated the id
+        // directly into inline SQL text) to avoid replicating that
+        // SQL-injection-shaped pattern. Confirmed gap - not called anywhere in
+        // any DBContext file as of 2026-07-09 (checked all 20).
+        //
+        // Semantics note (preserved as-is, not reinterpreted): in the old JS
+        // (TRG_TC_CHK_CATEGORY_DETAIL_IN_USE_OnLoadDelete,
+        // JS_frm_Master_Configuration.js L2036), the response's "isexist" being
+        // the string "False" is what BLOCKS deletion - i.e. despite the old
+        // method/function names ("CHK_CATEGORY_IN_USE",
+        // "F_CheckTrainingCategoryRate"), this reads as "does the rate/detail
+        // exist" rather than a literal "is-in-use" flag. The value is passed
+        // straight through here exactly as the old code did.
+        public bool Chk_Category_In_Use(string categoryDetailId)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Select TrainingPlan.[F_CheckTrainingCategoryRate] (@CategoryDetailID)", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@CategoryDetailID", categoryDetailId);
+            bool isExist = Convert.ToBoolean(cmd.ExecuteScalar());
+            con.Close();
+
+            return isExist;
+        }
+
         public List<TRG_DAY_WEEK> Get_Day_Week_Count_Id(string fromdate, string todate)
         {
             List<TRG_DAY_WEEK> dayweek = new List<TRG_DAY_WEEK>();

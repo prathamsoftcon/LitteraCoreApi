@@ -38,6 +38,49 @@ namespace LitteraCore.Controllers
             AL = CBL.Get_Training_Category(categoryid);
             return Ok(AL);
         }
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Save" action). Named to match the old action
+        // (RCVP_Training_Type_Save_Data) by decision, rather than an invented
+        // route - see MIGRATION_NOTES.md for the full trace.
+        [HttpPost]
+        [Route("api/RCVP_Training_Type_Save_Data")]
+        [SwaggerOperation("To insert/update a training category.")]
+        public IActionResult RCVP_Training_Type_Save_Data([FromBody] TrainingCategory category)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool issaved = CBL.Save_Training_Category(category);
+            return Ok(issaved);
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Delete" action). Named to match the old action
+        // (RCVP_Training_Type_Delete_Data) per the same naming convention used for
+        // the Save endpoint above - see MIGRATION_NOTES.md for the full trace.
+        [HttpPost]
+        [Route("api/RCVP_Training_Type_Delete_Data")]
+        [SwaggerOperation("To delete a training category.")]
+        public IActionResult RCVP_Training_Type_Delete_Data(string trainingCategoryId)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isdeleted = CBL.Delete_Training_Category(trainingCategoryId);
+            return Ok(isdeleted);
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "in use?" check before edit/delete). Named to
+        // match the old action (TRG_TC_CHK_CATEGORY_DETAIL_IN_USE) - see
+        // MIGRATION_NOTES.md for the full trace, including the real old-source
+        // path (C:\Projects\TraininingERP_old\API_ERP\API_ERP_TRAINING) this was
+        // found through.
+        [HttpGet]
+        [Route("api/TRG_TC_CHK_CATEGORY_DETAIL_IN_USE")]
+        [SwaggerOperation("To check whether a training category detail is in use before allowing edit/delete.")]
+        public IActionResult TRG_TC_CHK_CATEGORY_DETAIL_IN_USE(string categorydetailid)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isexist = CBL.Chk_Category_In_Use(categorydetailid);
+            return Ok(isexist);
+        }
         [HttpGet]
         [Route("api/Trainings")]
         [SwaggerOperation("To get trainings between given dates.")]

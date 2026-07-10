@@ -159,6 +159,34 @@ namespace LitteraCore.BLContext
             return TCG;
         }
 
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Save" action). See TrainingDB.Save_Training_Category
+        // for the traced stored-procedure detail.
+        public bool Save_Training_Category(TrainingCategory category)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Save_Training_Category(category);
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "Delete" action). See
+        // TrainingDB.Delete_Training_Category for the traced stored-procedure detail.
+        public bool Delete_Training_Category(string trainingCategoryId)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Delete_Training_Category(trainingCategoryId);
+        }
+
+        // Added 2026-07-09 for the frm_Master_Configuration.aspx -> React migration
+        // (Training Category tab, "in use?" check). See
+        // TrainingDB.Chk_Category_In_Use for the traced SQL-function detail,
+        // including the real old-source path this was found through.
+        public bool Chk_Category_In_Use(string categoryDetailId)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Chk_Category_In_Use(categoryDetailId);
+        }
+
         public List<TrainingCategory> Get_Sub_Categories(List<TrainingCategory> CL, string categoryid)
         {
             List<TrainingCategory> subcategories = new List<TrainingCategory>();
