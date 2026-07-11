@@ -351,12 +351,65 @@ namespace LitteraCore.Models
         public string tttt_hname { get; set; }
         public int tttt_active { get; set; }
     }
+
+    // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+    // migration (Fees tab, Sponsor Type dropdown). An earlier pass of
+    // FeesTab.jsx hardcoded Sponsor Type as a static 3-option list (Single/
+    // Joint/Self Financed), copied from the old page's ASPX markup - but the
+    // old JS (TRG_FM_FILL_Sponsor_TYPE, JS L3244) actually loads this
+    // dynamically from `trainingplan.proc_tp_get_sponsor_type`, same shape
+    // as Trg_Type/Training Type above. Property names mirror the real
+    // `ttst_*`-prefixed fields the old JS reads off the JSON response
+    // (JsonObj["ttst_id"]/["ttst_name"]/["ttst_hname"], JS L3269-3272).
+    public class Trg_Sponsor_Type
+    {
+        public string ttst_id { get; set; }
+        public string ttst_name { get; set; }
+        public string ttst_hname { get; set; }
+    }
     public class Trg_Title
     {
         public string CourseId { get; set; }
         public string CourseName { get; set; }
         public string HCourseName { get; set; }
         public string CourseCode { get; set; }
+
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Save" action). This model was
+        // read-only before (only 4 fields, matching what the current
+        // Get_Trg_Title() query returns - see the KNOWN DATA-SHAPE GAP note
+        // in TrainingTitleTab.jsx). These extra properties are for the new
+        // Save endpoint's request body only; Get_Trg_Title() has NOT been
+        // changed to populate them, so they'll be null/default on any GET
+        // response until that separate read-side gap is fixed. Traced from
+        // the REAL dm.InsUpdCourseDetails (C:\Projects\TraininingERP_old\
+        // API_ERP\API_ERP_TRAINING\Datamanager.vb L2147), which the old
+        // RCVP_SAVE_COURSE_MASTER action actually calls - it accepts both
+        // of these even though the current read side doesn't expose them.
+        public string Coursecategory { get; set; }
+        // Kept as a string ("1"/"0"), not bool, to match the old page's own
+        // convention and the fact that the underlying SQL parameter's real
+        // type was never confirmed against a live database.
+        public string Isactive { get; set; }
+        public string CreatedBy { get; set; }
+        public string BranchId { get; set; }
+
+        // Added 2026-07-10 to close the read-side half of the data-shape gap
+        // noted above: the grid was showing "-" in the Course Category column
+        // because Get_Trg_Title() never populated Coursecategory/Isactive, even
+        // though the same trainingplan.TP_GetCourse call the old grid used
+        // already returns them (confirmed via JS_frm_Master_Configuration.js
+        // L2531 - the old grid's JsonObj has coursecategory/isactive/
+        // trainingcategoryname/htrainingcategoryname/courseduration/
+        // durationtype/usedbit alongside the 4 fields already read here).
+        // Coursecategory/Isactive above are now also populated by
+        // Get_Trg_Title() (read) as well as used by Save_Trg_Title (write).
+        // These two are read-only display fields for the category name -
+        // there's no separate "set category name" input on this tab, only a
+        // category id picker, so only the id (Coursecategory) round-trips on
+        // save.
+        public string TrainingCategoryName { get; set; }
+        public string HTrainingCategoryName { get; set; }
     }
 
 
@@ -395,5 +448,40 @@ namespace LitteraCore.Models
         public string trainingcode { get; set; }
         public string training_title { get; set; }
         public Trg_Setting? trg_Setting { get; set; }
+    }
+
+    // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+    // migration (Fees tab - the last remaining gap on this page). Backs both
+    // the read side (Get_Trg_Fees_Master) and the save side
+    // (Save_Trg_Fees_Master). Property names mirror the real
+    // `tttf_*`-prefixed SQL columns/parameters traced from the old JS and
+    // the old stored procedure calls (proc_get_training_fees_data /
+    // proc_tp_ins_upd_training_fees) - see TrainingDB.cs for the full trace.
+    // Everything is kept as string, same reasoning as Trg_Title's
+    // Isactive/Coursecategory: the real SQL parameter/column types were
+    // never confirmed against a live database, so string round-trips avoid
+    // a wrong numeric/date type guess breaking the whole page.
+    public class Trg_Fees_Master
+    {
+        public string FeesId { get; set; }
+        public string TrgType { get; set; }
+        public string SponsorType { get; set; }
+        public string Duration { get; set; }
+        public string DurationType { get; set; }
+        // Non-residential training rate (old TERP_TM_TC_txtRate).
+        public string NrFees { get; set; }
+        // Extra fees per trainee (old TERP_TM_TC_txtExtraCharge).
+        public string XnrFees { get; set; }
+        // Residential training rate (old TERP_TM_TC_txtResidensialCharge).
+        public string RFees { get; set; }
+        // Extra lodging/boarding charge per trainee (old TERP_TM_TC_txtLBCharge).
+        public string XrFees { get; set; }
+        public string MinParticipant { get; set; }
+        public string EfDate { get; set; }
+
+        // Save-only fields (not returned by Get_Trg_Fees_Master) - same
+        // pattern as Trg_Title's CreatedBy/BranchId.
+        public string CreatedBy { get; set; }
+        public string BranchId { get; set; }
     }
 }

@@ -1071,6 +1071,46 @@ namespace LitteraCore.DBContext
             return trgdata;
         }
 
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab, Sponsor Type dropdown - confirmed genuine
+        // gap). Old TRG_FM_FILL_Sponsor_TYPE() (JS L3244) calls
+        // /TrainingApi/Get_Data with
+        // ProcedureName=trainingplan.proc_tp_get_sponsor_type. Not called
+        // anywhere in any LitteraCoreReactAPI\DBContext\*.cs file (checked
+        // all 20) - only present in the old JS and the real old
+        // Datamanager.vb's Get_Training_Payment_Type() (which calls this
+        // same procedure with CommandType.StoredProcedure, no params).
+        // Mirrors Get_Trg_Type() immediately above (Training Type's already-
+        // migrated sibling endpoint) - same shape, same no-params call.
+        public List<Trg_Sponsor_Type> Get_Trg_Sponsor_Type()
+        {
+            List<Trg_Sponsor_Type> stdata = new List<Trg_Sponsor_Type>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_get_sponsor_type", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Trg_Sponsor_Type st = new Trg_Sponsor_Type();
+                st.ttst_id = Convert.ToString(row["ttst_id"]);
+                st.ttst_name = Convert.ToString(row["ttst_name"]);
+                st.ttst_hname = Convert.ToString(row["ttst_hname"]);
+
+                stdata.Add(st);
+            }
+
+            return stdata;
+        }
+
         public List<Trg_Title> Get_Trg_Title()
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
@@ -1096,6 +1136,37 @@ namespace LitteraCore.DBContext
                 vw.HCourseName = Convert.ToString(row["HCourseName"]);
                 vw.CourseCode = Convert.ToString(row["CourseCode"]);
 
+                // Added 2026-07-10 to close the read-side data-shape gap: the
+                // React grid's Course Category column was always showing "-"
+                // because these columns were never read here, even though
+                // trainingplan.TP_GetCourse already returns them (confirmed via
+                // the old grid's JsonObj["coursecategory"] /
+                // JsonObj["trainingcategoryname"] / JsonObj["htrainingcategoryname"] /
+                // JsonObj["isactive"] in JS_frm_Master_Configuration.js L2531).
+                // Column-name casing (CourseCategory / TrainingCategoryName /
+                // HTrainingCategoryName / IsActive) is inferred from the same
+                // PascalCase pattern the 4 columns above already use
+                // successfully (CourseId/CourseName/HCourseName/CourseCode) -
+                // not independently verified against a live database. Guarded
+                // with Columns.Contains so a wrong guess degrades to blank
+                // values instead of throwing and breaking the whole list.
+                if (dt.Columns.Contains("CourseCategory"))
+                {
+                    vw.Coursecategory = Convert.ToString(row["CourseCategory"]);
+                }
+                if (dt.Columns.Contains("IsActive"))
+                {
+                    vw.Isactive = Convert.ToString(row["IsActive"]);
+                }
+                if (dt.Columns.Contains("TrainingCategoryName"))
+                {
+                    vw.TrainingCategoryName = Convert.ToString(row["TrainingCategoryName"]);
+                }
+                if (dt.Columns.Contains("HTrainingCategoryName"))
+                {
+                    vw.HTrainingCategoryName = Convert.ToString(row["HTrainingCategoryName"]);
+                }
+
                 trgdata.Add(vw);
             }
 
@@ -1106,6 +1177,247 @@ namespace LitteraCore.DBContext
             return trgdata;
         }
 
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Save" action). Old
+        // Beta_Pages_TrainingMaster_SaveData() (JS_frm_Master_Configuration.js
+        // L2699) calls /TrainingAPI/RCVP_SAVE_COURSE_MASTER, which
+        // (TRAININGAPIController.vb L16975, in the real
+        // C:\Projects\TraininingERP_old\API_ERP\API_ERP_TRAINING project) calls
+        // dm.InsUpdCourseDetails(...) - found in that project's Datamanager.vb
+        // L2147, NOT the differently-shaped same-named method in
+        // TrainingClass.vb (9 params, no isactive/coursecategory). The REAL
+        // one actually used here has 13 params including @isactive and
+        // @coursecategory, both of which this stored procedure genuinely
+        // accepts even though the current read side (Get_Trg_Title above)
+        // doesn't return them - that's a separate, still-open data-shape gap.
+        // Confirmed gap: TP_InsUpdCourse is not called anywhere in any
+        // LitteraCoreReactAPI\DBContext\*.cs file (checked all 20).
+        //
+        // @CourseDuration / @DurationType / @CourseDetails are intentionally
+        // NOT sent as real values here: this tab's UI collects no duration
+        // data, and even the old page's actual JS always sends the literal
+        // string 'NULL' for these regardless of any stale duration markup
+        // elsewhere on the page - the real dm.InsUpdCourseDetails treats a
+        // null CourseDuration/DurationType by omitting those params entirely,
+        // which is mirrored here rather than guessing at values nothing
+        // collects.
+        public bool Save_Trg_Title(Trg_Title title)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].[TP_InsUpdCourse]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@CourseId", title.CourseId);
+            cmd.Parameters.AddWithValue("@CourseName", title.CourseName);
+            cmd.Parameters.AddWithValue("@HCourseName", title.HCourseName);
+            cmd.Parameters.AddWithValue("@CourseCode", string.IsNullOrEmpty(title.CourseCode) ? (object)DBNull.Value : title.CourseCode);
+            cmd.Parameters.AddWithValue("@CreatedBy", title.CreatedBy);
+            cmd.Parameters.AddWithValue("@BranchId", title.BranchId);
+            cmd.Parameters.AddWithValue("@CourseDetails", DBNull.Value);
+            cmd.Parameters.AddWithValue("@isactive", title.Isactive);
+            cmd.Parameters.AddWithValue("@coursecategory", title.Coursecategory);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Delete" action). Old
+        // Beta_Pages_TrainingMaster_DeleteData() (JS L2769) calls
+        // /TrainingAPI/RCVP_Course_Master_Delete_Data with
+        // ProcedureName=[TrainingPlan].[TP_DeleteCourse], @CourseId. Confirmed
+        // gap - not called anywhere in any DBContext file (checked all 20).
+        public bool Delete_Trg_Title(string courseId)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].[TP_DeleteCourse]", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@CourseId", courseId);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab, "Load" action - the last remaining gap on this
+        // page). Old Fill_Fees_Details() (JS_frm_Master_Configuration.js
+        // L3101) calls /TrainingApi/Get_Data with
+        // ProcedureName=TrainingPlan.proc_get_training_fees_data and
+        // @tttf_id='NULL' (unfiltered - list everything), same "send NULL to
+        // list all" idiom as Category's Get_training_Category. Confirmed
+        // gap: proc_get_training_fees_data is not called anywhere in any
+        // LitteraCoreReactAPI\DBContext\*.cs file (checked all 20).
+        //
+        // Column names (tttf_id/tttf_trg_type/tttf_sponsor_type/
+        // tttf_duration/tttf_durationtype/tttf_nr_fees/tttf_xnr_fees/
+        // tttf_r_fees/tttf_xr_fees/tttf_min_participant/tttf_ef_date) are
+        // read verbatim off the DataTable rather than guessed at in
+        // PascalCase, because the old JS itself reads these exact
+        // lowercase/underscore names straight off the JSON response
+        // (JsonObj["tttf_id"] etc., JS L3117) - the old API's serializer
+        // preserves raw SQL column names as-is, so these are very likely the
+        // real column names, not just a display convention.
+        public List<Trg_Fees_Master> Get_Trg_Fees_Master(string feesid = null)
+        {
+            List<Trg_Fees_Master> feesdata = new List<Trg_Fees_Master>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_get_training_fees_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            if (feesid != null)
+            {
+                cmd.Parameters.AddWithValue("@tttf_id", feesid);
+            }
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Trg_Fees_Master f = new Trg_Fees_Master();
+                if (dt.Columns.Contains("tttf_id")) { f.FeesId = Convert.ToString(row["tttf_id"]); }
+                if (dt.Columns.Contains("tttf_trg_type")) { f.TrgType = Convert.ToString(row["tttf_trg_type"]); }
+                if (dt.Columns.Contains("tttf_sponsor_type")) { f.SponsorType = Convert.ToString(row["tttf_sponsor_type"]); }
+                if (dt.Columns.Contains("tttf_duration")) { f.Duration = Convert.ToString(row["tttf_duration"]); }
+                if (dt.Columns.Contains("tttf_durationtype")) { f.DurationType = Convert.ToString(row["tttf_durationtype"]); }
+                if (dt.Columns.Contains("tttf_nr_fees")) { f.NrFees = Convert.ToString(row["tttf_nr_fees"]); }
+                if (dt.Columns.Contains("tttf_xnr_fees")) { f.XnrFees = Convert.ToString(row["tttf_xnr_fees"]); }
+                if (dt.Columns.Contains("tttf_r_fees")) { f.RFees = Convert.ToString(row["tttf_r_fees"]); }
+                if (dt.Columns.Contains("tttf_xr_fees")) { f.XrFees = Convert.ToString(row["tttf_xr_fees"]); }
+                if (dt.Columns.Contains("tttf_min_participant")) { f.MinParticipant = Convert.ToString(row["tttf_min_participant"]); }
+                if (dt.Columns.Contains("tttf_ef_date")) { f.EfDate = Convert.ToString(row["tttf_ef_date"]); }
+
+                feesdata.Add(f);
+            }
+
+            return feesdata;
+        }
+
+        // Added 2026-07-11 (Fees tab, "Save" action). Old
+        // TrainingErp_Save_Fees_Master() (JS L2866) calls
+        // /TrainingApi/Save_Data (the GENERIC ProcedureName/Parameters
+        // dispatcher, not a dedicated action like RCVP_SAVE_COURSE_MASTER)
+        // with ProcedureName=[TrainingPlan].proc_tp_ins_upd_training_fees
+        // and params @tttf_id/@tttf_trg_type/@tttf_sponsor_type/
+        // @tttf_CreatedBy/@tttf_BranchId/@tttf_duration/@tttf_durationtype/
+        // @tttf_nr_fees/@tttf_xnr_fees/@tttf_r_fees/@tttf_xr_fees/
+        // @tttf_min_participant/@tttf_ef_date (JS L3020-3033). No `Domain`/
+        // `IsOnline` param exists on the actual procedure - those two are
+        // only part of the old generic Save_Data envelope, not real
+        // stored-procedure parameters, which is why the new frontend payload
+        // (see FeesTab.jsx) doesn't send a `domain` field either. Confirmed
+        // gap: proc_tp_ins_upd_training_fees is not called anywhere in any
+        // LitteraCoreReactAPI\DBContext\*.cs file (checked all 20) - do not
+        // confuse with the similarly-named
+        // trainingplan.proc_tp_ins_upd_trg_fees_amount, a different
+        // procedure entirely (see the "Similarly-named != same procedure"
+        // lesson in backend-api-notes.md).
+        public bool Save_Trg_Fees_Master(Trg_Fees_Master fees)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].proc_tp_ins_upd_training_fees", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tttf_id", fees.FeesId);
+            cmd.Parameters.AddWithValue("@tttf_trg_type", fees.TrgType);
+            cmd.Parameters.AddWithValue("@tttf_sponsor_type", fees.SponsorType);
+            cmd.Parameters.AddWithValue("@tttf_CreatedBy", fees.CreatedBy);
+            cmd.Parameters.AddWithValue("@tttf_BranchId", fees.BranchId);
+            cmd.Parameters.AddWithValue("@tttf_duration", fees.Duration);
+            cmd.Parameters.AddWithValue("@tttf_durationtype", fees.DurationType);
+            cmd.Parameters.AddWithValue("@tttf_nr_fees", string.IsNullOrWhiteSpace(fees.NrFees) ? "0" : fees.NrFees);
+            cmd.Parameters.AddWithValue("@tttf_xnr_fees", string.IsNullOrWhiteSpace(fees.XnrFees) ? "0" : fees.XnrFees);
+            cmd.Parameters.AddWithValue("@tttf_r_fees", string.IsNullOrWhiteSpace(fees.RFees) ? "0" : fees.RFees);
+            cmd.Parameters.AddWithValue("@tttf_xr_fees", string.IsNullOrWhiteSpace(fees.XrFees) ? "0" : fees.XrFees);
+            cmd.Parameters.AddWithValue("@tttf_min_participant", string.IsNullOrWhiteSpace(fees.MinParticipant) ? "0" : fees.MinParticipant);
+            cmd.Parameters.AddWithValue("@tttf_ef_date", fees.EfDate);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-11 (Fees tab, "Delete" action). Old
+        // TRG_FM_Delete_Fees() (JS L3472) also goes through the generic
+        // Save_Data dispatcher with
+        // ProcedureName=TrainingPlan.proc_delete_training_fees_data and a
+        // single @tttf_id param. Confirmed gap - not called anywhere in any
+        // DBContext file (checked all 20).
+        public bool Delete_Trg_Fees_Master(string feesId)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_delete_training_fees_data", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tttf_id", feesId);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-11 (Fees tab, "in use?" check). Unlike Category's
+        // check, this one has a REAL dedicated old action name -
+        // /TrainingApi/CHECK_FEES_IN_Used (TRAININGAPIController.vb L75678,
+        // real API_ERP_TRAINING project) - which calls
+        // dm.TRG_CHECK_FEES_STATUS(Domain, isOnline, feesid) ->
+        // Select [TRAININGPLAN].[F_proc_tp_check_used_fees] ('<feesid>')
+        // (Datamanager.vb L6963, a SQL scalar function, string-concatenated
+        // in the old code rather than parameterized - parameterized here
+        // instead, same as Category's check). IMPORTANT - opposite polarity
+        // from Category's check: here the old JS
+        // (TRG_FM_CHECK_FEE_STATUS, JS L3424) treats `isused == "1"` as WHAT
+        // BLOCKS the action (edit or delete) - "in use" means exactly what
+        // it says here, unlike Category's confusingly-named check. Preserve
+        // this polarity as-is; don't normalize it to match Category's.
+        public bool Chk_Fees_In_Use(string feesId)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Select [TRAININGPLAN].[F_proc_tp_check_used_fees] (@FeesId)", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@FeesId", feesId);
+            object result = cmd.ExecuteScalar();
+            con.Close();
+
+            string isused = Convert.ToString(result);
+            return isused == "1" || string.Equals(isused, "true", StringComparison.OrdinalIgnoreCase);
+        }
 
         public bool Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
         {

@@ -496,6 +496,16 @@ namespace LitteraCore.BLContext
 
             return trgdata;
         }
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab, Sponsor Type dropdown). See
+        // TrainingDB.Get_Trg_Sponsor_Type for the traced stored-procedure
+        // detail - mirrors Get_Trg_Type immediately below.
+        public List<Trg_Sponsor_Type> Get_Trg_Sponsor_Type()
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Get_Trg_Sponsor_Type();
+        }
+
         public List<Trg_Title> Get_Trg_Title()
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
@@ -507,6 +517,52 @@ namespace LitteraCore.BLContext
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
 
             return trgdata;
+        }
+
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Save"/"Delete" actions). See
+        // TrainingDB.Save_Trg_Title / TrainingDB.Delete_Trg_Title for the
+        // traced stored-procedure detail, including the real old-source
+        // path this was found through.
+        public bool Save_Trg_Title(Trg_Title title)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Save_Trg_Title(title);
+        }
+
+        public bool Delete_Trg_Title(string courseId)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Delete_Trg_Title(courseId);
+        }
+
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab - Load/Save/Delete/"in use?" check). See
+        // TrainingDB's Get_Trg_Fees_Master / Save_Trg_Fees_Master /
+        // Delete_Trg_Fees_Master / Chk_Fees_In_Use for the traced
+        // stored-procedure/scalar-function detail.
+        public List<Trg_Fees_Master> Get_Trg_Fees_Master(string feesid = null)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Get_Trg_Fees_Master(feesid);
+        }
+
+        public bool Save_Trg_Fees_Master(Trg_Fees_Master fees)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Save_Trg_Fees_Master(fees);
+        }
+
+        public bool Delete_Trg_Fees_Master(string feesId)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Delete_Trg_Fees_Master(feesId);
+        }
+
+        public bool Chk_Fees_In_Use(string feesId)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Chk_Fees_In_Use(feesId);
         }
 
         public string Geenerate_certificate_text(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid,string APPURL,string Logo_Path)

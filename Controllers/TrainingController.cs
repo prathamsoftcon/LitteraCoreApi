@@ -28,6 +28,23 @@ namespace LitteraCore.Controllers
             _logger = logger;
         }
 
+        private static string ExtractSqlProcedureMessage(SqlException ex)
+        {
+            if (ex.Errors.Count > 0)
+            {
+                for (int i = ex.Errors.Count - 1; i >= 0; i--)
+                {
+                    string message = ex.Errors[i].Message?.Trim();
+                    if (!string.IsNullOrWhiteSpace(message))
+                    {
+                        return message;
+                    }
+                }
+            }
+
+            return string.IsNullOrWhiteSpace(ex.Message) ? "An unexpected database error occurred." : ex.Message.Trim();
+        }
+
         [HttpGet]
         [Route("api/Categories")]
         [SwaggerOperation("To get training categories.")]
@@ -418,6 +435,21 @@ namespace LitteraCore.Controllers
             T = CBL.Get_Trg_Type();
             return Ok(T);
         }
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab, Sponsor Type dropdown - confirmed genuine
+        // gap, unlike Training Type above which was already migrated).
+        // See TrainingDB.Get_Trg_Sponsor_Type for the traced detail.
+        [HttpGet]
+        [Route("api/Trg_Sponsor_Type")]
+        [SwaggerOperation("To get sponsor type list.")]
+        public IActionResult Trg_Sponsor_Type()
+        {
+            List<Trg_Sponsor_Type> ST = new List<Trg_Sponsor_Type>();
+            TrgBL CBL = new TrgBL(_configuration);
+            ST = CBL.Get_Trg_Sponsor_Type();
+            return Ok(ST);
+        }
+
         [HttpGet]
         [Route("api/Trg_Title")]
         [SwaggerOperation("To get all training distinct titles.")]
@@ -427,6 +459,103 @@ namespace LitteraCore.Controllers
             TrgBL CBL = new TrgBL(_configuration);
             T = CBL.Get_Trg_Title();
             return Ok(T);
+        }
+
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Save" action). Named to match the
+        // old action (RCVP_SAVE_COURSE_MASTER) - unlike Category Save, this
+        // old action is a dedicated action with its own explicit param list,
+        // not a generic ProcedureName/Parameters dispatcher. See
+        // MIGRATION_NOTES.md for the full trace, including the real
+        // dm.InsUpdCourseDetails signature this was found through.
+        [HttpPost]
+        [Route("api/RCVP_SAVE_COURSE_MASTER")]
+        [SwaggerOperation("To insert/update a training title (course).")]
+        public IActionResult RCVP_SAVE_COURSE_MASTER([FromBody] Trg_Title title)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool issaved = CBL.Save_Trg_Title(title);
+            return Ok(issaved);
+        }
+
+        // Added 2026-07-10 for the frm_Master_Configuration.aspx -> React
+        // migration (Training Title tab, "Delete" action). Named to match
+        // the old action (RCVP_Course_Master_Delete_Data) per the same
+        // convention used for Category Delete.
+        [HttpPost]
+        [Route("api/RCVP_Course_Master_Delete_Data")]
+        [SwaggerOperation("To delete a training title (course).")]
+        public IActionResult RCVP_Course_Master_Delete_Data(string courseId)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isdeleted = CBL.Delete_Trg_Title(courseId);
+            return Ok(isdeleted);
+        }
+
+        // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
+        // migration (Fees tab - the last remaining gap on this page; see
+        // MIGRATION_NOTES.md rows 5-8 and the project's backend-trace doc
+        // for the full trace). No dedicated old action name exists for
+        // Load/Save/Delete (the old page called the generic
+        // Get_Data/Save_Data dispatcher for all three, unlike Category/Title
+        // which had dedicated actions) - so these route names follow the
+        // dominant naming pattern already established by the other two
+        // tabs' gap-filling endpoints (RCVP_<domain>_<action>_Data /
+        // Trg_<domain> for reads) rather than reusing a nonexistent old
+        // name. The "in use?" check DOES have a real dedicated old action
+        // name (CHECK_FEES_IN_Used) and that one is reused verbatim, same
+        // convention as Category's TRG_TC_CHK_CATEGORY_DETAIL_IN_USE.
+        [HttpGet]
+        [Route("api/Trg_Fees_Master")]
+        [SwaggerOperation("To get all training fees master records.")]
+        public IActionResult Trg_Fees_Master()
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            List<Trg_Fees_Master> F = CBL.Get_Trg_Fees_Master();
+            return Ok(F);
+        }
+
+        [HttpPost]
+        [Route("api/RCVP_Fees_Master_Save_Data")]
+        [SwaggerOperation("To insert/update a training fees master record.")]
+        public IActionResult RCVP_Fees_Master_Save_Data([FromBody] Trg_Fees_Master fees)
+        {
+            try
+            {
+                TrgBL CBL = new TrgBL(_configuration);
+                bool issaved = CBL.Save_Trg_Fees_Master(fees);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(new { message = ExtractSqlProcedureMessage(ex) });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/RCVP_Fees_Master_Delete_Data")]
+        [SwaggerOperation("To delete a training fees master record.")]
+        public IActionResult RCVP_Fees_Master_Delete_Data(string feesId)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isdeleted = CBL.Delete_Trg_Fees_Master(feesId);
+            return Ok(isdeleted);
+        }
+
+        // Named to match the real old dedicated action
+        // (/TrainingApi/CHECK_FEES_IN_Used, TRAININGAPIController.vb
+        // L75678) rather than an invented name - same convention as
+        // TRG_TC_CHK_CATEGORY_DETAIL_IN_USE above. Returns true when the fee
+        // record IS in use (blocks edit/delete) - opposite polarity from the
+        // Category check, preserved as-is; see Chk_Fees_In_Use for detail.
+        [HttpGet]
+        [Route("api/CHECK_FEES_IN_Used")]
+        [SwaggerOperation("To check whether a training fees master record is in use before allowing edit/delete.")]
+        public IActionResult CHECK_FEES_IN_Used(string feesid)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isused = CBL.Chk_Fees_In_Use(feesid);
+            return Ok(isused);
         }
 
 
