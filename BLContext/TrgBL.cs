@@ -496,6 +496,23 @@ namespace LitteraCore.BLContext
 
             return trgdata;
         }
+
+        // Added 2026-07-11 for the frm_training_type.aspx -> React migration.
+        // Thin wrappers - see TrainingDB.Save_Trg_Type /
+        // TrainingDB.Update_Trg_Type_Status for the traced stored-procedure
+        // detail.
+        public bool Save_Trg_Type(Trg_Type type)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Save_Trg_Type(type);
+        }
+
+        public bool Update_Trg_Type_Status(string tttt_id, string tttt_active, string createdBy, string remark)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Update_Trg_Type_Status(tttt_id, tttt_active, createdBy, remark);
+        }
+
         // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
         // migration (Fees tab, Sponsor Type dropdown). See
         // TrainingDB.Get_Trg_Sponsor_Type for the traced stored-procedure

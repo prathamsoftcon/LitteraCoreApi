@@ -350,6 +350,13 @@ namespace LitteraCore.Models
         public string tttt_name { get; set; }
         public string tttt_hname { get; set; }
         public int tttt_active { get; set; }
+
+        // Added 2026-07-11 for the frm_training_type.aspx -> React migration
+        // (Training Type master page, "Save" action). Read-only before (used
+        // only for the already-migrated Get_Trg_Type() list/dropdown source);
+        // CreatedBy is save-only - Get_Trg_Type() is not touched and will not
+        // populate this field on read.
+        public string CreatedBy { get; set; }
     }
 
     // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React

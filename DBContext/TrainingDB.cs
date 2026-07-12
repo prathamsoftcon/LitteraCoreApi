@@ -1071,6 +1071,82 @@ namespace LitteraCore.DBContext
             return trgdata;
         }
 
+        // Added 2026-07-11 for the frm_training_type.aspx -> React migration
+        // (Training Type master page, "Save" action - confirmed genuine gap).
+        // Old TrainingErp_TrainingCategory_SaveData() (JS_frm_training_type.js,
+        // the function actually wired to this page's Save button - NOT the
+        // dead/copy-pasted TrainingErp_TC_SaveData earlier in the same file,
+        // which is unreachable from this page's markup) calls the generic
+        // /TrainingApi/Save_Data dispatcher with
+        // ProcedureName=[TrainingPlan].Proc_tp_insert_trainingtype, params
+        // @tttt_name/@tttt_hname/@tttt_active/@tttt_created_by. Not called
+        // anywhere in any LitteraCoreReactAPI\DBContext\*.cs file (checked all
+        // 20). Insert-only: unlike Category/Title/Fees Save, the old JS never
+        // sends an @tttt_id (a local `trainingcategoryid = guid()` variable is
+        // computed but never used in the params - leftover dead code copied
+        // from the Category page) - this procedure evidently assigns its own
+        // id, so no client-generated GUID is sent here either. There is no
+        // corresponding "edit existing type's name" action anywhere in this
+        // page's real (non-dead) JS - only create-new and the status-toggle
+        // below are reachable.
+        public bool Save_Trg_Type(Trg_Type type)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].Proc_tp_insert_trainingtype", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tttt_name", type.tttt_name ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttt_hname", type.tttt_hname ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttt_active", type.tttt_active);
+            cmd.Parameters.AddWithValue("@tttt_created_by", type.CreatedBy ?? (object)DBNull.Value);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // Added 2026-07-11 for the frm_training_type.aspx -> React migration
+        // (Training Type master page, "Change status" modal - confirmed
+        // genuine gap). Old TRG_UPDATE_STATUS() calls the generic
+        // /TrainingApi/Save_Data dispatcher with
+        // ProcedureName=[TrainingPlan].Proc_tp_update_trainingtype_status,
+        // params @tttt_id/@tttt_active/@tttt_created_by/@tttt_remark. Not
+        // called anywhere in any LitteraCoreReactAPI\DBContext\*.cs file
+        // (checked all 20). Plain-parameter shape (not a wrapper model
+        // class) mirrors the existing Update_Training_Status(...) method
+        // above in this same file - same idiom for a simple status-toggle
+        // action. tttt_active is passed through as the old page's string
+        // convention ('1'/'0') rather than converted to int, matching how
+        // Trg_Title's isactive save field was kept as a string (the real SQL
+        // parameter type was never confirmed against a live database).
+        public bool Update_Trg_Type_Status(string tttt_id, string tttt_active, string createdBy, string remark)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("[TrainingPlan].Proc_tp_update_trainingtype_status", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@tttt_id", tttt_id ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttt_active", tttt_active ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttt_created_by", createdBy ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttt_remark", remark ?? (object)DBNull.Value);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
         // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
         // migration (Fees tab, Sponsor Type dropdown - confirmed genuine
         // gap). Old TRG_FM_FILL_Sponsor_TYPE() (JS L3244) calls
@@ -1349,11 +1425,11 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@tttf_BranchId", fees.BranchId);
             cmd.Parameters.AddWithValue("@tttf_duration", fees.Duration);
             cmd.Parameters.AddWithValue("@tttf_durationtype", fees.DurationType);
-            cmd.Parameters.AddWithValue("@tttf_nr_fees", string.IsNullOrWhiteSpace(fees.NrFees) ? "0" : fees.NrFees);
-            cmd.Parameters.AddWithValue("@tttf_xnr_fees", string.IsNullOrWhiteSpace(fees.XnrFees) ? "0" : fees.XnrFees);
-            cmd.Parameters.AddWithValue("@tttf_r_fees", string.IsNullOrWhiteSpace(fees.RFees) ? "0" : fees.RFees);
-            cmd.Parameters.AddWithValue("@tttf_xr_fees", string.IsNullOrWhiteSpace(fees.XrFees) ? "0" : fees.XrFees);
-            cmd.Parameters.AddWithValue("@tttf_min_participant", string.IsNullOrWhiteSpace(fees.MinParticipant) ? "0" : fees.MinParticipant);
+            cmd.Parameters.AddWithValue("@tttf_nr_fees", fees.NrFees);
+            cmd.Parameters.AddWithValue("@tttf_xnr_fees", fees.XnrFees);
+            cmd.Parameters.AddWithValue("@tttf_r_fees", fees.RFees);
+            cmd.Parameters.AddWithValue("@tttf_xr_fees", fees.XrFees);
+            cmd.Parameters.AddWithValue("@tttf_min_participant", fees.MinParticipant);
             cmd.Parameters.AddWithValue("@tttf_ef_date", fees.EfDate);
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);

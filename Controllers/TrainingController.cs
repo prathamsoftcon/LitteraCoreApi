@@ -28,23 +28,6 @@ namespace LitteraCore.Controllers
             _logger = logger;
         }
 
-        private static string ExtractSqlProcedureMessage(SqlException ex)
-        {
-            if (ex.Errors.Count > 0)
-            {
-                for (int i = ex.Errors.Count - 1; i >= 0; i--)
-                {
-                    string message = ex.Errors[i].Message?.Trim();
-                    if (!string.IsNullOrWhiteSpace(message))
-                    {
-                        return message;
-                    }
-                }
-            }
-
-            return string.IsNullOrWhiteSpace(ex.Message) ? "An unexpected database error occurred." : ex.Message.Trim();
-        }
-
         [HttpGet]
         [Route("api/Categories")]
         [SwaggerOperation("To get training categories.")]
@@ -435,6 +418,47 @@ namespace LitteraCore.Controllers
             T = CBL.Get_Trg_Type();
             return Ok(T);
         }
+
+        // Added 2026-07-11 for the frm_training_type.aspx -> React migration
+        // (Training Type master page - confirmed genuine gaps). Naming note:
+        // the old page's Save/status-update both went through the generic
+        // /TrainingApi/Save_Data dispatcher, so there's no old dedicated
+        // action name to reuse (see the "generic RPC-style dispatch" note in
+        // references/backend-api-notes.md) - falls back to the dominant
+        // RCVP_<domain>_<action>_Data shape. Deliberately NOT named
+        // RCVP_Training_Type_Save_Data - that route already exists on this
+        // controller for Category Save (frm_Master_Configuration.aspx), a
+        // confusing old-system naming quirk (it saves a Category, not a
+        // Type) that would collide with a real Training Type route. Uses
+        // Trg_Type as the domain prefix instead, matching the existing GET
+        // api/Trg_Type route above.
+        [HttpPost]
+        [Route("api/RCVP_Trg_Type_Save_Data")]
+        [SwaggerOperation("To save (insert) a training type.")]
+        public IActionResult RCVP_Trg_Type_Save_Data([FromBody] Trg_Type type)
+        {
+            try
+            {
+                TrgBL CBL = new TrgBL(_configuration);
+                bool issaved = CBL.Save_Trg_Type(type);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/RCVP_Trg_Type_Update_Status_Data")]
+        [SwaggerOperation("To change a training type's active/inactive status with a remark.")]
+        public IActionResult RCVP_Trg_Type_Update_Status_Data(string tttt_id, string tttt_active, string createdBy = null, string remark = null)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool isupdated = CBL.Update_Trg_Type_Status(tttt_id, tttt_active, createdBy, remark);
+            return Ok(isupdated);
+        }
+
         // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
         // migration (Fees tab, Sponsor Type dropdown - confirmed genuine
         // gap, unlike Training Type above which was already migrated).
@@ -520,16 +544,9 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To insert/update a training fees master record.")]
         public IActionResult RCVP_Fees_Master_Save_Data([FromBody] Trg_Fees_Master fees)
         {
-            try
-            {
-                TrgBL CBL = new TrgBL(_configuration);
-                bool issaved = CBL.Save_Trg_Fees_Master(fees);
-                return Ok(issaved);
-            }
-            catch (SqlException ex)
-            {
-                return BadRequest(new { message = ExtractSqlProcedureMessage(ex) });
-            }
+            TrgBL CBL = new TrgBL(_configuration);
+            bool issaved = CBL.Save_Trg_Fees_Master(fees);
+            return Ok(issaved);
         }
 
         [HttpPost]
