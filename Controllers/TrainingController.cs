@@ -437,6 +437,10 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To save (insert) a training type.")]
         public IActionResult RCVP_Trg_Type_Save_Data([FromBody] Trg_Type type)
         {
+            // Retrofitted 2026-07-11 for the SqlException -> BadRequest
+            // convention (see references/backend-api-notes.md) - added right
+            // after this action was written, before any external caller
+            // could depend on the old unhandled-500 behavior.
             try
             {
                 TrgBL CBL = new TrgBL(_configuration);
@@ -454,9 +458,16 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To change a training type's active/inactive status with a remark.")]
         public IActionResult RCVP_Trg_Type_Update_Status_Data(string tttt_id, string tttt_active, string createdBy = null, string remark = null)
         {
-            TrgBL CBL = new TrgBL(_configuration);
-            bool isupdated = CBL.Update_Trg_Type_Status(tttt_id, tttt_active, createdBy, remark);
-            return Ok(isupdated);
+            try
+            {
+                TrgBL CBL = new TrgBL(_configuration);
+                bool isupdated = CBL.Update_Trg_Type_Status(tttt_id, tttt_active, createdBy, remark);
+                return Ok(isupdated);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         // Added 2026-07-11 for the frm_Master_Configuration.aspx -> React
@@ -468,10 +479,17 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To get sponsor type list.")]
         public IActionResult Trg_Sponsor_Type()
         {
-            List<Trg_Sponsor_Type> ST = new List<Trg_Sponsor_Type>();
-            TrgBL CBL = new TrgBL(_configuration);
-            ST = CBL.Get_Trg_Sponsor_Type();
-            return Ok(ST);
+            try
+            {
+                List<Trg_Sponsor_Type> ST = new List<Trg_Sponsor_Type>();
+                TrgBL CBL = new TrgBL(_configuration);
+                ST = CBL.Get_Trg_Sponsor_Type();
+                return Ok(ST);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         [HttpGet]
