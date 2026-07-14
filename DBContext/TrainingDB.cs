@@ -240,6 +240,7 @@ namespace LitteraCore.DBContext
 
             return trgdata;
         }
+
         public List<UserTrg> Get_Users_Training(string usertype, string userid, DateTime fromdate, DateTime todate)
         {
 

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace LitteraCore.Controllers
 {
@@ -339,6 +340,275 @@ namespace LitteraCore.Controllers
             ContentBL CBL = new ContentBL(_configuration);
             s = CBL.Avg_Learning_data_contentwise(trainingid);
             return Ok(s);
+        }
+
+        [HttpGet]
+        [Route("api/Get_Content_Permission")]
+        [SwaggerOperation("To get view/edit/download/delete permission (per user type - admin/CD/faculty/participant) for a content attachment.")]
+        public IActionResult Get_Content_Permission(string attachmentid, string usertype)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                List<contentuserpermission> AL = new List<contentuserpermission>();
+                AL = CBL.Get_Content_Permission(attachmentid, usertype);
+                return Ok(AL);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // ===================================================================
+        // Everything below added 2026-07-12 for the frm_global_content_library.aspx
+        // -> React migration. See TrainingType_MIGRATION_NOTES-style doc for
+        // this page (GlobalContentLibrary_MIGRATION_NOTES.md) for the full trace.
+        // ===================================================================
+
+        // Old page called the generic /TrainingApi/Get_Data dispatcher with
+        // ProcedureName=TrainingPlan.proc_TP_Get_tag, @columnname=GlobalContentTag,
+        // @tblname=Content.tbl_ContentMaster - always these two literal values on
+        // this page, so they are hardcoded server-side rather than accepted from
+        // the frontend (see ContentDB.Get_Content_Tags).
+        [HttpGet]
+        [Route("api/Get_Content_Tags")]
+        [SwaggerOperation("To get the distinct list of global content tags used across content records.")]
+        public IActionResult Get_Content_Tags()
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                List<string> tags = CBL.Get_Content_Tags();
+                return Ok(tags);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Replacement for the old XML-based /TrainingAPI/GET_GLOBAL_SETTING?Tag=...
+        // switch. Currently only "share_content_on_google_drive" is supported (the
+        // only Tag this page ever requests) - see ContentBL/ContentDB for the
+        // established ApplicationConfigDB.Get_Application_Setting(...) idiom used
+        // to back this (SettingID "12" is a newly-invented id, needs a real DB row).
+        [HttpGet]
+        [Route("api/Get_Global_Setting")]
+        [SwaggerOperation("To get a global setting flag by tag. Currently only 'share_content_on_google_drive' is supported (used by frm_global_content_library.aspx).")]
+        public IActionResult Get_Global_Setting(string domain = null, string isOnline = null, string tag = "share_content_on_google_drive")
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool settingValue = CBL.Get_Global_Setting(tag);
+                return Ok(new { tag = tag, share_content_on_google_drive = settingValue });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // The core paged/searched/filtered content-grid listing for
+        // frm_global_content_library.aspx - almost every other feature on this
+        // page depends on this response shape.
+        // CORRECTED 2026-07-12: re-derived from the REAL old implementation at
+        // C:\Projects\TraininingERP_old\Littera_MVC_API (reached in the old app
+        // via https://qa.littera.in/LitteraAPI/api/GlobalContent) after the
+        // first draft's fabricated proc name produced an always-empty grid -
+        // see ContentDB.Get_Global_Content_List for the full trace. Added
+        // "appurl" (matches the old call's "APPURL" param) so file/thumbnail
+        // paths can be built the same way the old app did - the frontend
+        // passes config.LITTERA_CDN_BASE_URL, since uploaded content is still
+        // served from that same legacy static-file location.
+        [HttpGet]
+        [Route("api/GlobalContent")]
+        [SwaggerOperation("To get paged/searched/filtered global content library listing (frm_global_content_library).")]
+        public IActionResult GlobalContent(string appurl = null, string folderid = null, string searchcolumn = null, string searchvalue = null, string filtervalue = null, int pageno = 1, int pagesize = 8)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                PagedResult<GlobalContentListItem> AL = CBL.Get_Global_Content_List(appurl, folderid, searchcolumn, searchvalue, filtervalue, pageno, pagesize);
+                return Ok(AL);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // "Upload Files" gap for frm_global_content_library.aspx - creates a new
+        // global content record after the file itself has already been uploaded
+        // via the existing Diet-wide Upload/UploadFile convention (see
+        // upload-handling-map.md) - this endpoint only persists metadata, it
+        // never receives raw file bytes. Ground truth: old
+        // uc_upload_global_content.ascx's LMS_UPLOAD_DATA() ->
+        // LitteraAPI/api/Save_Global_Content -> ContentBL.Save_Global_Content ->
+        // ContentDB.Save_Global_Content/INS_GLOBAL_CONTENT (content.sp_insert_tbl_ContentMaster_v1)
+        // + a DMS row (tat_type_id = Global_Content_Id) - see ContentDB.Save_Global_Content
+        // for the full trace and the reused Save_DMS_DATA helper.
+        [HttpPost]
+        [Route("api/Save_Global_Content")]
+        [SwaggerOperation("To create a new global content library item (upload metadata save - the file itself is uploaded separately via the shared Upload/UploadFile endpoint).")]
+        public IActionResult Save_Global_Content([FromBody] SaveGlobalContent g)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool issaved = CBL.Save_Global_Content(g);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // "Edit Content" save - title/tags/reading-time (and CDN link field for
+        // CDN-type content) for a single non-WYSIWYG content item. Ground truth:
+        // JS_frm_global_content_library.js L3122-3210 ($scope.LMS_UPDATE_CONTENT_DATA).
+        [HttpPost]
+        [Route("api/Update_Global_Content")]
+        [SwaggerOperation("To update global content library data (title/tag/wysiwyg-or-cdn-link/thumbnail/reading time).")]
+        public IActionResult Update_Global_Content([FromBody] UpdateGlobalContent m)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool issaved = CBL.Update_Global_Content(m);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Bulk/checkbox "Delete Content". Old $scope.LMS_DELETE_CONTENT_DATA (JS
+        // L2841-2894) posted the WHOLE selected-id list as one comma-separated
+        // @ttsam_id value in a single call - preserved as-is here.
+        [HttpPost]
+        [Route("api/Delete_Content_Data")]
+        [SwaggerOperation("To delete one or more content/attachments in bulk via a comma-separated ttsam_id list.")]
+        public IActionResult Delete_Content_Data(string ttsam_id)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool isdeleted = CBL.Delete_Content(ttsam_id);
+                return Ok(isdeleted);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Content Approval Workflow - SHARED by the single-item Approve/Reject
+        // modal ($scope.UPDATE_STATUS, JS L3519-3610) and the bulk "Approve All"
+        // button ($scope.Approve_All_Content, JS L4099-4168). Both old callers hit
+        // the identical stored procedure (dms.proc_dms_Ins_upd_doc_status) with the
+        // identical 11 params, so this is intentionally one shared endpoint.
+        [HttpPost]
+        [Route("api/Content_Approve_Reject")]
+        [SwaggerOperation("To approve or reject content (single item or bulk comma-separated ids).")]
+        public IActionResult Content_Approve_Reject([FromBody] ContentApprovalRequest request)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool isupdated = CBL.Approve_Reject_Content(request);
+                return Ok(isupdated);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Shared by the WYSIWYG-editor handoff, WhatsApp-share, and email-share
+        // flows on frm_global_content_library.aspx (all three called the same old
+        // VB function). Reuses the existing YEncryptDecryptData helper instead of
+        // the legacy SecureData.GetSecureQueryString call. IMPORTANT: whatever
+        // decrypts this on the receiving end (frm_global_wysiwyg.aspx's eventual
+        // React replacement) must use the matching YEncryptDecryptData.Decrypt
+        // call with the same bool flag to successfully decrypt.
+        [HttpGet]
+        [Route("api/RCVP_TrainingSchedule_Get_Encrypted_QS")]
+        [SwaggerOperation("To encrypt a query-string name/value pair for safe URL transport (shared by the WYSIWYG editor handoff, WhatsApp share, and email share flows on frm_global_content_library.aspx).")]
+        public IActionResult RCVP_TrainingSchedule_Get_Encrypted_QS(string qsdata, string qsname)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                List<QSResult> result = CBL.Get_Encrypted_QS(qsdata, qsname);
+                return Ok(result);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Email-share flow for frm_global_content_library.aspx. Reuses the
+        // existing SmtpEmailService (no new SMTP code). Does NOT implement the old
+        // external short-URL-shortening step (MP_HF_SHORT_URL_API) - out of scope,
+        // shared link will be the full un-shortened URL instead.
+        [HttpGet]
+        [Route("api/TRG_SHARE_CONTENT_MAIL")]
+        [SwaggerOperation("To share training content link via email with one or more recipients.")]
+        public async Task<IActionResult> TRG_SHARE_CONTENT_MAIL(string Domain, string IsOnline, string TrainingPlanid, string AdditionalID, string linktxt)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                List<ShareContentMailResult> result = await CBL.Share_Content_Mail(Domain, IsOnline, TrainingPlanid, AdditionalID, linktxt);
+                return Ok(result);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // "Add Content To Session" gaps - checks whether a global content item is
+        // already attached to a training/session, and attaches an existing item to
+        // a training/session (INSERT gap, distinct from the already-migrated
+        // READ-only Get_Trg_Content/proc_tp_get_upload_session_attachement).
+        [HttpGet]
+        [Route("api/Check_Content_Attached_In_Session")]
+        [SwaggerOperation("To check whether a given global content item is already attached to a specific training/session.")]
+        public IActionResult Check_Content_Attached_In_Session(string trainingid, string sessionid, string globalcontentid)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool isattached = CBL.Check_Content_Attached_In_Session(trainingid, sessionid, globalcontentid);
+                return Ok(new ContentAttachmentStatus { isattached = isattached });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/Save_Session_Content_Attachment")]
+        [SwaggerOperation("To attach an existing global content library item to a specific training/session.")]
+        public IActionResult Save_Session_Content_Attachment([FromBody] SessionContentAttachment sca)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool issaved = CBL.Save_Session_Content_Attachment(sca);
+                return Ok(new { issaved = issaved });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
     }
 }

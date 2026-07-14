@@ -81,15 +81,34 @@ namespace LitteraCore.Controllers
             bool isexist = CBL.Chk_Category_In_Use(categorydetailid);
             return Ok(isexist);
         }
+        // Extended 2026-07-12 for the frm_global_content_library.aspx ->
+        // React migration ("Add Content To Session" modal - training
+        // dropdown filtered to a specific user type/user, e.g. faculty-only
+        // trainings). SAME route (api/Trainings) as before, widened with two
+        // new OPTIONAL query params (usertype, userid) - backward
+        // compatible: any existing caller passing only fromdate/todate gets
+        // byte-for-byte the same unfiltered result as before. Also
+        // retrofitted with the SqlException -> BadRequest convention since
+        // this action's body now reaches TrainingDB.Get_Users_Training too.
+        // NOTE flagged for team review: confirm no other existing caller of
+        // api/Trainings relies on it never accepting these params before
+        // treating this as final - see the migration notes for this page.
         [HttpGet]
         [Route("api/Trainings")]
-        [SwaggerOperation("To get trainings between given dates.")]
-        public IActionResult GetTrainings(DateTime fromdate, DateTime todate)
+        [SwaggerOperation("To get trainings between given dates, optionally filtered to trainings relevant to a specific user (e.g. faculty-only) via usertype/userid.")]
+        public IActionResult GetTrainings(DateTime fromdate, DateTime todate, string usertype = null, string userid = null)
         {
-            List<Training> T=new List<Training>();
-            TrgBL CBL = new TrgBL(_configuration);
-            T = CBL.Get_VW_Training_calendar(fromdate, todate);
-            return Ok(T);
+            try
+            {
+                List<Training> T = new List<Training>();
+                TrgBL CBL = new TrgBL(_configuration);
+                T = CBL.Get_VW_Training_calendar(fromdate, todate, usertype, userid);
+                return Ok(T);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
         [HttpGet]
         [Route("api/Training_Day_Week")]

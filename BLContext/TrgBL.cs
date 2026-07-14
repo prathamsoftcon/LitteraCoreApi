@@ -251,13 +251,36 @@ namespace LitteraCore.BLContext
             return level;
         }
 
-        public List<Training> Get_VW_Training_calendar(DateTime fromdate, DateTime todate)
+        // Extended 2026-07-12 for the frm_global_content_library.aspx ->
+        // React migration ("Add Content To Session" modal - training
+        // dropdown scoped to a specific user, e.g. faculty-only trainings).
+        // Backward compatible: existing callers passing neither usertype
+        // nor userid get byte-for-byte the same unfiltered list as before.
+        // Filtering reuses TrainingDB.Get_Users_Training (already present,
+        // backed by [TrainingPlan].[Ft_tp_get_trgid_for_usertype]) rather
+        // than inventing new filter logic - mirrors the same usertype/userid
+        // faculty-filter convention already used by SessionController.TrgSessions.
+        public List<Training> Get_VW_Training_calendar(DateTime fromdate, DateTime todate, string usertype = null, string userid = null)
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
             List<Training> trgdata = new List<Training>();
             TrainingDB tdb=new TrainingDB(_configuration);
             trgdata = tdb.Get_VW_Training_calendar(fromdate, todate);
 
+            //********Filter to only this user's relevant trainings (e.g. faculty-only),
+            // same intent as the old external Littera API's usertype/userid params.
+            // Only applied when BOTH are supplied so existing unfiltered callers are
+            // unaffected.
+            if (!string.IsNullOrEmpty(usertype) && !string.IsNullOrEmpty(userid))
+            {
+                List<UserTrg> usertrg = tdb.Get_Users_Training(usertype, userid, fromdate, todate);
+                List<string> allowedTrainingIds = usertrg
+                    .Where(o => o.traininigid != null)
+                    .Select(o => o.traininigid.ToUpper())
+                    .ToList();
+
+                trgdata = trgdata.Where(o => allowedTrainingIds.Contains(o.TrainingId.ToString().ToUpper())).ToList();
+            }
 
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar-Return Data" + System.DateTime.Now);
 

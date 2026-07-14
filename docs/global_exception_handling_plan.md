@@ -1,4 +1,4 @@
-# Global Exception Handling Plan
+# Global Exception Handling Plan (Pending implemention)
 
 ## Objective
 

@@ -1,8 +1,10 @@
 ﻿using LitteraCore.BLContext;
 using LitteraCore.Common;
+using LitteraCore.Common.DMS;
 using LitteraCore.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.PowerBI.Api.Models;
+using Newtonsoft.Json;
 using System.Data;
 using System.Diagnostics.Metrics;
 using System.IO;
@@ -615,6 +617,487 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
             return true;
         }
 
+
+        public List<contentuserpermission> Get_Content_Permission(string attachmentid, string usertype)
+        {
+            List<contentuserpermission> AL = new List<contentuserpermission>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_get_attachement_permission", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@trgid", DBNull.Value);
+            cmd.Parameters.AddWithValue("@sessionid", DBNull.Value);
+            cmd.Parameters.AddWithValue("@attachmentid", attachmentid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@usertype", usertype ?? (object)DBNull.Value);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                contentuserpermission cup = new contentuserpermission();
+                cup.usertype = Convert.ToString(row["ttsar_user_type_id"]);
+
+                contentPermissions p = new contentPermissions();
+                p.ttsar_view = Convert.ToString(row["ttsar_view"]);
+                p.ttsar_edit = Convert.ToString(row["ttsar_edit"]);
+                p.ttsar_download = Convert.ToString(row["ttsar_download"]);
+                p.ttsar_delete = Convert.ToString(row["ttsar_delete"]);
+
+                cup.permission = p;
+                AL.Add(cup);
+            }
+
+            return AL;
+        }
+
+        // ===================================================================
+        // Everything below added 2026-07-12 for the frm_global_content_library.aspx
+        // -> React migration.
+        // ===================================================================
+
+        // Old page called the generic /TrainingApi/Get_Data dispatcher with
+        // ProcedureName=TrainingPlan.proc_TP_Get_tag, @columnname=GlobalContentTag,
+        // @tblname=Content.tbl_ContentMaster - both literal values are always the
+        // same on this page, so they are hardcoded here rather than parameterized
+        // for the caller.
+        public List<string> Get_Content_Tags()
+        {
+            List<string> tags = new List<string>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_TP_Get_tag", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@columnname", "GlobalContentTag");
+            cmd.Parameters.AddWithValue("@tblname", "Content.tbl_ContentMaster");
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            foreach (DataRow row in dt.Rows)
+            {
+                tags.Add(Convert.ToString(row["value"]));
+            }
+            return tags.Distinct().ToList();
+        }
+
+        // Mirrors the established ApplicationConfigDB.Get_Application_Setting(...)
+        // JSON-blob-by-SettingID idiom exactly, the same way
+        // ParticipantDB.cs/SupportDB.cs read masking setting id "10" and
+        // SmtpEmailService.cs reads OTP/email settings ids "6"/"7".
+        //
+        // OPEN ITEM: SettingID "12" is a NEWLY INVENTED id - no existing
+        // SettingID fit share_content_on_google_drive. Unlike other ids, "12"
+        // has no fallback default wired into
+        // ApplicationConfigDB.Get_Application_Setting, so until a real DB row
+        // (SettingID=12, SettingValue='{"share_content_on_google_drive":"0"}')
+        // is created, this method safely returns false (Rows.Count <= 0)
+        // rather than throwing.
+        public bool Get_Share_Content_On_Google_Drive_Setting()
+        {
+            ApplicationConfigDB ACDB = new ApplicationConfigDB(_configuration);
+            DataTable dt = ACDB.Get_Application_Setting("12");
+            if (dt.Rows.Count <= 0)
+            {
+                return false;
+            }
+            Share_Content_Google_Drive_Setting setting =
+                JsonConvert.DeserializeObject<Share_Content_Google_Drive_Setting>(dt.Rows[0]["SettingValue"].ToString());
+            return setting != null && setting.share_content_on_google_drive;
+        }
+
+        // The core paged/searched/filtered content-grid listing.
+        // CORRECTED 2026-07-12: the original draft used a fabricated proc
+        // name/column set. Re-derived from the REAL old implementation at
+        // C:\Projects\TraininingERP_old\Littera_MVC_API\Models\Content\ContentDB.cs
+        // (Get_Global_Content), reached via the old app's
+        // https://qa.littera.in/LitteraAPI/api/GlobalContent (ContentController.cs
+        // -> ContentBL.Get_Global_Content). Real stored proc:
+        // Trainingplan.Proc_TP_Get_Global_Content_withSearch. Real total-count
+        // column is "TotalRow_count" (not "TotalRecords"). Real DMS/approval
+        // columns are prefixed "tdds_*" (not "doc_status" etc. - see
+        // Common/DMS.cs in the old repo). file_absolute_path/
+        // thumbnail_absolute_path are NOT database columns - they are computed
+        // here exactly like the old Common.UploadPath convention did, from an
+        // "appurl" base URL passed in by the caller (old: the ASP.NET app's own
+        // origin via HF_APPLICATION_URL; new: the frontend's
+        // config.LITTERA_CDN_BASE_URL, since uploaded content is still served
+        // from that same legacy static-file location).
+        public List<GlobalContentListItem> Get_Global_Content_List(string appurl = null, string folderid = null, string searchcolumn = null, string searchvalue = null, string filtervalue = null, int pageno = 1, int pagesize = 8)
+        {
+
+            List<GlobalContentListItem> AL = new List<GlobalContentListItem>();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            using (con)
+            {
+                SqlCommand cmd = new SqlCommand("Trainingplan.Proc_TP_Get_Global_Content_withSearch", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Connection = con;
+                cmd.CommandTimeout = 120;
+
+                cmd.Parameters.AddWithValue("@GlobalContentFolderID", folderid ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SearchColumn", searchcolumn ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@SearchValue", searchvalue ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@FilterValue", filtervalue ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@PageNo", pageno);
+                cmd.Parameters.AddWithValue("@PageSize", pagesize);
+
+                SqlDataReader row = cmd.ExecuteReader();
+                while (row.Read())
+                {
+                    GlobalContentListItem gc = new GlobalContentListItem();
+                    gc.GlobalContentID = Convert.ToString(row["GlobalContentID"]);
+                    gc.GlobalContentyTypeID = Convert.ToString(row["GlobalContentyTypeID"]);
+                    gc.ContentType = Convert.ToString(row["ContentType"]);
+                    gc.GlobalContentTitle = Convert.ToString(row["GlobalContentTitle"]);
+                    gc.GlobalContentTag = Convert.ToString(row["GlobalContentTag"]);
+                    gc.GlobalContentFolderID = Convert.ToString(row["GlobalContentFolderID"]);
+                    gc.GlobalWysiwagText = Convert.ToString(row["GlobalWysiwagText"]);
+                    gc.GlobalFilePath = Convert.ToString(row["GlobalFilePath"]);
+                    gc.GlobalthumbnailPath = Convert.ToString(row["GlobalthumbnailPath"]);
+                    gc.GlobalFileName = Convert.ToString(row["GlobalFileName"]);
+                    gc.ContentCreatedBy = Convert.ToString(row["ContentCreatedBy"]);
+                    gc.ContentCreatedon = row["ContentCreatedon"] != DBNull.Value ? Convert.ToDateTime(row["ContentCreatedon"]) : (DateTime?)null;
+                    gc.ApprovedBy = Convert.ToString(row["ApprovedBy"]);
+                    gc.TotalRecords = row["TotalRow_count"] != DBNull.Value ? Convert.ToInt32(row["TotalRow_count"]) : 0;
+
+                    // Absolute file path - old convention: APPURL + "/Training_Upload/Content/" + GlobalFilePath.
+                    if (!string.IsNullOrEmpty(gc.GlobalFilePath) && !string.IsNullOrEmpty(appurl))
+                    {
+                        gc.file_absolute_path = appurl + "/Training_Upload/Content/" + gc.GlobalFilePath;
+                    }
+
+                    // Absolute thumbnail path - old convention: if a real thumbnail
+                    // was uploaded, APPURL + "/Training_Upload/Thumbnails/" + it;
+                    // otherwise fall back to a default image keyed by ContentType.
+                    // NOTE: matches old ContentDB.Get_Global_Content (lines ~255-269) exactly -
+                    // the fallback branch is NOT guarded by "appurl non-empty". The old app
+                    // always sets thumbnail_absolute_path when GlobalthumbnailPath is empty,
+                    // even if appurl itself is empty (producing "/DefaultPath..." with no
+                    // host prefix in that edge case). Intentionally kept as-is rather than
+                    // "improved", to match old-app behavior exactly.
+                    if (!string.IsNullOrEmpty(gc.GlobalthumbnailPath) && !string.IsNullOrEmpty(appurl))
+                    {
+                        gc.thumbnail_absolute_path = appurl + "/Training_Upload/Thumbnails/" + gc.GlobalthumbnailPath;
+                    }
+                    else if (string.IsNullOrEmpty(gc.GlobalthumbnailPath))
+                    {
+                        gc.thumbnail_absolute_path = appurl + "/" + Get_Content_Default_Thumbnail(gc.ContentType);
+                    }
+
+                    if (row["content_link_type"] != DBNull.Value && int.TryParse(Convert.ToString(row["content_link_type"]), out int linkType))
+                    {
+                        gc.content_link_type = linkType;
+                    }
+                    if (row["tcm_content_reading_time"] != DBNull.Value && int.TryParse(Convert.ToString(row["tcm_content_reading_time"]), out int readingTime))
+                    {
+                        gc.tcm_content_reading_time = readingTime;
+                    }
+
+                    gc.dmsinfo = new GlobalContentDmsInfo
+                    {
+                        doc_id = Convert.ToString(row["tdds_doc_id"]),
+                        tat_type_id = row["tdds_tat_type_id"] != DBNull.Value ? Convert.ToInt32(row["tdds_tat_type_id"]) : 0,
+                        attached_doc_name = Convert.ToString(row["tdds_uploaded_doc_name"]),
+                        CreatedBy_empid = Convert.ToString(row["tdds_sendby_empid"]),
+                        fwd_empid = Convert.ToString(row["tdds_fwd_empid"]),
+                        doc_status = row["tdds_status"] != DBNull.Value ? Convert.ToInt32(row["tdds_status"]) : 0,
+                        docremark = Convert.ToString(row["tdds_remark"]),
+                        docno = Convert.ToString(row["tdds_doc_no"]),
+                        doctype = row["tdds_doc_type"] != DBNull.Value ? Convert.ToInt32(row["tdds_doc_type"]) : 0,
+                    };
+
+                    AL.Add(gc);
+                }
+            }
+
+            return AL;
+
+        }
+
+        // Ported verbatim from the old app's Common.UploadPath.Get_Content_Default_Images
+        // (C:\Projects\TraininingERP_old\Littera_MVC_API\Common\UploadPath.cs) - maps a
+        // resolved content type to its default thumbnail image path when no real
+        // thumbnail was uploaded. NOTE: the old method's return values include a LEADING
+        // slash (e.g. "/Training_Upload/Thumbnails/Thumb_img.PNG"), and the old caller
+        // (ContentDB.Get_Global_Content, line ~266) builds the final URL as
+        // APPURL + "/" + Get_Content_Default_Images(type) - i.e. it always inserts an
+        // extra "/" on top of the leading slash already in the returned path, producing
+        // a double slash after the host (APPURL + "//Training_Upload/..."). This mirrors
+        // the same double-slash convention already seen elsewhere in this old app's URLs
+        // (e.g. ".../LitteraAPI//api/GlobalContent"), so it is kept here exactly rather
+        // than "cleaned up", to match old-app behavior byte-for-byte.
+        private static string Get_Content_Default_Thumbnail(string type)
+        {
+            string t = (type ?? string.Empty).ToUpperInvariant();
+            switch (t)
+            {
+                case "JPEG":
+                case "JPG":
+                case "PNG":
+                    return "/Training_Upload/Thumbnails/Thumb_img.PNG";
+                case "WMV":
+                case "FLV":
+                case "WEBM":
+                case "AVCHD":
+                case "MKV":
+                case "MOV":
+                case "MP4":
+                case "MP3":
+                    return "/Training_Upload/Thumbnails/Thumb_video.PNG";
+                case "PDF":
+                    return "/Training_Upload/Thumbnails/Thumb_pdf.PNG";
+                case "PPT":
+                case "PPTX":
+                    return "/Training_Upload/Thumbnails/Thumb_ppt.PNG";
+                case "WYISIWYG":
+                    return "/Training_Upload/Thumbnails/Thumb_wsywig.PNG";
+                case "DOC":
+                case "DOCX":
+                    return "/Training_Upload/Thumbnails/Thumb_word.PNG";
+                case "HTML":
+                    return "/Training_Upload/Thumbnails/Interactive_content.PNG";
+                default:
+                    return "";
+            }
+        }
+
+        // "Upload Files" gap. Ground truth: old
+        // C:\Projects\TraininingERP_old\Littera_MVC_API\Models\Content\ContentDB.cs
+        // Save_Global_Content/INS_GLOBAL_CONTENT (real stored proc
+        // content.sp_insert_tbl_ContentMaster_v1, traced param-by-param) plus the
+        // DMS row it inserts in the same transaction (tat_type_id = 119 /
+        // DMS_TAT_TYPE_ID.Global_Content_Id - matches Content_Approve_Reject's
+        // already-hardcoded 119 elsewhere in this file). Uses the SAME
+        // DMSBL.Save_DMS_DATA helper already shared by CompetencyDB/TrainingDB/
+        // UserDB - not reimplemented here. doc_status is hardcoded to 0
+        // (Pending) - a brand new upload is never created pre-approved, so this
+        // is not something the client should be able to set.
+        public bool Save_Global_Content(SaveGlobalContent g)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlTransaction st = con.BeginTransaction();
+            try
+            {
+                SqlCommand cmd = new SqlCommand("content.sp_insert_tbl_ContentMaster_v1", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Transaction = st;
+                cmd.Connection = con;
+                cmd.CommandTimeout = 5000;
+                cmd.Parameters.AddWithValue("@p_GlobalContentID", g.GlobalContentID ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalContentyTypeID", g.GlobalContentyTypeID ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalContentTitle", g.GlobalContentTitle ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalContentTag", g.GlobalContentTag ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalContentFolderID", g.GlobalContentFolderID ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalWysiwagText", g.GlobalWysiwagText ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalFilePath", g.GlobalFilePath ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_GlobalFileName", g.GlobalFileName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_Global_Thumbnail_FilePath", g.Global_Thumbnail_FilePath ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@createdon", DateTime.Now);
+                cmd.Parameters.AddWithValue("@createdby", g.CreatedBy ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@branchid", g.Branchid ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@CreatedBy_empid", g.CreatedByEmpId ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@p_content_link_type", g.content_link_type);
+                cmd.Parameters.AddWithValue("@p_tcm_content_reading_time", g.tcm_content_reading_time);
+                cmd.ExecuteNonQuery();
+
+                DMSBL dbl = new DMSBL(_configuration);
+                DMS d = new DMS
+                {
+                    docno = g.GlobalContentID,
+                    doc_id = g.GlobalContentID,
+                    createdon = DateTime.Now,
+                    createdby = g.CreatedBy,
+                    branchid = g.Branchid,
+                    docdate = DateTime.Now,
+                    actiondate = DateTime.Now,
+                    CreatedBy_empid = g.CreatedByEmpId,
+                    fwd_empid = g.FwdByEmpId,
+                    tat_type_id = Convert.ToInt32(Common.CommonEnum.DMS_TAT_TYPE_ID.Global_Content_Id),
+                    doc_status = 0,
+                };
+                dbl.Save_DMS_DATA(d, con, st);
+
+                st.Commit();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                st.Rollback();
+                throw;
+            }
+            finally
+            {
+                con.Close();
+            }
+        }
+
+        // "Edit Content" save. Ground truth: JS_frm_global_content_library.js
+        // L3122-3210 ($scope.LMS_UPDATE_CONTENT_DATA).
+        public bool Update_Global_Content(string globalContentTitle, string globalContentId, string globalContentTag, string globalWysiwagText, string globalThumbnailPath, int readingTime)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("content.sp_update_tbl_ContentMaster", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.Parameters.AddWithValue("@p_GlobalContentTitle", globalContentTitle ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@w_GlobalContentID", globalContentId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@p_GlobalContentTag", globalContentTag ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@p_GlobalWysiwagText", globalWysiwagText ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@w_GlobalthumbnailPath", globalThumbnailPath ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@p_tcm_content_reading_time", readingTime);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
+        // Bulk/checkbox "Delete Content". Ground truth: JS L2841-2894
+        // ($scope.LMS_DELETE_CONTENT_DATA) posts a single @ttsam_id param holding
+        // the WHOLE selected-id list as a comma-separated string - passed through
+        // unsplit here to match that exact old behavior.
+        public bool Delete_Content(string ttsam_id)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_delete_upload_session_attachement", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@ttsam_id", ttsam_id ?? (object)DBNull.Value);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
+        // Content Approval Workflow - shared by single-item and bulk approve/reject.
+        // Ground truth: JS L3519-3610 ($scope.UPDATE_STATUS) and L4099-4168
+        // ($scope.Approve_All_Content) - both call the identical stored procedure.
+        public bool Approve_Reject_Content(ContentApprovalRequest request)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("dms.proc_dms_Ins_upd_doc_status", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@doc_no", (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tttds_info_desc", (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@doc_id", request.DocId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@createdby", request.CreatedBy ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@branchid", request.BranchId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@docremark", request.DocRemark ?? string.Empty);
+            cmd.Parameters.AddWithValue("@CreatedBy_empid", request.CreatedByEmpId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@fwd_empid", request.FwdEmpId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tat_type_id", 119);
+            cmd.Parameters.AddWithValue("@doc_status", request.DocStatus);
+            cmd.Parameters.AddWithValue("@actiondate", request.ActionDate ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@docdate", (object)DBNull.Value);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            return true;
+        }
+
+        // "Add Content To Session" gaps. GAP 1: no dedicated stored proc found for
+        // this check (confirmed gap) - raw inline SQL against the master
+        // attachment table. GAP 2: INSERT gap, distinct from the already-migrated
+        // READ-only Get_Trg_Content/proc_tp_get_upload_session_attachement.
+        public bool Check_Content_Attached_In_Session(string trainingid, string sessionid, string globalcontentid)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand(@"SELECT CASE WHEN COUNT(1) > 0 THEN 1 ELSE 0 END AS isattached
+FROM TrainingPlan.tbl_tp_session_attachment_master
+WHERE ttsam_trg_id = @trainingid
+  AND ttsam_ttttt_session_id = @sessionid
+  AND ttsam_globalcontentid = @globalcontentid", con);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.AddWithValue("@trainingid", trainingid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@sessionid", sessionid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@globalcontentid", globalcontentid ?? (object)DBNull.Value);
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            bool isattached = false;
+            if (dt.Rows.Count > 0)
+            {
+                isattached = Convert.ToInt32(dt.Rows[0]["isattached"]) == 1;
+            }
+            return isattached;
+        }
+
+        public bool Save_Session_Content_Attachment(SessionContentAttachment sca, string attachementid, string createdon)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_upload_session_attachement", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@trgid", sca.trgid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@sessionid", sca.sessionid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@title", sca.title ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@attachementid", attachementid);
+            cmd.Parameters.AddWithValue("@createdby", sca.createdby ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@ttsad_tag", sca.ttsad_tag ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@permission", sca.permission ?? "0");
+            cmd.Parameters.AddWithValue("@usertype", sca.usertype ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@globalcontentid", sca.globalcontentid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@branchid", sca.branchid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@status", 0);
+            cmd.Parameters.AddWithValue("@GlobalContentyTypeID", sca.GlobalContentyTypeID ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@GlobalContentFolderID", sca.GlobalContentFolderID ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@GlobalFilePath", sca.GlobalFilePath ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@GlobalFileName", sca.GlobalFileName ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@GlobalWysiwagText", string.IsNullOrEmpty(sca.contentdata) ? (object)DBNull.Value : sca.contentdata);
+            cmd.Parameters.AddWithValue("@CreatedBy_empid", sca.CreatedBy_empid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@fwd_empid", sca.fwd_empid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@tat_type_id", 119);
+            cmd.Parameters.AddWithValue("@procfor", 0);
+            cmd.Parameters.AddWithValue("@createdon", createdon);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
 
         public List<Avg_Learning_data> Get_trg_avg_learning_Time(string trainingid)
         {
