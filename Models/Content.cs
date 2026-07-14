@@ -294,7 +294,28 @@ namespace LitteraCore.Models
         // Collapses the old body's dmsinfo.CreatedBy_empid/fwd_empid (always
         // identical values in the old JS) into one field.
         public string CreatedByEmpId { get; set; }
-        public string FwdByEmpId { get; set; }
+    }
+
+    // Folder create/rename. Ground truth: uc_folder_creation.ascx's
+    // LMS_UC_FC_CREATE_FOLDER() -> FolderController.Insupd_Folder_Data (old
+    // API_ERP_TRAINING) -> Datamanager.Insupd_Folder_Data ->
+    // content.tbl_Content_FolderInsert. One proc handles both insert
+    // (GlobalContentFolderID empty/null) and update/rename (ID supplied) -
+    // the old UI only ever exercised the insert path (uc_folder_creation.ascx
+    // has no rename affordance), but the proc itself supports both, so this
+    // model backs both the new Create and Rename actions.
+    public class SaveFolder
+    {
+        // Empty/null for create; existing folder id for rename.
+        public string GlobalContentFolderID { get; set; }
+        public string GlobalContentFolderName { get; set; }
+        // NOTE: the old app's Insupd_Folder_Data(createdby) parameter feeds
+        // straight into the @CreatedbyAgencyID SQL param despite the
+        // misleading "AgencyID" name - the old JS actually passes HF_EMPID
+        // (the employee id), not a real agency id. Preserved byte-for-byte,
+        // not "fixed", per this migration's established convention of
+        // replicating old-app quirks rather than cleaning them up.
+        public string CreatedByAgencyID { get; set; }
     }
 
     public class SessionContentAttachment

@@ -506,6 +506,29 @@ namespace LitteraCore.Controllers
             }
         }
 
+        // Folder create/rename. Ground truth: uc_folder_creation.ascx's
+        // LMS_UC_FC_CREATE_FOLDER() -> old FolderController.Insupd_Folder_Data.
+        // Pass GlobalContentFolderID to rename an existing folder, omit/leave
+        // empty to create a new one - same proc handles both. Folder DELETE
+        // has no equivalent anywhere in either old API project (traced in
+        // full) and is not implemented - see GlobalContentLibrary_MIGRATION_NOTES.md.
+        [HttpPost]
+        [Route("api/Save_Folder_Data")]
+        [SwaggerOperation("To create a new content folder, or rename an existing one when GlobalContentFolderID is supplied.")]
+        public IActionResult Save_Folder_Data([FromBody] SaveFolder f)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool issaved = CBL.Save_Folder_Data(f);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
         // Content Approval Workflow - SHARED by the single-item Approve/Reject
         // modal ($scope.UPDATE_STATUS, JS L3519-3610) and the bulk "Approve All"
         // button ($scope.Approve_All_Content, JS L4099-4168). Both old callers hit

@@ -925,7 +925,7 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
                     docdate = DateTime.Now,
                     actiondate = DateTime.Now,
                     CreatedBy_empid = g.CreatedByEmpId,
-                    fwd_empid = g.FwdByEmpId,
+                    fwd_empid = g.CreatedByEmpId,
                     tat_type_id = Convert.ToInt32(Common.CommonEnum.DMS_TAT_TYPE_ID.Global_Content_Id),
                     doc_status = 0,
                 };
@@ -970,6 +970,38 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
             return true;
         }
 
+        // Folder create/rename. Ground truth: uc_folder_creation.ascx's
+        // LMS_UC_FC_CREATE_FOLDER() -> old FolderController.Insupd_Folder_Data
+        // -> Datamanager.Insupd_Folder_Data -> content.tbl_Content_FolderInsert.
+        // Same proc handles insert (folderId empty/null -> @GlobalContentFolderID
+        // omitted, matching the old "If Not folderid Is Nothing" guard) and
+        // update/rename (folderId supplied). Folder DELETE has no equivalent
+        // anywhere in either old API project (traced FolderController.vb and
+        // Datamanager.vb in full) - not implemented here.
+        public bool Save_Folder_Data(string folderId, string folderName, string createdByAgencyId)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("content.tbl_Content_FolderInsert", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            if (!string.IsNullOrEmpty(folderId))
+            {
+                cmd.Parameters.AddWithValue("@GlobalContentFolderID", folderId);
+            }
+            cmd.Parameters.AddWithValue("@GlobalContentFolderName", folderName ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@CreatedbyAgencyID", createdByAgencyId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@CreatedOn", DateTime.Now);
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
         // Bulk/checkbox "Delete Content". Ground truth: JS L2841-2894
         // ($scope.LMS_DELETE_CONTENT_DATA) posts a single @ttsam_id param holding
         // the WHOLE selected-id list as a comma-separated string - passed through
@@ -994,6 +1026,37 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
         // Content Approval Workflow - shared by single-item and bulk approve/reject.
         // Ground truth: JS L3519-3610 ($scope.UPDATE_STATUS) and L4099-4168
         // ($scope.Approve_All_Content) - both call the identical stored procedure.
+        //
+        // Fixed 2026-07-17 (reported live: SqlException "Procedure or function
+        // 'proc_dms_Ins_upd_doc_status' expects parameter '@createdon', which
+        // was not supplied"). The old JS's $http call to the legacy generic
+        // dynamic-SQL dispatcher (/TrainingApi/Save_Data) passes a SEPARATE
+        // top-level `CreatedOnParameter: "@createdon"` field alongside the
+        // explicit `Parameters` list - that old dispatcher uses this field to
+        // auto-inject a server-side current-timestamp value for whatever
+        // param name it names, entirely outside the JS-visible Parameters
+        // array. Because it's not a literal `{'@x':'y'}` entry in that array,
+        // the original JS trace (L3519-3610) never surfaced it as one of the
+        // proc's explicit parameters - a real proc parameter that the old
+        // app's generic plumbing supplies invisibly, not one the JS itself
+        // ever sets a value for. Added `@createdon` here, using DateTime.Now
+        // to match the same "server supplies current timestamp" semantics as
+        // the old dispatcher's CreatedOnParameter mechanism (and consistent
+        // with Save_Folder_Data's `@CreatedOn` = DateTime.Now for the same
+        // kind of auto-timestamp param elsewhere in this backend).
+        //
+        // Corrected again 2026-07-17, per explicit user review of the actual
+        // exec call this method produced (values captured live, not from the
+        // old JS trace): the old JS literally sends `@doc_no`/`@docdate` as
+        // the string "NULL" and `@CreatedBy_empid`/`@fwd_empid` as HF_EMPID -
+        // but the user, working from the real stored procedure/data rather
+        // than that static trace, corrected all four:
+        //   - `@doc_no` must mirror `@doc_id` (was DBNull).
+        //   - `@CreatedBy_empid`/`@fwd_empid` must mirror `@createdby`, not a
+        //     separate employee id (was empty string - `request.CreatedByEmpId`/
+        //     `FwdEmpId` were resolving blank in this environment regardless).
+        //   - `@docdate` must mirror `@actiondate` (was DBNull).
+        // Applied verbatim as instructed rather than re-guessed from the JS.
         public bool Approve_Reject_Content(ContentApprovalRequest request)
         {
             DataTable dt = new DataTable();
@@ -1004,18 +1067,19 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
-            cmd.Parameters.AddWithValue("@doc_no", (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@doc_no", request.DocId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@tttds_info_desc", (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@doc_id", request.DocId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@createdby", request.CreatedBy ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@branchid", request.BranchId ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@docremark", request.DocRemark ?? string.Empty);
-            cmd.Parameters.AddWithValue("@CreatedBy_empid", request.CreatedByEmpId ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@fwd_empid", request.FwdEmpId ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@CreatedBy_empid", request.CreatedBy ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@fwd_empid", request.CreatedBy ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@tat_type_id", 119);
             cmd.Parameters.AddWithValue("@doc_status", request.DocStatus);
             cmd.Parameters.AddWithValue("@actiondate", request.ActionDate ?? (object)DBNull.Value);
-            cmd.Parameters.AddWithValue("@docdate", (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@docdate", request.ActionDate ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@createdon", DateTime.Now);
 
             SqlDataAdapter da = new SqlDataAdapter(cmd);
             da.Fill(dt);

@@ -273,6 +273,12 @@ namespace LitteraCore.BLContext
             return isdeleted;
         }
 
+        public bool Save_Folder_Data(SaveFolder f)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            return CDB.Save_Folder_Data(f.GlobalContentFolderID, f.GlobalContentFolderName, f.CreatedByAgencyID);
+        }
+
         // Shared by the single-item Approve/Reject modal and the bulk "Approve All"
         // button - see ContentDB.Approve_Reject_Content for the traced
         // stored-procedure detail (dms.proc_dms_Ins_upd_doc_status).
