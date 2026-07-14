@@ -11,6 +11,7 @@ using MailKit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
@@ -20,6 +21,7 @@ using Serilog.Events;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Diagnostics;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -77,6 +79,29 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials();
     });
+});
+#endregion
+
+#region Forwarded Headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor
+        | ForwardedHeaders.XForwardedProto
+        | ForwardedHeaders.XForwardedHost;
+    options.ForwardLimit = 2;
+
+    var knownProxyValues =
+        builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>()
+        ?? Array.Empty<string>();
+
+    foreach (var proxyValue in knownProxyValues)
+    {
+        if (IPAddress.TryParse(proxyValue, out var proxyAddress))
+        {
+            options.KnownProxies.Add(proxyAddress);
+        }
+    }
 });
 #endregion
 
@@ -221,6 +246,7 @@ if (swaggerEnabled)
     app.UseSwaggerUI();
 }
 
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

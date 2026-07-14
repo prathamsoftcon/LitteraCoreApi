@@ -284,12 +284,17 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To get client -IP.")]
         public string GetClientIp()
         {
+            var resolvedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(resolvedIp))
+                return resolvedIp;
+
             var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
 
             if (!string.IsNullOrWhiteSpace(forwardedFor))
                 return forwardedFor.Split(',')[0].Trim();
 
-            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty;
+            return string.Empty;
         }
 
 
