@@ -173,6 +173,7 @@ namespace LitteraCore.Controllers
             return Ok(trgdetail);
         }
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Training_Details_by_Code")]
         [SwaggerOperation("To get trainings details by training code.")]
         public IActionResult Training_Details_by_Code(string trainingcode)
