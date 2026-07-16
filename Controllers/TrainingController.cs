@@ -1267,7 +1267,30 @@ namespace LitteraCore.Controllers
 
             return Ok(grade);
         }
+        [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
+        [Route("api/Verify_Certificate_wk")]
+        [SwaggerOperation("To verify user's certificate.")]
+        public IActionResult Verify_Certificate_wk(string usercode,string trainingid)
+        {
+            string grade = "";
+            TrgBL tbl = new TrgBL(_configuration);
+            UserDB udb = new UserDB(_configuration);
+            Trg_User_Details tud=new Trg_User_Details();
+            tud=udb.Get_Trg_User_Details(usercode, trainingid);
+           
+            if(tud.agencyid != null)
+            {
+               grade = tbl.Calculate_Certificate_grade(tud.trainingid, tud.agencyid);
+            }
+            else
+            {
+                grade = "";
+            }
+            
 
+            return Ok(grade);
+        }
         [HttpGet]
         [Route("api/Get_User_Agency")]
         [SwaggerOperation("To get user details by usercode.")]
@@ -1333,8 +1356,8 @@ namespace LitteraCore.Controllers
 
             return Ok(ut);
         }
-        [Authorize(Policy = "PublicApiKey")]
         [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Participants_training_wk")]
         [SwaggerOperation("To Generate certificate and get certificate html.")]
         public IActionResult Participants_training_wk(string participantid)
