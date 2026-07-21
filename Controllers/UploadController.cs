@@ -89,6 +89,97 @@ namespace LitteraCore.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize(Policy = "PublicApiKey")]
+        [Route("api/Upload/GetFileInfo")]
+        [Route("Upload/GetFileInfo")]
+        [SwaggerOperation("Get metadata for a physically uploaded file by its relative path.")]
+        public IActionResult GetFileInfo([FromQuery] PhysicalStoredFileRequest request)
+        {
+            if (!TryValidateModel(request))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            try
+            {
+                var relativeFilePath = ResolveRequestedFilePath(request.RelativePath);
+                var storageRoot = ResolveStorageRoot();
+                var physicalFilePath = ResolveSafeFilePath(storageRoot, relativeFilePath);
+
+                if (!System.IO.File.Exists(physicalFilePath))
+                {
+                    return NotFound(new { message = "File not found." });
+                }
+
+                var fileInfo = new FileInfo(physicalFilePath);
+                var response = new PhysicalStoredFileInfoResponse
+                {
+                    FileName = fileInfo.Name,
+                    RelativePath = relativeFilePath,
+                    FileUrl = string.IsNullOrWhiteSpace(request.Url)
+                        ? string.Empty
+                        : BuildFileUrl(request.Url, relativeFilePath),
+                    FileSize = fileInfo.Length,
+                    LastModifiedUtc = fileInfo.LastWriteTimeUtc
+                };
+
+                return Ok(response);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get uploaded file info.");
+                return StatusCode(500, new { message = "Unable to fetch file info." });
+            }
+        }
+
+        [HttpDelete]
+        [Authorize(Policy = "PublicApiKey")]
+        [Route("api/Upload/DeleteFile")]
+        [Route("Upload/DeleteFile")]
+        [SwaggerOperation("Delete a physically uploaded file by its relative path.")]
+        public IActionResult DeleteFile([FromQuery] PhysicalStoredFileRequest request)
+        {
+            if (!TryValidateModel(request))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            try
+            {
+                var relativeFilePath = ResolveRequestedFilePath(request.RelativePath);
+                var storageRoot = ResolveStorageRoot();
+                var physicalFilePath = ResolveSafeFilePath(storageRoot, relativeFilePath);
+
+                if (!System.IO.File.Exists(physicalFilePath))
+                {
+                    return NotFound(new { message = "File not found." });
+                }
+
+                System.IO.File.Delete(physicalFilePath);
+                DeleteEmptyParentDirectories(storageRoot, Path.GetDirectoryName(physicalFilePath));
+
+                return Ok(new PhysicalFileDeleteResponse
+                {
+                    Deleted = true,
+                    RelativePath = relativeFilePath
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete uploaded file.");
+                return StatusCode(500, new { message = "Unable to delete file." });
+            }
+        }
+
         private string ResolveStorageRoot()
         {
             var configuredPhysicalRootPath =
@@ -116,6 +207,17 @@ namespace LitteraCore.Controllers
             }
 
             throw new ArgumentException("A valid path is required.");
+        }
+
+        private static string ResolveRequestedFilePath(string? relativePath)
+        {
+            var normalizedRelativePath = NormalizeRelativePath(relativePath);
+            if (!string.IsNullOrWhiteSpace(normalizedRelativePath))
+            {
+                return normalizedRelativePath;
+            }
+
+            throw new ArgumentException("A valid relative file path is required.");
         }
 
         private static string NormalizeRelativePath(string? value)
@@ -168,6 +270,26 @@ namespace LitteraCore.Controllers
         {
             var fullRootPath = Path.GetFullPath(rootPath);
             var fullTargetPath = Path.GetFullPath(Path.Combine(fullRootPath, relativeDirectory));
+            var comparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+            var rootWithSeparator =
+                fullRootPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+
+            if (!fullTargetPath.StartsWith(rootWithSeparator, comparison))
+            {
+                throw new ArgumentException("The resolved upload path is outside the application root.");
+            }
+
+            return fullTargetPath;
+        }
+
+        private static string ResolveSafeFilePath(string rootPath, string relativeFilePath)
+        {
+            var normalizedRelativeFilePath = relativeFilePath.Replace('/', Path.DirectorySeparatorChar);
+            var fullRootPath = Path.GetFullPath(rootPath);
+            var fullTargetPath = Path.GetFullPath(Path.Combine(fullRootPath, normalizedRelativeFilePath));
             var comparison = OperatingSystem.IsWindows()
                 ? StringComparison.OrdinalIgnoreCase
                 : StringComparison.Ordinal;
@@ -259,6 +381,46 @@ namespace LitteraCore.Controllers
         {
             var withoutFragment = value.Split('#', 2)[0];
             return withoutFragment.Split('?', 2)[0];
+        }
+
+        private static void DeleteEmptyParentDirectories(string rootPath, string? directoryPath)
+        {
+            if (string.IsNullOrWhiteSpace(directoryPath))
+            {
+                return;
+            }
+
+            var fullRootPath = Path.GetFullPath(rootPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var currentDirectory = Path.GetFullPath(directoryPath)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var comparison = OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            while (!string.Equals(currentDirectory, fullRootPath, comparison))
+            {
+                if (!Directory.Exists(currentDirectory))
+                {
+                    break;
+                }
+
+                if (Directory.EnumerateFileSystemEntries(currentDirectory).Any())
+                {
+                    break;
+                }
+
+                Directory.Delete(currentDirectory, false);
+                var parentDirectory = Path.GetDirectoryName(currentDirectory);
+                if (string.IsNullOrWhiteSpace(parentDirectory))
+                {
+                    break;
+                }
+
+                currentDirectory = parentDirectory.TrimEnd(
+                    Path.DirectorySeparatorChar,
+                    Path.AltDirectorySeparatorChar);
+            }
         }
     }
 }
