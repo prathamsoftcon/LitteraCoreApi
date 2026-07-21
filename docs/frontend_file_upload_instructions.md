@@ -2,27 +2,55 @@
 
 ## Purpose
 
-Use this guide from the React frontend to upload a physical file through the backend upload API.
+Use this guide when a frontend needs to upload a physical file through the backend upload API.
 
-## API Endpoint
+This document reflects the current backend contract implemented in:
+
+- `Controllers/UploadController.cs`
+- `Models/PhysicalFileUpload.cs`
+
+## Backend Endpoint
+
+Accepted backend routes:
 
 - `POST /api/Upload/UploadFile`
-
-Legacy-compatible route also works:
-
 - `POST /Upload/UploadFile`
+
+The endpoint uses:
+
+- `[Authorize(Policy = "PublicApiKey")]`
+
+So browser frontends should normally call it through a public proxy that injects the configured API key.
+
+For the Diet React app, that means:
+
+- browser route: `POST /public-api/Upload/UploadFile`
+- request path with shared client: `/Upload/UploadFile`
 
 ## Request Type
 
 - `multipart/form-data`
 
-## Frontend Inputs
+Do not send JSON.
 
-The frontend must always send these 3 values:
+Do not manually construct the multipart boundary.
 
-- `file`: the browser-selected file
-- `url`: the absolute HTTP/HTTPS base URL that should be used to build the returned file URL
-- `path`: the relative upload folder under the configured physical root
+## Required Frontend Inputs
+
+The frontend must send these 3 form-data fields:
+
+- `File`: the browser-selected file
+- `Url`: the absolute HTTP/HTTPS base URL used to build the returned public file URL
+- `Path`: the relative upload folder under the configured physical root
+
+Example:
+
+```javascript
+const formData = new FormData();
+formData.append("File", file, file.name);
+formData.append("Url", "http://localhost:8888/");
+formData.append("Path", "Training_Upload/Content");
+```
 
 ## Same Contract For Both Upload Scenarios
 
@@ -33,39 +61,38 @@ Use the same request shape for both:
 
 The frontend still sends:
 
-- `file`
-- `url`
-- `path`
+- `File`
+- `Url`
+- `Path`
 
 The backend always:
 
 - saves the file under `UploadSettings:PhysicalRootPath`
-- appends the provided relative `path`
-- builds the returned public file URL from the provided absolute `url`
+- appends the provided relative `Path`
+- builds the returned public file URL from the provided absolute `Url`
 
 ## Backend Physical Path
 
-The frontend does **not** send the physical server path.
+The frontend does not send the physical filesystem root.
 
-The backend reads the physical root from:
+The backend reads it from config:
 
-- `appsettings.json`
 - `UploadSettings:PhysicalRootPath`
 
 If `UploadSettings:PhysicalRootPath` is empty or missing, the upload is rejected with:
 
 - `upload path is missing`
 
-Then it combines:
+Then the backend combines:
 
 - `PhysicalRootPath`
-- `path`
+- `Path`
 - generated unique file name
 
 Example:
 
 - `UploadSettings:PhysicalRootPath = C:\Projects\upload`
-- `path = Training_Upload/Content`
+- `Path = Training_Upload/Content`
 
 Saved file location:
 
@@ -75,85 +102,101 @@ Saved file location:
 
 For same-site upload:
 
-- `PhysicalRootPath` should point to the API site's served upload root
-- `url` should be that site's public base upload URL
-- `path` should be the relative folder under that root
+- `PhysicalRootPath` should point to the site's served upload root
+- `Url` should be that site's public base upload URL
+- `Path` should be the relative folder under that root
 
 Example:
 
 - `PhysicalRootPath = C:\inetpub\qaapp\wwwroot`
-- `url = https://qaapp.littera.in/`
-- `path = Training_Upload/Content`
+- `Url = https://qaapp.littera.in/`
+- `Path = Training_Upload/Content`
 
 For other-site upload:
 
 - `PhysicalRootPath` should point to the shared folder used by that site
-- `url` should be the other site's public base upload URL
-- `path` should be the relative folder under that shared root
+- `Url` should be the other site's public base upload URL
+- `Path` should be the relative folder under that shared root
 
 Example:
 
 - `PhysicalRootPath = C:\Projects\upload`
-- `url = https://qa.littera.in/`
-- `path = Training_Upload/Content`
+- `Url = https://qa.littera.in/`
+- `Path = Training_Upload/Content`
 
-## Where `url` and `path` come from
+## Where `Url` and `Path` Usually Come From
 
-The frontend should first call:
-
-- `GET /api/GET_REACT_APP_CONFIGURATION`
-
-Relevant values returned by that API:
+In the Diet React frontend, these normally come from React app configuration values such as:
 
 - `LITTERA_CDN_BASE_URL`
 - `LITTERA_CONTENT_PATH`
 
-Use them like this:
+Typical mapping:
 
-- `url = LITTERA_CDN_BASE_URL`
-- `path = LITTERA_CONTENT_PATH`
+- `Url = LITTERA_CDN_BASE_URL`
+- `Path = LITTERA_CONTENT_PATH`
 
-Example config values:
+Example:
 
 ```json
 {
   "LITTERA_CDN_BASE_URL": "http://localhost:8888/",
-  "LITTERA_CONTENT_PATH": "Training_Upload/Content/"
+  "LITTERA_CONTENT_PATH": "Training_Upload/Content"
 }
 ```
 
-## Example Request
+## Diet Frontend Recommendation
 
-If the user selects:
+In the Diet repo, use a dedicated upload client instead of the JSON-oriented public API client.
 
-- `C:\digital.pdf`
+Recommended client:
 
-and React config returns:
+- `publicUploadApi` from `src/services/publicRegistrationApi.js`
 
-- `url = http://localhost:8888/`
-- `path = Training_Upload/Content/`
+Do not use `publicRegistrationApi` for file uploads unless you override its JSON content type, because that client forces:
 
-then the frontend uploads with form-data:
+- `Content-Type: application/json`
 
-- `file = digital.pdf`
-- `url = http://localhost:8888/`
-- `path = Training_Upload/Content/`
+That header causes multipart upload requests to fail.
 
-## Example Using Fetch
+Recommended usage:
 
 ```javascript
-async function uploadContentFile(file, reactConfig, token) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("url", reactConfig.LITTERA_CDN_BASE_URL);
-  formData.append("path", reactConfig.LITTERA_CONTENT_PATH);
+import { publicUploadApi } from "../../services/publicRegistrationApi";
 
-  const response = await fetch("/api/Upload/UploadFile", {
+async function uploadContentFile(file, reactConfig) {
+  const formData = new FormData();
+  formData.append("File", file, file.name);
+  formData.append("Path", reactConfig.LITTERA_CONTENT_PATH);
+  formData.append(
+    "Url",
+    `${String(reactConfig.LITTERA_CDN_BASE_URL).replace(/\/+$/, "")}/`
+  );
+
+  const response = await publicUploadApi.post("/Upload/UploadFile", formData);
+  return response.data;
+}
+```
+
+## Fetch Example
+
+```javascript
+async function uploadContentFile(file, reactConfig) {
+  const formData = new FormData();
+  formData.append("File", file, file.name);
+  formData.append("Path", reactConfig.LITTERA_CONTENT_PATH);
+  formData.append(
+    "Url",
+    `${String(reactConfig.LITTERA_CDN_BASE_URL).replace(/\/+$/, "")}/`
+  );
+
+  const response = await fetch("/public-api/Upload/UploadFile", {
     method: "POST",
+    body: formData,
+    credentials: "include",
     headers: {
-      "Content-Type": "multipart/form-data"
+      Accept: "application/json, text/plain",
     },
-    body: formData
   });
 
   if (!response.ok) {
@@ -161,27 +204,6 @@ async function uploadContentFile(file, reactConfig, token) {
   }
 
   return response.json();
-}
-```
-
-## Example Using Axios
-
-```javascript
-import axios from "axios";
-
-async function uploadContentFile(file, reactConfig) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("url", reactConfig.LITTERA_CDN_BASE_URL);
-  formData.append("path", reactConfig.LITTERA_CONTENT_PATH);
-
-  const response = await axios.post("/api/Upload/UploadFile", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data"
-    }
-  });
-
-  return response.data;
 }
 ```
 
@@ -194,28 +216,27 @@ Example response shape:
   "fileName": "digital_20260720123000123_a1b2c3d4e5f6.pdf",
   "originalFileName": "digital.pdf",
   "relativePath": "Training_Upload/Content/digital_20260720123000123_a1b2c3d4e5f6.pdf",
-  "physicalPath": "C:\\Projects\\upload\\Training_Upload\\Content\\digital_20260720123000123_a1b2c3d4e5f6.pdf",
   "fileUrl": "http://localhost:8888/Training_Upload/Content/digital_20260720123000123_a1b2c3d4e5f6.pdf",
   "fileSize": 123456
 }
 ```
 
+The API should not expose the server filesystem path in the frontend response.
+
 ## Validation Notes
 
-- `file` is required
-- `url` is required
-- `path` is required
+- `File` is required
+- `Url` is required
+- `Path` is required
 - `UploadSettings:PhysicalRootPath` must be configured
-- this upload API requires the configured public API key policy
-- send `Content-Type: multipart/form-data`
-- `path` should be a relative path, not a Windows drive path
+- `Path` should be a relative path, not a Windows drive path
 - path traversal such as `..` is rejected
-- only absolute `http` and `https` URLs are accepted for `url`
+- only absolute `http` and `https` URLs are accepted for `Url`
+- this endpoint requires the configured public API key policy
 
 ## Recommended Frontend Flow
 
-1. Call `GET /api/GET_REACT_APP_CONFIGURATION`.
-2. Read `LITTERA_CDN_BASE_URL` and `LITTERA_CONTENT_PATH`.
-3. Send the selected file to `POST /api/Upload/UploadFile`.
+1. Read upload-related config values such as `LITTERA_CDN_BASE_URL` and `LITTERA_CONTENT_PATH`.
+2. Build `FormData` with `File`, `Path`, and `Url`.
+3. Send the request as `multipart/form-data`.
 4. Save the returned `fileName`, `relativePath`, or `fileUrl` as needed.
-5. send `Content-Type: multipart/form-data`
