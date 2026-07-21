@@ -6,6 +6,7 @@ using LitteraCore.Common.SmsService;
 using LitteraCore.Common.Token;
 using LitteraCore.BLContext;
 using LitteraCore.DBContext;
+using LitteraCore.Models;
 using LitteraCore.Middleware;
 using MailKit;
 using Microsoft.AspNetCore.Authentication;

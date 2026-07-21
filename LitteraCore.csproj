@@ -12,6 +12,7 @@
 </PropertyGroup>
   <ItemGroup>
     <Compile Remove="DBContext\BaseRepository.cs" />
+    <Compile Remove="artifacts\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
