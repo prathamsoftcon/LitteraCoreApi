@@ -7,16 +7,13 @@ namespace LitteraCore.Controllers
 {
     public class UploadController : ControllerBase
     {
-        private readonly IWebHostEnvironment _environment;
         private readonly ILogger<UploadController> _logger;
         private readonly IConfiguration _configuration;
 
         public UploadController(
-            IWebHostEnvironment environment,
             ILogger<UploadController> logger,
             IConfiguration configuration)
         {
-            _environment = environment;
             _logger = logger;
             _configuration = configuration;
         }
@@ -29,18 +26,29 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To physically upload a file to the requested url/path location.")]
         public async Task<IActionResult> UploadFile([FromForm] PhysicalFileUploadRequest request)
         {
+            if (!TryValidateModel(request))
+            {
+                return ValidationProblem(ModelState);
+            }
+
             if (request.File == null || request.File.Length == 0)
             {
                 return BadRequest(new { message = "File is required." });
             }
 
+            if (string.IsNullOrWhiteSpace(request.Url))
+            {
+                return BadRequest(new { message = "Url is required." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Path))
+            {
+                return BadRequest(new { message = "Path is required." });
+            }
+
             try
             {
-                var relativeDirectory = ResolveRequestedDirectory(request.Url, request.Path);
-                if (string.IsNullOrWhiteSpace(relativeDirectory))
-                {
-                    return BadRequest(new { message = "A valid path is required." });
-                }
+                var relativeDirectory = ResolveRequestedDirectory(request.Path);
 
                 var storageRoot = ResolveStorageRoot();
                 var targetDirectory = ResolveSafeDirectory(storageRoot, relativeDirectory);
@@ -85,25 +93,21 @@ namespace LitteraCore.Controllers
         {
             var configuredPhysicalRootPath =
                 _configuration["UploadSettings:PhysicalRootPath"]?.Trim();
-            if (!string.IsNullOrWhiteSpace(configuredPhysicalRootPath))
+            if (string.IsNullOrWhiteSpace(configuredPhysicalRootPath))
             {
-                if (!Path.IsPathRooted(configuredPhysicalRootPath))
-                {
-                    throw new ArgumentException(
-                        "UploadSettings:PhysicalRootPath must be an absolute filesystem path.");
-                }
-
-                return Path.GetFullPath(configuredPhysicalRootPath);
+                throw new ArgumentException("upload path is missing");
             }
 
-            var webRoot = string.IsNullOrWhiteSpace(_environment.WebRootPath)
-                ? Path.Combine(_environment.ContentRootPath, "wwwroot")
-                : _environment.WebRootPath;
+            if (!Path.IsPathRooted(configuredPhysicalRootPath))
+            {
+                throw new ArgumentException(
+                    "UploadSettings:PhysicalRootPath must be an absolute filesystem path.");
+            }
 
-            return Path.GetFullPath(webRoot);
+            return Path.GetFullPath(configuredPhysicalRootPath);
         }
 
-        private static string ResolveRequestedDirectory(string? url, string? path)
+        private static string ResolveRequestedDirectory(string? path)
         {
             var relativePath = NormalizeRelativePath(path);
             if (!string.IsNullOrWhiteSpace(relativePath))
@@ -111,28 +115,7 @@ namespace LitteraCore.Controllers
                 return relativePath;
             }
 
-            return ExtractUrlRelativeBase(url);
-        }
-
-        private static string ExtractUrlRelativeBase(string? url)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                return string.Empty;
-            }
-
-            if (Uri.TryCreate(url, UriKind.Absolute, out var absoluteUri))
-            {
-                if (absoluteUri.Scheme != Uri.UriSchemeHttp
-                    && absoluteUri.Scheme != Uri.UriSchemeHttps)
-                {
-                    throw new ArgumentException("Only HTTP/HTTPS urls are supported.");
-                }
-
-                return NormalizeRelativePath(absoluteUri.AbsolutePath);
-            }
-
-            return NormalizeRelativePath(RemoveQueryAndFragment(url));
+            throw new ArgumentException("A valid path is required.");
         }
 
         private static string NormalizeRelativePath(string? value)
@@ -239,6 +222,11 @@ namespace LitteraCore.Controllers
 
         private string BuildFileUrl(string? url, string relativeFilePath)
         {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ArgumentException("Url is required.");
+            }
+
             var normalizedFilePath = relativeFilePath.Replace('\\', '/').TrimStart('/');
 
             if (Uri.TryCreate(url, UriKind.Absolute, out var absoluteUri)
@@ -254,9 +242,7 @@ namespace LitteraCore.Controllers
                 return builder.Uri.ToString();
             }
 
-            var requestBaseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/";
-            var requestBaseUri = new Uri(requestBaseUrl, UriKind.Absolute);
-            return new Uri(requestBaseUri, normalizedFilePath).ToString();
+            throw new ArgumentException("Url must be an absolute HTTP/HTTPS url.");
         }
 
         private static string CombineSegments(string? first, string? second)

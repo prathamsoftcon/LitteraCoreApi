@@ -18,11 +18,30 @@ Legacy-compatible route also works:
 
 ## Frontend Inputs
 
-The frontend should send only these values:
+The frontend must always send these 3 values:
 
 - `file`: the browser-selected file
-- `url`: the site base URL from React config
-- `path`: the relative upload folder from React config
+- `url`: the absolute HTTP/HTTPS base URL that should be used to build the returned file URL
+- `path`: the relative upload folder under the configured physical root
+
+## Same Contract For Both Upload Scenarios
+
+Use the same request shape for both:
+
+- upload into the API site's own storage
+- upload for another site that serves files from a shared folder
+
+The frontend still sends:
+
+- `file`
+- `url`
+- `path`
+
+The backend always:
+
+- saves the file under `UploadSettings:PhysicalRootPath`
+- appends the provided relative `path`
+- builds the returned public file URL from the provided absolute `url`
 
 ## Backend Physical Path
 
@@ -32,6 +51,10 @@ The backend reads the physical root from:
 
 - `appsettings.json`
 - `UploadSettings:PhysicalRootPath`
+
+If `UploadSettings:PhysicalRootPath` is empty or missing, the upload is rejected with:
+
+- `upload path is missing`
 
 Then it combines:
 
@@ -47,6 +70,32 @@ Example:
 Saved file location:
 
 - `C:\Projects\upload\Training_Upload\Content\{generated-file-name}`
+
+## How To Use It
+
+For same-site upload:
+
+- `PhysicalRootPath` should point to the API site's served upload root
+- `url` should be that site's public base upload URL
+- `path` should be the relative folder under that root
+
+Example:
+
+- `PhysicalRootPath = C:\inetpub\qaapp\wwwroot`
+- `url = https://qaapp.littera.in/`
+- `path = Training_Upload/Content`
+
+For other-site upload:
+
+- `PhysicalRootPath` should point to the shared folder used by that site
+- `url` should be the other site's public base upload URL
+- `path` should be the relative folder under that shared root
+
+Example:
+
+- `PhysicalRootPath = C:\Projects\upload`
+- `url = https://qa.littera.in/`
+- `path = Training_Upload/Content`
 
 ## Where `url` and `path` come from
 
@@ -154,11 +203,14 @@ Example response shape:
 ## Validation Notes
 
 - `file` is required
-- this upload API is public and does not require a bearer token
+- `url` is required
+- `path` is required
+- `UploadSettings:PhysicalRootPath` must be configured
+- this upload API requires the configured public API key policy
 - send `Content-Type: multipart/form-data`
 - `path` should be a relative path, not a Windows drive path
 - path traversal such as `..` is rejected
-- only `http` and `https` absolute URLs are accepted for `url`
+- only absolute `http` and `https` URLs are accepted for `url`
 
 ## Recommended Frontend Flow
 
