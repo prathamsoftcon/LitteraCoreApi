@@ -8,20 +8,61 @@ namespace LitteraCore.DBContext
     public class InteractivePlayerDB
     {
         private readonly IConfiguration _configuration;
+        private const string ActivitySelectSql = @"
+SELECT
+    CAST(m.ttiam_activityid AS nvarchar(50)) AS activity_id,
+    m.ttiam_sessionid AS session_id,
+    m.ttiam_contentid AS content_id,
+    UPPER(m.ttiam_activitytype) AS activity_type,
+    m.ttiam_title AS title,
+    m.ttiam_instruction AS instruction,
+    m.ttiam_bodytext AS body_text,
+    UPPER(m.ttiam_triggermode) AS trigger_mode,
+    CAST(m.ttiam_triggertime AS int) AS trigger_time,
+    m.ttiam_pagenumber AS page_number,
+    m.ttiam_pauseontrigger AS pause_on_trigger,
+    m.ttiam_skippable AS skippable,
+    m.ttiam_displayorder AS display_order,
+    m.ttiam_createdby AS created_by,
+    m.ttiam_updatedby AS updated_by,
+    m.ttiam_branchid AS branch_id,
+    m.ttiam_createdon AS created_at,
+    m.ttiam_updatedon AS updated_at,
+    d.ttiad_DetailJson AS detail_json,
+    d.ttiad_SchemaVersion AS schema_version
+FROM trainingplan.tbl_tp_ip_acvtivity_master m
+LEFT JOIN trainingplan.tbl_tp_ip_acvtivity_detail d
+    ON d.ttiad_ttiam_ActivityId = m.ttiam_activityid";
 
         public InteractivePlayerDB(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public List<InteractivePlayerActivity> GetActivities(string contentId)
+        public List<InteractivePlayerActivity> GetActivities(string contentId, string? sessionId = null)
         {
             List<InteractivePlayerActivity> activities = new List<InteractivePlayerActivity>();
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_interactive_player_get_activities", con);
-            cmd.CommandType = CommandType.StoredProcedure;
+            using SqlCommand cmd = new SqlCommand($@"
+{ActivitySelectSql}
+WHERE m.ttiam_isactive = 1
+  AND m.ttiam_contentid = @content_id
+  AND (@session_id = '' OR m.ttiam_sessionid = @session_id)
+ORDER BY
+    CASE UPPER(m.ttiam_triggermode)
+        WHEN 'START' THEN 0
+        WHEN 'CUSTOM' THEN 1
+        WHEN 'PAGE' THEN 2
+        WHEN 'END' THEN 3
+        ELSE 4
+    END,
+    m.ttiam_triggertime,
+    m.ttiam_displayorder,
+    m.ttiam_activityid;", con);
+            cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@content_id", contentId ?? string.Empty);
+            cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
 
             if (con.State != ConnectionState.Open)
             {
@@ -40,71 +81,87 @@ namespace LitteraCore.DBContext
         public InteractivePlayerActivity SaveActivity(CreateInteractivePlayerActivityRequest request)
         {
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_interactive_player_ins_activity", con);
-            string activityId = Guid.NewGuid().ToString();
-
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 5000;
-            AddActivityCommandParameters(cmd, request, activityId);
-
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
             }
 
-            using SqlDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return MapActivity(reader);
-            }
+            using SqlTransaction transaction = con.BeginTransaction();
 
-            throw new Exception("Interactive player activity could not be saved.");
+            try
+            {
+                long activityId = InsertActivity(con, transaction, request);
+                UpsertActivityDetail(con, transaction, activityId, ResolveDetailJson(request.Details, request.DetailJson), request.SchemaVersion);
+                InteractivePlayerActivity saved = GetActivityById(con, transaction, activityId)
+                    ?? throw new Exception("Interactive player activity could not be loaded after save.");
+                transaction.Commit();
+                return saved;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public InteractivePlayerActivity? UpdateActivity(string activityId, UpdateInteractivePlayerActivityRequest request)
         {
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_interactive_player_upd_activity", con);
-
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.CommandTimeout = 5000;
-            AddActivityCommandParameters(cmd, request, activityId);
+            if (!TryParseActivityId(activityId, out long parsedActivityId))
+            {
+                return null;
+            }
 
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
             }
 
-            using SqlDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return MapActivity(reader);
-            }
+            using SqlTransaction transaction = con.BeginTransaction();
 
-            return null;
+            try
+            {
+                bool updated = UpdateActivityRow(con, transaction, parsedActivityId, request);
+                if (!updated)
+                {
+                    transaction.Rollback();
+                    return null;
+                }
+
+                UpsertActivityDetail(con, transaction, parsedActivityId, ResolveDetailJson(request.Details, request.DetailJson), request.SchemaVersion);
+                InteractivePlayerActivity? saved = GetActivityById(con, transaction, parsedActivityId);
+                transaction.Commit();
+                return saved;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         public bool DeleteActivity(string activityId)
         {
-            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
-            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_interactive_player_del_activity", con);
+            if (!TryParseActivityId(activityId, out long parsedActivityId))
+            {
+                return false;
+            }
 
-            cmd.CommandType = CommandType.StoredProcedure;
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand(@"
+DELETE FROM trainingplan.tbl_tp_ip_acvtivity_master
+WHERE ttiam_activityid = @activity_id;", con);
+
+            cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
-            cmd.Parameters.AddWithValue("@ip_activity_id", activityId ?? string.Empty);
+            cmd.Parameters.AddWithValue("@activity_id", parsedActivityId);
 
             if (con.State != ConnectionState.Open)
             {
                 con.Open();
             }
 
-            using SqlDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                return SafeInt(reader, "deleted_count") > 0;
-            }
-
-            return false;
+            return cmd.ExecuteNonQuery() > 0;
         }
 
         public InteractivePlayerOutcome SaveOutcome(CreateInteractivePlayerOutcomeRequest request)
@@ -179,137 +236,30 @@ namespace LitteraCore.DBContext
             throw new Exception("Interactive player quiz submission could not be saved.");
         }
 
-        private static void AddActivityCommandParameters(
-            SqlCommand cmd,
-            CreateInteractivePlayerActivityRequest request,
-            string activityId)
-        {
-            cmd.Parameters.AddWithValue("@ip_activity_id", activityId);
-            cmd.Parameters.AddWithValue("@content_id", request.ContentId?.Trim() ?? string.Empty);
-            cmd.Parameters.AddWithValue("@activity_type", NormalizeActivityType(request.Type));
-            cmd.Parameters.AddWithValue("@trigger_time", request.TriggerTime);
-            cmd.Parameters.AddWithValue("@trigger_mode", NormalizeTriggerMode(request.TriggerMode));
-            cmd.Parameters.AddWithValue("@pause_on_trigger", request.PauseOnTrigger);
-            cmd.Parameters.AddWithValue("@skippable", request.Skippable);
-            cmd.Parameters.AddWithValue("@created_by", DbValue(request.CreatedBy));
-            cmd.Parameters.AddWithValue("@question", DbValue(request.Question));
-            cmd.Parameters.AddWithValue("@title", DbValue(request.Title));
-            cmd.Parameters.AddWithValue("@description", DbValue(request.Description));
-            cmd.Parameters.AddWithValue("@allow_voice_record", DbValue(request.AllowVoiceRecord));
-            cmd.Parameters.AddWithValue("@voice_max_seconds", DbValue(request.VoiceMaxSeconds));
-            cmd.Parameters.AddWithValue("@allow_video_record", DbValue(request.AllowVideoRecord));
-            cmd.Parameters.AddWithValue("@video_max_seconds", DbValue(request.VideoMaxSeconds));
-            cmd.Parameters.AddWithValue("@video_max_size_mb", DbValue(request.VideoMaxSizeMb));
-            cmd.Parameters.AddWithValue("@allow_file_upload", DbValue(request.AllowFileUpload));
-            cmd.Parameters.AddWithValue("@upload_allowed_types", DbValue(ToJsonString(request.UploadAllowedTypes)));
-            cmd.Parameters.AddWithValue("@upload_max_size_mb", DbValue(request.UploadMaxSizeMb));
-            cmd.Parameters.AddWithValue("@prompt", DbValue(request.Prompt));
-            cmd.Parameters.AddWithValue("@collect_student_name", DbValue(request.CollectStudentName));
-            cmd.Parameters.AddWithValue("@instruction", DbValue(request.Instruction));
-            cmd.Parameters.AddWithValue("@question_format", DbValue(request.QuestionFormat));
-            cmd.Parameters.AddWithValue("@question_media_url", DbValue(request.QuestionMediaUrl));
-            cmd.Parameters.AddWithValue("@question_caption", DbValue(request.QuestionCaption));
-            cmd.Parameters.AddWithValue("@fill_blank_text", DbValue(request.FillBlankText));
-            cmd.Parameters.AddWithValue("@options_json", DbValue(ToJsonString(request.Options)));
-            cmd.Parameters.AddWithValue("@correct_answer_index", DbValue(request.CorrectAnswerIndex));
-            cmd.Parameters.AddWithValue("@correct_option_id", DbValue(request.CorrectOptionId));
-            cmd.Parameters.AddWithValue("@display_mode", DbValue(request.DisplayMode));
-            cmd.Parameters.AddWithValue("@images_json", DbValue(ToJsonString(request.Images)));
-            cmd.Parameters.AddWithValue("@image_display_seconds", DbValue(request.ImageDisplaySeconds));
-            cmd.Parameters.AddWithValue("@question_repeat_count", DbValue(request.QuestionRepeatCount));
-            cmd.Parameters.AddWithValue("@turn_duration_seconds", DbValue(request.TurnDurationSeconds));
-            cmd.Parameters.AddWithValue("@group_names_json", DbValue(ToJsonString(request.GroupNames)));
-            cmd.Parameters.AddWithValue("@winner_rule", DbValue(request.WinnerRule));
-            cmd.Parameters.AddWithValue("@tie_breaker", DbValue(request.TieBreaker));
-            cmd.Parameters.AddWithValue("@difficulty", DbValue(request.Difficulty));
-        }
-
-        private static void AddActivityCommandParameters(
-            SqlCommand cmd,
-            UpdateInteractivePlayerActivityRequest request,
-            string activityId)
-        {
-            cmd.Parameters.AddWithValue("@ip_activity_id", activityId);
-            cmd.Parameters.AddWithValue("@trigger_time", request.TriggerTime);
-            cmd.Parameters.AddWithValue("@trigger_mode", NormalizeTriggerMode(request.TriggerMode));
-            cmd.Parameters.AddWithValue("@pause_on_trigger", request.PauseOnTrigger);
-            cmd.Parameters.AddWithValue("@skippable", request.Skippable);
-            cmd.Parameters.AddWithValue("@question", DbValue(request.Question));
-            cmd.Parameters.AddWithValue("@title", DbValue(request.Title));
-            cmd.Parameters.AddWithValue("@description", DbValue(request.Description));
-            cmd.Parameters.AddWithValue("@allow_voice_record", DbValue(request.AllowVoiceRecord));
-            cmd.Parameters.AddWithValue("@voice_max_seconds", DbValue(request.VoiceMaxSeconds));
-            cmd.Parameters.AddWithValue("@allow_video_record", DbValue(request.AllowVideoRecord));
-            cmd.Parameters.AddWithValue("@video_max_seconds", DbValue(request.VideoMaxSeconds));
-            cmd.Parameters.AddWithValue("@video_max_size_mb", DbValue(request.VideoMaxSizeMb));
-            cmd.Parameters.AddWithValue("@allow_file_upload", DbValue(request.AllowFileUpload));
-            cmd.Parameters.AddWithValue("@upload_allowed_types", DbValue(ToJsonString(request.UploadAllowedTypes)));
-            cmd.Parameters.AddWithValue("@upload_max_size_mb", DbValue(request.UploadMaxSizeMb));
-            cmd.Parameters.AddWithValue("@prompt", DbValue(request.Prompt));
-            cmd.Parameters.AddWithValue("@collect_student_name", DbValue(request.CollectStudentName));
-            cmd.Parameters.AddWithValue("@instruction", DbValue(request.Instruction));
-            cmd.Parameters.AddWithValue("@question_format", DbValue(request.QuestionFormat));
-            cmd.Parameters.AddWithValue("@question_media_url", DbValue(request.QuestionMediaUrl));
-            cmd.Parameters.AddWithValue("@question_caption", DbValue(request.QuestionCaption));
-            cmd.Parameters.AddWithValue("@fill_blank_text", DbValue(request.FillBlankText));
-            cmd.Parameters.AddWithValue("@options_json", DbValue(ToJsonString(request.Options)));
-            cmd.Parameters.AddWithValue("@correct_answer_index", DbValue(request.CorrectAnswerIndex));
-            cmd.Parameters.AddWithValue("@correct_option_id", DbValue(request.CorrectOptionId));
-            cmd.Parameters.AddWithValue("@display_mode", DbValue(request.DisplayMode));
-            cmd.Parameters.AddWithValue("@images_json", DbValue(ToJsonString(request.Images)));
-            cmd.Parameters.AddWithValue("@image_display_seconds", DbValue(request.ImageDisplaySeconds));
-            cmd.Parameters.AddWithValue("@question_repeat_count", DbValue(request.QuestionRepeatCount));
-            cmd.Parameters.AddWithValue("@turn_duration_seconds", DbValue(request.TurnDurationSeconds));
-            cmd.Parameters.AddWithValue("@group_names_json", DbValue(ToJsonString(request.GroupNames)));
-            cmd.Parameters.AddWithValue("@winner_rule", DbValue(request.WinnerRule));
-            cmd.Parameters.AddWithValue("@tie_breaker", DbValue(request.TieBreaker));
-            cmd.Parameters.AddWithValue("@difficulty", DbValue(request.Difficulty));
-        }
-
         private static InteractivePlayerActivity MapActivity(SqlDataReader reader)
         {
             return new InteractivePlayerActivity
             {
-                Id = SafeString(reader, "ip_activity_id"),
+                Id = SafeString(reader, "activity_id"),
+                SessionId = SafeString(reader, "session_id"),
                 ContentId = SafeString(reader, "content_id"),
                 Type = SafeString(reader, "activity_type"),
-                TriggerTime = SafeInt(reader, "trigger_time"),
-                TriggerMode = SafeString(reader, "trigger_mode", "time"),
+                Title = SafeNullableString(reader, "title"),
+                Instruction = SafeNullableString(reader, "instruction"),
+                BodyText = SafeNullableString(reader, "body_text"),
+                TriggerTime = SafeNullableInt(reader, "trigger_time"),
+                PageNumber = SafeNullableInt(reader, "page_number"),
+                TriggerMode = SafeString(reader, "trigger_mode", "START"),
                 PauseOnTrigger = SafeBool(reader, "pause_on_trigger"),
                 Skippable = SafeBool(reader, "skippable"),
+                DisplayOrder = SafeNullableInt(reader, "display_order"),
                 CreatedBy = SafeNullableString(reader, "created_by"),
+                UpdatedBy = SafeNullableString(reader, "updated_by"),
+                BranchId = SafeNullableString(reader, "branch_id"),
                 CreatedAt = SafeDateTimeOffset(reader, "created_at"),
                 UpdatedAt = SafeNullableDateTimeOffset(reader, "updated_at"),
-                Question = SafeNullableString(reader, "question"),
-                Title = SafeNullableString(reader, "title"),
-                Description = SafeNullableString(reader, "description"),
-                AllowVoiceRecord = SafeNullableBool(reader, "allow_voice_record"),
-                VoiceMaxSeconds = SafeNullableInt(reader, "voice_max_seconds"),
-                AllowVideoRecord = SafeNullableBool(reader, "allow_video_record"),
-                VideoMaxSeconds = SafeNullableInt(reader, "video_max_seconds"),
-                VideoMaxSizeMb = SafeNullableInt(reader, "video_max_size_mb"),
-                AllowFileUpload = SafeNullableBool(reader, "allow_file_upload"),
-                UploadAllowedTypes = ParseStringList(SafeNullableString(reader, "upload_allowed_types")),
-                UploadMaxSizeMb = SafeNullableInt(reader, "upload_max_size_mb"),
-                Prompt = SafeNullableString(reader, "prompt"),
-                CollectStudentName = SafeNullableBool(reader, "collect_student_name"),
-                Instruction = SafeNullableString(reader, "instruction"),
-                QuestionFormat = SafeNullableString(reader, "question_format"),
-                QuestionMediaUrl = SafeNullableString(reader, "question_media_url"),
-                QuestionCaption = SafeNullableString(reader, "question_caption"),
-                FillBlankText = SafeNullableString(reader, "fill_blank_text"),
-                Options = ParseJsonElement(SafeNullableString(reader, "options_json")),
-                CorrectAnswerIndex = SafeNullableInt(reader, "correct_answer_index"),
-                CorrectOptionId = SafeNullableString(reader, "correct_option_id"),
-                DisplayMode = SafeNullableString(reader, "display_mode"),
-                Images = ParseStringList(SafeNullableString(reader, "images_json")),
-                ImageDisplaySeconds = SafeNullableInt(reader, "image_display_seconds"),
-                QuestionRepeatCount = SafeNullableInt(reader, "question_repeat_count"),
-                TurnDurationSeconds = SafeNullableInt(reader, "turn_duration_seconds"),
-                GroupNames = ParseStringList(SafeNullableString(reader, "group_names_json")),
-                WinnerRule = SafeNullableString(reader, "winner_rule"),
-                TieBreaker = SafeNullableString(reader, "tie_breaker"),
-                Difficulty = SafeNullableString(reader, "difficulty")
+                DetailJson = SafeNullableString(reader, "detail_json"),
+                SchemaVersion = SafeInt(reader, "schema_version", 1)
             };
         }
 
@@ -362,19 +312,228 @@ namespace LitteraCore.DBContext
 
         private static string NormalizeTriggerMode(string? triggerMode)
         {
-            return triggerMode switch
+            string normalized = string.IsNullOrWhiteSpace(triggerMode) ? "START" : triggerMode.Trim().ToUpperInvariant();
+            return normalized switch
             {
-                "start" => "start",
-                "end" => "end",
-                _ => "time"
+                "START" => "start",
+                "CUSTOM" => "custom",
+                "END" => "end",
+                "PAGE" => "page",
+                _ => "start"
             };
         }
 
         private static string NormalizeActivityType(string? activityType)
         {
             return string.IsNullOrWhiteSpace(activityType)
-                ? "quiz"
+                ? "pop"
                 : activityType.Trim().ToLowerInvariant();
+        }
+
+        private static long InsertActivity(
+            SqlConnection con,
+            SqlTransaction transaction,
+            CreateInteractivePlayerActivityRequest request)
+        {
+            using SqlCommand cmd = new SqlCommand(@"
+INSERT INTO trainingplan.tbl_tp_ip_acvtivity_master
+(
+    ttiam_sessionid,
+    ttiam_contentid,
+    ttiam_activitytype,
+    ttiam_title,
+    ttiam_instruction,
+    ttiam_bodytext,
+    ttiam_triggermode,
+    ttiam_triggertime,
+    ttiam_pagenumber,
+    ttiam_pauseontrigger,
+    ttiam_skippable,
+    ttiam_displayorder,
+    ttiam_isactive,
+    ttiam_createdby,
+    ttiam_branchid,
+    ttiam_updatedby
+)
+VALUES
+(
+    @session_id,
+    @content_id,
+    @activity_type,
+    @title,
+    @instruction,
+    @body_text,
+    @trigger_mode,
+    @trigger_time,
+    @page_number,
+    @pause_on_trigger,
+    @skippable,
+    @display_order,
+    1,
+    @created_by,
+    @branch_id,
+    @updated_by
+);
+SELECT CAST(SCOPE_IDENTITY() AS bigint);", con, transaction);
+
+            AddMasterActivityParameters(cmd, request.SessionId, request.ContentId, request.Type, request.Title, request.Instruction, request.BodyText,
+                request.TriggerMode, request.TriggerTime, request.PageNumber, request.PauseOnTrigger, request.Skippable,
+                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId);
+
+            return Convert.ToInt64(cmd.ExecuteScalar());
+        }
+
+        private static bool UpdateActivityRow(
+            SqlConnection con,
+            SqlTransaction transaction,
+            long activityId,
+            UpdateInteractivePlayerActivityRequest request)
+        {
+            using SqlCommand cmd = new SqlCommand(@"
+UPDATE trainingplan.tbl_tp_ip_acvtivity_master
+SET
+    ttiam_sessionid = @session_id,
+    ttiam_contentid = @content_id,
+    ttiam_activitytype = @activity_type,
+    ttiam_title = @title,
+    ttiam_instruction = @instruction,
+    ttiam_bodytext = @body_text,
+    ttiam_triggermode = @trigger_mode,
+    ttiam_triggertime = @trigger_time,
+    ttiam_pagenumber = @page_number,
+    ttiam_pauseontrigger = @pause_on_trigger,
+    ttiam_skippable = @skippable,
+    ttiam_displayorder = @display_order,
+    ttiam_branchid = @branch_id,
+    ttiam_updatedby = @updated_by,
+    ttiam_updatedon = SYSUTCDATETIME()
+WHERE ttiam_activityid = @activity_id;", con, transaction);
+
+            cmd.Parameters.AddWithValue("@activity_id", activityId);
+            AddMasterActivityParameters(cmd, request.SessionId, request.ContentId, request.Type, request.Title, request.Instruction, request.BodyText,
+                request.TriggerMode, request.TriggerTime, request.PageNumber, request.PauseOnTrigger, request.Skippable,
+                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+
+        private static void UpsertActivityDetail(
+            SqlConnection con,
+            SqlTransaction transaction,
+            long activityId,
+            string detailJson,
+            int schemaVersion)
+        {
+            using SqlCommand cmd = new SqlCommand(@"
+IF EXISTS (
+    SELECT 1
+    FROM trainingplan.tbl_tp_ip_acvtivity_detail
+    WHERE ttiad_ttiam_ActivityId = @activity_id
+)
+BEGIN
+    UPDATE trainingplan.tbl_tp_ip_acvtivity_detail
+    SET
+        ttiad_DetailJson = @detail_json,
+        ttiad_SchemaVersion = @schema_version,
+        ttiad_UpdatedOn = SYSUTCDATETIME()
+    WHERE ttiad_ttiam_ActivityId = @activity_id;
+END
+ELSE
+BEGIN
+    INSERT INTO trainingplan.tbl_tp_ip_acvtivity_detail
+    (
+        ttiad_ttiam_ActivityId,
+        ttiad_DetailJson,
+        ttiad_SchemaVersion
+    )
+    VALUES
+    (
+        @activity_id,
+        @detail_json,
+        @schema_version
+    );
+END", con, transaction);
+
+            cmd.Parameters.AddWithValue("@activity_id", activityId);
+            cmd.Parameters.AddWithValue("@detail_json", detailJson);
+            cmd.Parameters.AddWithValue("@schema_version", schemaVersion <= 0 ? 1 : schemaVersion);
+            cmd.ExecuteNonQuery();
+        }
+
+        private static InteractivePlayerActivity? GetActivityById(
+            SqlConnection con,
+            SqlTransaction transaction,
+            long activityId)
+        {
+            using SqlCommand cmd = new SqlCommand($@"
+{ActivitySelectSql}
+WHERE m.ttiam_activityid = @activity_id;", con, transaction);
+            cmd.Parameters.AddWithValue("@activity_id", activityId);
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return MapActivity(reader);
+            }
+
+            return null;
+        }
+
+        private static void AddMasterActivityParameters(
+            SqlCommand cmd,
+            string sessionId,
+            string contentId,
+            string? type,
+            string? title,
+            string? instruction,
+            string? bodyText,
+            string? triggerMode,
+            int? triggerTime,
+            int? pageNumber,
+            bool pauseOnTrigger,
+            bool skippable,
+            int? displayOrder,
+            string? createdBy,
+            string? updatedBy,
+            string? branchId)
+        {
+            string normalizedTriggerMode = NormalizeTriggerMode(triggerMode);
+            bool isCustom = normalizedTriggerMode == "custom";
+            bool isPage = normalizedTriggerMode == "page";
+            string resolvedCreatedBy = string.IsNullOrWhiteSpace(createdBy) ? "system" : createdBy.Trim();
+            string resolvedUpdatedBy = string.IsNullOrWhiteSpace(updatedBy) ? resolvedCreatedBy : updatedBy.Trim();
+
+            cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@content_id", contentId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@activity_type", NormalizeActivityType(type));
+            cmd.Parameters.AddWithValue("@title", title?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@instruction", instruction?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@body_text", bodyText?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@trigger_mode", normalizedTriggerMode);
+            cmd.Parameters.AddWithValue("@trigger_time", isCustom ? DbValue(triggerTime) : DBNull.Value);
+            cmd.Parameters.AddWithValue("@page_number", isPage ? DbValue(pageNumber) : DBNull.Value);
+            cmd.Parameters.AddWithValue("@pause_on_trigger", pauseOnTrigger);
+            cmd.Parameters.AddWithValue("@skippable", skippable);
+            cmd.Parameters.AddWithValue("@display_order", DbValue(displayOrder));
+            cmd.Parameters.AddWithValue("@created_by", resolvedCreatedBy);
+            cmd.Parameters.AddWithValue("@updated_by", resolvedUpdatedBy);
+            cmd.Parameters.AddWithValue("@branch_id", branchId?.Trim() ?? string.Empty);
+        }
+
+        private static string ResolveDetailJson(JsonElement? details, string? detailJson)
+        {
+            if (!string.IsNullOrWhiteSpace(detailJson))
+            {
+                return detailJson;
+            }
+
+            string? detailsJson = ToJsonString(details);
+            return string.IsNullOrWhiteSpace(detailsJson) ? "{}" : detailsJson;
+        }
+
+        private static bool TryParseActivityId(string? activityId, out long parsedActivityId)
+        {
+            return long.TryParse(activityId, out parsedActivityId);
         }
 
         private static string? ToJsonString<T>(T? value)
@@ -472,6 +631,17 @@ namespace LitteraCore.DBContext
 
             object value = reader[columnName];
             return value == DBNull.Value ? null : Convert.ToInt32(value);
+        }
+
+        private static decimal? SafeNullableDecimal(SqlDataReader reader, string columnName)
+        {
+            if (!HasColumn(reader, columnName))
+            {
+                return null;
+            }
+
+            object value = reader[columnName];
+            return value == DBNull.Value ? null : Convert.ToDecimal(value);
         }
 
         private static bool SafeBool(SqlDataReader reader, string columnName, bool fallback = false)

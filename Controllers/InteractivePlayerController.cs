@@ -2,6 +2,7 @@ using LitteraCore.BLContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Text.Json;
 
 namespace LitteraCore.Controllers
 {
@@ -18,7 +19,7 @@ namespace LitteraCore.Controllers
 
         [HttpGet("activities/{contentId}")]
         [SwaggerOperation("To get interactive player activities for a content item.")]
-        public IActionResult GetActivities(string contentId)
+        public IActionResult GetActivities(string contentId, [FromQuery] string? sessionId = null)
         {
             if (string.IsNullOrWhiteSpace(contentId))
             {
@@ -26,16 +27,29 @@ namespace LitteraCore.Controllers
             }
 
             InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            return Ok(bl.GetActivities(contentId));
+            return Ok(bl.GetActivities(contentId, sessionId));
         }
 
         [HttpPost("activities")]
         [SwaggerOperation("To create an interactive player activity.")]
         public IActionResult CreateActivity([FromBody] CreateInteractivePlayerActivityRequest request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.ContentId))
+            if (request == null)
             {
                 return BadRequest("A valid activity payload is required.");
+            }
+            string? validationMessage = ValidateActivityRequest(
+                request.SessionId,
+                request.ContentId,
+                request.Title,
+                request.Instruction,
+                request.BodyText,
+                request.BranchId,
+                request.DetailJson,
+                request.Details);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
             }
 
             InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
@@ -55,6 +69,19 @@ namespace LitteraCore.Controllers
             if (request == null)
             {
                 return BadRequest("A valid update payload is required.");
+            }
+            string? validationMessage = ValidateActivityRequest(
+                request.SessionId,
+                request.ContentId,
+                request.Title,
+                request.Instruction,
+                request.BodyText,
+                request.BranchId,
+                request.DetailJson,
+                request.Details);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
             }
 
             InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
@@ -124,6 +151,62 @@ namespace LitteraCore.Controllers
 
             InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
             return Ok(bl.SaveQuizSubmission(request));
+        }
+
+        private static string? ValidateActivityRequest(
+            string? sessionId,
+            string? contentId,
+            string? title,
+            string? instruction,
+            string? bodyText,
+            string? branchId,
+            string? detailJson,
+            JsonElement? details)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return "sessionId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(contentId))
+            {
+                return "contentId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return "title is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(instruction))
+            {
+                return "instruction is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(bodyText))
+            {
+                return "bodyText is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(branchId))
+            {
+                return "branchId is required.";
+            }
+
+            string resolvedDetailJson = !string.IsNullOrWhiteSpace(detailJson)
+                ? detailJson
+                : details?.GetRawText() ?? "{}";
+
+            try
+            {
+                JsonDocument.Parse(resolvedDetailJson);
+            }
+            catch (JsonException)
+            {
+                return "detailJson must contain valid JSON.";
+            }
+
+            return null;
         }
     }
 }

@@ -4,125 +4,70 @@ namespace LitteraCore.Models
 {
     public class CreateInteractivePlayerActivityRequest
     {
+        public string SessionId { get; set; } = string.Empty;
         public string ContentId { get; set; } = string.Empty;
-        public string Type { get; set; } = "quiz";
-        public int TriggerTime { get; set; }
-        public string? TriggerMode { get; set; }
-        public bool PauseOnTrigger { get; set; } = true;
-        public bool Skippable { get; set; } = true;
-        public string? CreatedBy { get; set; }
-        public string? Question { get; set; }
+        public string Type { get; set; } = "POP";
         public string? Title { get; set; }
-        public string? Description { get; set; }
-        public bool? AllowVoiceRecord { get; set; }
-        public int? VoiceMaxSeconds { get; set; }
-        public bool? AllowVideoRecord { get; set; }
-        public int? VideoMaxSeconds { get; set; }
-        public int? VideoMaxSizeMb { get; set; }
-        public bool? AllowFileUpload { get; set; }
-        public List<string>? UploadAllowedTypes { get; set; }
-        public int? UploadMaxSizeMb { get; set; }
-        public string? Prompt { get; set; }
-        public bool? CollectStudentName { get; set; }
         public string? Instruction { get; set; }
-        public string? QuestionFormat { get; set; }
-        public string? QuestionMediaUrl { get; set; }
-        public string? QuestionCaption { get; set; }
-        public string? FillBlankText { get; set; }
-        public JsonElement? Options { get; set; }
-        public int? CorrectAnswerIndex { get; set; }
-        public string? CorrectOptionId { get; set; }
-        public string? DisplayMode { get; set; }
-        public List<string>? Images { get; set; }
-        public int? ImageDisplaySeconds { get; set; }
-        public int? QuestionRepeatCount { get; set; }
-        public int? TurnDurationSeconds { get; set; }
-        public List<string>? GroupNames { get; set; }
-        public string? WinnerRule { get; set; }
-        public string? TieBreaker { get; set; }
-        public string? Difficulty { get; set; }
+        public string? BodyText { get; set; }
+        public string? TriggerMode { get; set; } = "START";
+        public int? TriggerTime { get; set; }
+        public int? PageNumber { get; set; }
+        public bool PauseOnTrigger { get; set; } = true;
+        public bool Skippable { get; set; } = false;
+        public int? DisplayOrder { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public string? BranchId { get; set; }
+        public JsonElement? Details { get; set; }
+        public string? DetailJson { get; set; }
+        public int SchemaVersion { get; set; } = 1;
     }
 
     public class UpdateInteractivePlayerActivityRequest
     {
-        public int TriggerTime { get; set; }
-        public string? TriggerMode { get; set; }
-        public bool PauseOnTrigger { get; set; } = true;
-        public bool Skippable { get; set; } = true;
-        public string? Question { get; set; }
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public string Type { get; set; } = "POP";
         public string? Title { get; set; }
-        public string? Description { get; set; }
-        public bool? AllowVoiceRecord { get; set; }
-        public int? VoiceMaxSeconds { get; set; }
-        public bool? AllowVideoRecord { get; set; }
-        public int? VideoMaxSeconds { get; set; }
-        public int? VideoMaxSizeMb { get; set; }
-        public bool? AllowFileUpload { get; set; }
-        public List<string>? UploadAllowedTypes { get; set; }
-        public int? UploadMaxSizeMb { get; set; }
-        public string? Prompt { get; set; }
-        public bool? CollectStudentName { get; set; }
         public string? Instruction { get; set; }
-        public string? QuestionFormat { get; set; }
-        public string? QuestionMediaUrl { get; set; }
-        public string? QuestionCaption { get; set; }
-        public string? FillBlankText { get; set; }
-        public JsonElement? Options { get; set; }
-        public int? CorrectAnswerIndex { get; set; }
-        public string? CorrectOptionId { get; set; }
-        public string? DisplayMode { get; set; }
-        public List<string>? Images { get; set; }
-        public int? ImageDisplaySeconds { get; set; }
-        public int? QuestionRepeatCount { get; set; }
-        public int? TurnDurationSeconds { get; set; }
-        public List<string>? GroupNames { get; set; }
-        public string? WinnerRule { get; set; }
-        public string? TieBreaker { get; set; }
-        public string? Difficulty { get; set; }
+        public string? BodyText { get; set; }
+        public string? TriggerMode { get; set; } = "START";
+        public int? TriggerTime { get; set; }
+        public int? PageNumber { get; set; }
+        public bool PauseOnTrigger { get; set; } = true;
+        public bool Skippable { get; set; } = false;
+        public int? DisplayOrder { get; set; }
+        public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public string? BranchId { get; set; }
+        public JsonElement? Details { get; set; }
+        public string? DetailJson { get; set; }
+        public int SchemaVersion { get; set; } = 1;
     }
 
     public class InteractivePlayerActivity
     {
         public string Id { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
         public string ContentId { get; set; } = string.Empty;
-        public string Type { get; set; } = "quiz";
-        public int TriggerTime { get; set; }
-        public string TriggerMode { get; set; } = "time";
+        public string Type { get; set; } = "POP";
+        public string? Title { get; set; }
+        public string? Instruction { get; set; }
+        public string? BodyText { get; set; }
+        public string TriggerMode { get; set; } = "START";
+        public int? TriggerTime { get; set; }
+        public int? PageNumber { get; set; }
         public bool PauseOnTrigger { get; set; } = true;
-        public bool Skippable { get; set; } = true;
+        public bool Skippable { get; set; } = false;
+        public int? DisplayOrder { get; set; }
         public string? CreatedBy { get; set; }
+        public string? UpdatedBy { get; set; }
+        public string? BranchId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
-        public string? Question { get; set; }
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public bool? AllowVoiceRecord { get; set; }
-        public int? VoiceMaxSeconds { get; set; }
-        public bool? AllowVideoRecord { get; set; }
-        public int? VideoMaxSeconds { get; set; }
-        public int? VideoMaxSizeMb { get; set; }
-        public bool? AllowFileUpload { get; set; }
-        public List<string>? UploadAllowedTypes { get; set; }
-        public int? UploadMaxSizeMb { get; set; }
-        public string? Prompt { get; set; }
-        public bool? CollectStudentName { get; set; }
-        public string? Instruction { get; set; }
-        public string? QuestionFormat { get; set; }
-        public string? QuestionMediaUrl { get; set; }
-        public string? QuestionCaption { get; set; }
-        public string? FillBlankText { get; set; }
-        public JsonElement? Options { get; set; }
-        public int? CorrectAnswerIndex { get; set; }
-        public string? CorrectOptionId { get; set; }
-        public string? DisplayMode { get; set; }
-        public List<string>? Images { get; set; }
-        public int? ImageDisplaySeconds { get; set; }
-        public int? QuestionRepeatCount { get; set; }
-        public int? TurnDurationSeconds { get; set; }
-        public List<string>? GroupNames { get; set; }
-        public string? WinnerRule { get; set; }
-        public string? TieBreaker { get; set; }
-        public string? Difficulty { get; set; }
+        public string? DetailJson { get; set; }
+        public int SchemaVersion { get; set; } = 1;
     }
 
     public class CreateInteractivePlayerOutcomeRequest

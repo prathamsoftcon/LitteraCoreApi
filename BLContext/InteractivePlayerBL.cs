@@ -12,10 +12,10 @@ namespace LitteraCore.BLContext
             _configuration = configuration;
         }
 
-        public List<InteractivePlayerActivity> GetActivities(string contentId)
+        public List<InteractivePlayerActivity> GetActivities(string contentId, string? sessionId = null)
         {
             InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
-            return db.GetActivities(contentId);
+            return db.GetActivities(contentId, sessionId);
         }
 
         public InteractivePlayerActivity SaveActivity(CreateInteractivePlayerActivityRequest request)
