@@ -236,6 +236,84 @@ WHERE ttiam_activityid = @activity_id;", con);
             throw new Exception("Interactive player quiz submission could not be saved.");
         }
 
+        public InteractivePlayerActivityResponse SaveActivityResponse(CreateInteractivePlayerActivityResponseRequest request)
+        {
+            if (!TryParseActivityId(request.ActivityId, out long parsedActivityId))
+            {
+                throw new ArgumentException("activityId must be a valid numeric value.", nameof(request.ActivityId));
+            }
+
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_ip_ins_activity_response", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@activity_id", parsedActivityId);
+            cmd.Parameters.AddWithValue("@session_id", request.SessionId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@content_id", request.ContentId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@activity_type", request.ActivityType?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@user_id", request.UserId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@user_type", request.UserType?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@status", request.Status?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@response_json", DbValue(ToJsonString(request.ResponseJson)));
+            cmd.Parameters.AddWithValue("@result_json", DbValue(ToJsonString(request.ResultJson)));
+            cmd.Parameters.AddWithValue("@started_at", DbValue(request.StartedAt));
+            cmd.Parameters.AddWithValue("@completed_at", DbValue(request.CompletedAt));
+
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return MapActivityResponse(reader);
+            }
+
+            throw new Exception("Interactive player activity response could not be saved.");
+        }
+
+        public InteractivePlayerLatestActivityResponse GetLatestActivityResponse(string activityId, string sessionId, string contentId, string userId)
+        {
+            InteractivePlayerLatestActivityResponse fallbackResponse = new InteractivePlayerLatestActivityResponse
+            {
+                HasPriorSubmission = false,
+                LastAttemptNumber = 0,
+                LastSubmittedAt = null,
+                LastStatus = string.Empty,
+                LatestResponseJson = null,
+            };
+
+            if (!TryParseActivityId(activityId, out long parsedActivityId))
+            {
+                return fallbackResponse;
+            }
+
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_ip_get_latest_activity_response", con);
+
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@activity_id", parsedActivityId);
+            cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@content_id", contentId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@user_id", userId?.Trim() ?? string.Empty);
+
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (!reader.Read())
+            {
+                return fallbackResponse;
+            }
+
+            return MapLatestActivityResponse(reader);
+        }
+
         private static InteractivePlayerActivity MapActivity(SqlDataReader reader)
         {
             return new InteractivePlayerActivity
@@ -302,6 +380,40 @@ WHERE ttiam_activityid = @activity_id;", con);
                 AnsweredAt = SafeString(reader, "answered_at"),
                 TeacherId = SafeNullableString(reader, "teacher_id"),
                 CreatedAt = SafeDateTimeOffset(reader, "created_at")
+            };
+        }
+
+        private static InteractivePlayerActivityResponse MapActivityResponse(SqlDataReader reader)
+        {
+            return new InteractivePlayerActivityResponse
+            {
+                ResponseId = SafeString(reader, "response_id"),
+                ActivityId = SafeString(reader, "activity_id"),
+                SessionId = SafeString(reader, "session_id"),
+                ContentId = SafeString(reader, "content_id"),
+                ActivityType = SafeString(reader, "activity_type"),
+                UserId = SafeString(reader, "user_id"),
+                UserType = SafeString(reader, "user_type"),
+                AttemptNumber = SafeInt(reader, "attempt_number"),
+                IsResubmission = SafeBool(reader, "is_resubmission"),
+                Status = SafeString(reader, "status"),
+                ResponseJson = ParseJsonElement(SafeNullableString(reader, "response_json")),
+                ResultJson = ParseJsonElement(SafeNullableString(reader, "result_json")),
+                StartedAt = SafeNullableString(reader, "started_at"),
+                CompletedAt = SafeNullableString(reader, "completed_at"),
+                CreatedOn = SafeDateTimeOffset(reader, "created_on"),
+            };
+        }
+
+        private static InteractivePlayerLatestActivityResponse MapLatestActivityResponse(SqlDataReader reader)
+        {
+            return new InteractivePlayerLatestActivityResponse
+            {
+                HasPriorSubmission = SafeBool(reader, "has_prior_submission"),
+                LastAttemptNumber = SafeInt(reader, "last_attempt_number"),
+                LastSubmittedAt = SafeNullableString(reader, "last_submitted_at"),
+                LastStatus = SafeString(reader, "last_status"),
+                LatestResponseJson = ParseJsonElement(SafeNullableString(reader, "latest_response_json")),
             };
         }
 

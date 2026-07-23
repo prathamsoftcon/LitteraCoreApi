@@ -138,4 +138,47 @@ namespace LitteraCore.Models
         public DateTimeOffset CreatedAt { get; set; }
     }
 
+    public class CreateInteractivePlayerActivityResponseRequest
+    {
+        public string ActivityId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public string ActivityType { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public JsonElement? ResponseJson { get; set; }
+        public JsonElement? ResultJson { get; set; }
+        public string? StartedAt { get; set; }
+        public string? CompletedAt { get; set; }
+    }
+
+    public class InteractivePlayerActivityResponse
+    {
+        public string ResponseId { get; set; } = string.Empty;
+        public string ActivityId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public string ActivityType { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public int AttemptNumber { get; set; }
+        public bool IsResubmission { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public JsonElement? ResponseJson { get; set; }
+        public JsonElement? ResultJson { get; set; }
+        public string? StartedAt { get; set; }
+        public string? CompletedAt { get; set; }
+        public DateTimeOffset CreatedOn { get; set; }
+    }
+
+    public class InteractivePlayerLatestActivityResponse
+    {
+        public bool HasPriorSubmission { get; set; }
+        public int LastAttemptNumber { get; set; }
+        public string? LastSubmittedAt { get; set; }
+        public string LastStatus { get; set; } = string.Empty;
+        public JsonElement? LatestResponseJson { get; set; }
+    }
+
 }
