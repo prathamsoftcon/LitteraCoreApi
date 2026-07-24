@@ -1,6 +1,8 @@
 using LitteraCore.BLContext;
+using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
@@ -26,8 +28,22 @@ namespace LitteraCore.Controllers
                 return BadRequest("contentId is required.");
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            return Ok(bl.GetActivities(contentId, sessionId));
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.GetActivities(contentId, sessionId) ?? new List<InteractivePlayerActivity>());
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "Unable to load interactive activities."
+                });
+            }
         }
 
         [HttpPost("activities")]
@@ -41,10 +57,12 @@ namespace LitteraCore.Controllers
             string? validationMessage = ValidateActivityRequest(
                 request.SessionId,
                 request.ContentId,
+                request.Type,
                 request.Title,
                 request.Instruction,
                 request.BodyText,
                 request.BranchId,
+                request.IsActive,
                 request.DetailJson,
                 request.Details);
             if (validationMessage != null)
@@ -52,9 +70,16 @@ namespace LitteraCore.Controllers
                 return BadRequest(validationMessage);
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            var saved = bl.SaveActivity(request);
-            return Ok(saved);
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                var saved = bl.SaveActivity(request);
+                return Ok(saved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         [HttpPut("activities/{activityId}")]
@@ -66,6 +91,11 @@ namespace LitteraCore.Controllers
                 return BadRequest("activityId is required.");
             }
 
+            if (!IsValidActivityId(activityId))
+            {
+                return BadRequest("activityId must be a valid numeric value.");
+            }
+
             if (request == null)
             {
                 return BadRequest("A valid update payload is required.");
@@ -73,10 +103,12 @@ namespace LitteraCore.Controllers
             string? validationMessage = ValidateActivityRequest(
                 request.SessionId,
                 request.ContentId,
+                request.Type,
                 request.Title,
                 request.Instruction,
                 request.BodyText,
                 request.BranchId,
+                request.IsActive,
                 request.DetailJson,
                 request.Details);
             if (validationMessage != null)
@@ -84,14 +116,21 @@ namespace LitteraCore.Controllers
                 return BadRequest(validationMessage);
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            var updated = bl.UpdateActivity(activityId, request);
-            if (updated == null)
+            try
             {
-                return NotFound();
-            }
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                var updated = bl.UpdateActivity(activityId, request);
+                if (updated == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(updated);
+                return Ok(updated);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         [HttpPost("activities/{activityId}/update")]
@@ -110,14 +149,26 @@ namespace LitteraCore.Controllers
                 return BadRequest("activityId is required.");
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            var deleted = bl.DeleteActivity(activityId);
-            if (!deleted)
+            if (!IsValidActivityId(activityId))
             {
-                return NotFound();
+                return BadRequest("activityId must be a valid numeric value.");
             }
 
-            return Ok(true);
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                var deleted = bl.DeleteActivity(activityId);
+                if (!deleted)
+                {
+                    return NotFound();
+                }
+
+                return Ok(true);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         [HttpPost("activities/{activityId}/delete")]
@@ -136,8 +187,15 @@ namespace LitteraCore.Controllers
                 return BadRequest("A valid outcome payload is required.");
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            return Ok(bl.SaveOutcome(request));
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.SaveOutcome(request));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
         [HttpPost("quiz-submissions")]
@@ -149,17 +207,144 @@ namespace LitteraCore.Controllers
                 return BadRequest("A valid quiz submission payload is required.");
             }
 
-            InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
-            return Ok(bl.SaveQuizSubmission(request));
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.SaveQuizSubmission(request));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPost("activity-responses")]
+        [SwaggerOperation("To save an interactive player activity response.")]
+        public IActionResult SaveActivityResponse([FromBody] CreateInteractivePlayerActivityResponseRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("A valid activity response payload is required.");
+            }
+
+            string? validationMessage = ValidateActivityResponseRequest(request);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
+            if (!IsValidActivityId(request.ActivityId))
+            {
+                return BadRequest("activityId must be a valid numeric value.");
+            }
+
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.SaveActivityResponse(request));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet("activity-responses/latest")]
+        [SwaggerOperation("To get the latest interactive player activity response for a learner.")]
+        public IActionResult GetLatestActivityResponse(
+            [FromQuery] string activityId,
+            [FromQuery] string sessionId,
+            [FromQuery] string contentId,
+            [FromQuery] string userId)
+        {
+            if (string.IsNullOrWhiteSpace(activityId))
+            {
+                return BadRequest("activityId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return BadRequest("sessionId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(contentId))
+            {
+                return BadRequest("contentId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest("userId is required.");
+            }
+
+            if (!IsValidActivityId(activityId))
+            {
+                return BadRequest("activityId must be a valid numeric value.");
+            }
+
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.GetLatestActivityResponse(activityId, sessionId, contentId, userId));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet("activity-responses/poll-summary")]
+        [SwaggerOperation("To get aggregate poll summary for an interactive player poll activity.")]
+        public IActionResult GetPollSummary(
+            [FromQuery] string activityId,
+            [FromQuery] string sessionId,
+            [FromQuery] string contentId)
+        {
+            if (string.IsNullOrWhiteSpace(activityId))
+            {
+                return BadRequest("activityId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return BadRequest("sessionId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(contentId))
+            {
+                return BadRequest("contentId is required.");
+            }
+
+            if (!IsValidActivityId(activityId))
+            {
+                return BadRequest("activityId must be a valid numeric value.");
+            }
+
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.GetPollSummary(activityId, sessionId, contentId));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        private static bool IsValidActivityId(string? activityId)
+        {
+            return long.TryParse(activityId, out _);
         }
 
         private static string? ValidateActivityRequest(
             string? sessionId,
             string? contentId,
+            string? activityType,
             string? title,
             string? instruction,
             string? bodyText,
             string? branchId,
+            int? isActive,
             string? detailJson,
             JsonElement? details)
         {
@@ -173,24 +358,19 @@ namespace LitteraCore.Controllers
                 return "contentId is required.";
             }
 
-            if (string.IsNullOrWhiteSpace(title))
+            if (string.IsNullOrWhiteSpace(activityType))
             {
-                return "title is required.";
-            }
-
-            if (string.IsNullOrWhiteSpace(instruction))
-            {
-                return "instruction is required.";
-            }
-
-            if (string.IsNullOrWhiteSpace(bodyText))
-            {
-                return "bodyText is required.";
+                return "type is required.";
             }
 
             if (string.IsNullOrWhiteSpace(branchId))
             {
                 return "branchId is required.";
+            }
+
+            if (isActive.HasValue && isActive != 1 && isActive != 2 && isActive != 9)
+            {
+                return "isActive must be 1 (Active), 2 (Paused), or 9 (Deleted).";
             }
 
             string resolvedDetailJson = !string.IsNullOrWhiteSpace(detailJson)
@@ -207,6 +387,245 @@ namespace LitteraCore.Controllers
             }
 
             return null;
+        }
+
+        private static string? ValidateActivityResponseRequest(CreateInteractivePlayerActivityResponseRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ActivityId))
+            {
+                return "activityId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.SessionId))
+            {
+                return "sessionId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ContentId))
+            {
+                return "contentId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ActivityType))
+            {
+                return "activityType is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.UserId))
+            {
+                return "userId is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.UserType))
+            {
+                return "userType is required.";
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Status))
+            {
+                return "status is required.";
+            }
+
+            if (request.ResponseJson == null || request.ResponseJson.Value.ValueKind != JsonValueKind.Object)
+            {
+                return "responseJson must contain a valid JSON object.";
+            }
+
+            if (!string.Equals(request.Status.Trim(), "completed", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            JsonElement responseJson = request.ResponseJson.Value;
+            if (TryGetArray(responseJson, "responses", out JsonElement responses))
+            {
+                return ValidateBundledActivityResponses(responses);
+            }
+
+            string responseType = GetJsonString(responseJson, "responseType");
+            if (string.IsNullOrWhiteSpace(responseType))
+            {
+                return "responseJson.responseType is required for completed submissions.";
+            }
+
+            string submissionMethod = GetJsonString(responseJson, "submissionMethod");
+            if (string.IsNullOrWhiteSpace(submissionMethod))
+            {
+                return "responseJson.submissionMethod is required for completed submissions.";
+            }
+
+            if (string.Equals(submissionMethod, "LINK", StringComparison.OrdinalIgnoreCase))
+            {
+                string linkUrl = GetJsonString(responseJson, "linkUrl");
+                if (string.IsNullOrWhiteSpace(linkUrl))
+                {
+                    return "responseJson.linkUrl is required when submissionMethod is LINK.";
+                }
+            }
+
+            if (
+                string.Equals(submissionMethod, "UPLOAD", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(submissionMethod, "RECORD", StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                string? uploadValidationMessage = ValidateUploadedFile(responseJson, "responseJson.uploadedFile");
+                if (uploadValidationMessage != null)
+                {
+                    return uploadValidationMessage;
+                }
+            }
+
+            return null;
+        }
+
+        private static string? ValidateBundledActivityResponses(JsonElement responses)
+        {
+            if (responses.ValueKind != JsonValueKind.Array)
+            {
+                return "responseJson.responses must be an array.";
+            }
+
+            int responseIndex = 0;
+            bool hasSubmittedResponse = false;
+
+            foreach (JsonElement responseItem in responses.EnumerateArray())
+            {
+                responseIndex++;
+
+                if (responseItem.ValueKind != JsonValueKind.Object)
+                {
+                    return $"responseJson.responses[{responseIndex - 1}] must be a JSON object.";
+                }
+
+                string responseType = GetJsonString(responseItem, "responseType");
+                if (string.IsNullOrWhiteSpace(responseType))
+                {
+                    return $"responseJson.responses[{responseIndex - 1}].responseType is required.";
+                }
+
+                string submissionMethod = GetJsonString(responseItem, "submissionMethod");
+                if (string.IsNullOrWhiteSpace(submissionMethod))
+                {
+                    return $"responseJson.responses[{responseIndex - 1}].submissionMethod is required.";
+                }
+
+                bool isEmpty = GetJsonBoolean(responseItem, "isEmpty");
+                if (isEmpty)
+                {
+                    continue;
+                }
+
+                hasSubmittedResponse = true;
+
+                if (string.Equals(submissionMethod, "LINK", StringComparison.OrdinalIgnoreCase))
+                {
+                    string linkUrl = GetJsonString(responseItem, "linkUrl");
+                    if (string.IsNullOrWhiteSpace(linkUrl))
+                    {
+                        return $"responseJson.responses[{responseIndex - 1}].linkUrl is required when submissionMethod is LINK.";
+                    }
+                }
+
+                if (
+                    string.Equals(submissionMethod, "UPLOAD", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(submissionMethod, "RECORD", StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    string? uploadValidationMessage = ValidateUploadedFile(
+                        responseItem,
+                        $"responseJson.responses[{responseIndex - 1}].uploadedFile");
+                    if (uploadValidationMessage != null)
+                    {
+                        return uploadValidationMessage;
+                    }
+                }
+            }
+
+            if (responseIndex == 0)
+            {
+                return "responseJson.responses must contain at least one response item.";
+            }
+
+            if (!hasSubmittedResponse)
+            {
+                return "responseJson.responses must contain at least one completed learner response.";
+            }
+
+            return null;
+        }
+
+        private static string? ValidateUploadedFile(JsonElement jsonElement, string jsonPath)
+        {
+            if (!TryGetObject(jsonElement, "uploadedFile", out JsonElement uploadedFile))
+            {
+                return $"{jsonPath} is required when submissionMethod is UPLOAD or RECORD.";
+            }
+
+            string fileUrl = GetJsonString(uploadedFile, "fileUrl");
+            string storedPath = GetJsonString(uploadedFile, "storedPath");
+            string fileName = GetJsonString(uploadedFile, "fileName");
+            if (string.IsNullOrWhiteSpace(fileUrl) && string.IsNullOrWhiteSpace(storedPath) && string.IsNullOrWhiteSpace(fileName))
+            {
+                return $"{jsonPath} must include file details when submissionMethod is UPLOAD or RECORD.";
+            }
+
+            return null;
+        }
+
+        private static string GetJsonString(JsonElement jsonElement, string propertyName)
+        {
+            if (!jsonElement.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return string.Empty;
+            }
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.String => value.GetString()?.Trim() ?? string.Empty,
+                JsonValueKind.Number => value.ToString().Trim(),
+                JsonValueKind.True => "true",
+                JsonValueKind.False => "false",
+                _ => string.Empty,
+            };
+        }
+
+        private static bool GetJsonBoolean(JsonElement jsonElement, string propertyName)
+        {
+            if (!jsonElement.TryGetProperty(propertyName, out JsonElement value))
+            {
+                return false;
+            }
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.String => bool.TryParse(value.GetString(), out bool parsedValue) && parsedValue,
+                JsonValueKind.Number => value.TryGetInt32(out int numericValue) && numericValue != 0,
+                _ => false,
+            };
+        }
+
+        private static bool TryGetObject(JsonElement jsonElement, string propertyName, out JsonElement objectElement)
+        {
+            if (jsonElement.TryGetProperty(propertyName, out objectElement) && objectElement.ValueKind == JsonValueKind.Object)
+            {
+                return true;
+            }
+
+            objectElement = default;
+            return false;
+        }
+
+        private static bool TryGetArray(JsonElement jsonElement, string propertyName, out JsonElement arrayElement)
+        {
+            if (jsonElement.TryGetProperty(propertyName, out arrayElement) && arrayElement.ValueKind == JsonValueKind.Array)
+            {
+                return true;
+            }
+
+            arrayElement = default;
+            return false;
         }
     }
 }

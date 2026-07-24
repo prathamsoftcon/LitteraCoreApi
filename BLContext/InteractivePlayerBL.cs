@@ -47,5 +47,23 @@ namespace LitteraCore.BLContext
             InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
             return db.SaveQuizSubmission(request);
         }
+
+        public InteractivePlayerActivityResponse SaveActivityResponse(CreateInteractivePlayerActivityResponseRequest request)
+        {
+            InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
+            return db.SaveActivityResponse(request);
+        }
+
+        public InteractivePlayerLatestActivityResponse GetLatestActivityResponse(string activityId, string sessionId, string contentId, string userId)
+        {
+            InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
+            return db.GetLatestActivityResponse(activityId, sessionId, contentId, userId);
+        }
+
+        public InteractivePlayerPollSummary GetPollSummary(string activityId, string sessionId, string contentId)
+        {
+            InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
+            return db.GetPollSummary(activityId, sessionId, contentId);
+        }
     }
 }

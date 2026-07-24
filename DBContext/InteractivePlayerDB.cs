@@ -8,6 +8,12 @@ namespace LitteraCore.DBContext
     public class InteractivePlayerDB
     {
         private readonly IConfiguration _configuration;
+        private enum ActivityStatus
+        {
+            Active = 1,
+            Inactive = 2,
+            Deleted = 9
+        }
         private const string ActivitySelectSql = @"
 SELECT
     CAST(m.ttiam_activityid AS nvarchar(50)) AS activity_id,
@@ -23,6 +29,7 @@ SELECT
     m.ttiam_pauseontrigger AS pause_on_trigger,
     m.ttiam_skippable AS skippable,
     m.ttiam_displayorder AS display_order,
+    CAST(m.ttiam_isactive AS int) AS activity_status,
     m.ttiam_createdby AS created_by,
     m.ttiam_updatedby AS updated_by,
     m.ttiam_branchid AS branch_id,
@@ -45,7 +52,7 @@ LEFT JOIN trainingplan.tbl_tp_ip_acvtivity_detail d
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
             using SqlCommand cmd = new SqlCommand($@"
 {ActivitySelectSql}
-WHERE m.ttiam_isactive = 1
+WHERE m.ttiam_isactive <> {(int)ActivityStatus.Deleted}
   AND m.ttiam_contentid = @content_id
   AND (@session_id = '' OR m.ttiam_sessionid = @session_id)
 ORDER BY
@@ -149,12 +156,17 @@ ORDER BY
 
             using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
             using SqlCommand cmd = new SqlCommand(@"
-DELETE FROM trainingplan.tbl_tp_ip_acvtivity_master
-WHERE ttiam_activityid = @activity_id;", con);
+UPDATE trainingplan.tbl_tp_ip_acvtivity_master
+SET
+    ttiam_isactive = @deleted_status,
+    ttiam_updatedon = SYSUTCDATETIME()
+WHERE ttiam_activityid = @activity_id
+  AND ttiam_isactive <> @deleted_status;", con);
 
             cmd.CommandType = CommandType.Text;
             cmd.CommandTimeout = 5000;
             cmd.Parameters.AddWithValue("@activity_id", parsedActivityId);
+            cmd.Parameters.AddWithValue("@deleted_status", (int)ActivityStatus.Deleted);
 
             if (con.State != ConnectionState.Open)
             {
@@ -314,6 +326,87 @@ WHERE ttiam_activityid = @activity_id;", con);
             return MapLatestActivityResponse(reader);
         }
 
+        public InteractivePlayerPollSummary GetPollSummary(string activityId, string sessionId, string contentId)
+        {
+            InteractivePlayerPollSummary summary = new InteractivePlayerPollSummary
+            {
+                ActivityId = activityId ?? string.Empty,
+                SessionId = sessionId ?? string.Empty,
+                ContentId = contentId ?? string.Empty,
+                TotalResponses = 0,
+                Items = new List<InteractivePlayerPollSummaryItem>(),
+            };
+
+            if (!TryParseActivityId(activityId, out long parsedActivityId))
+            {
+                return summary;
+            }
+
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand(@"
+WITH poll_rows AS (
+    SELECT
+        ISNULL(NULLIF(JSON_VALUE(r.ttipr_responsejson, '$.selectedOptionId'), ''), '') AS selected_option_id,
+        ISNULL(NULLIF(JSON_VALUE(r.ttipr_responsejson, '$.selectedOptionText'), ''), 'Untitled option') AS selected_option_text
+    FROM trainingplan.tbl_tp_ip_response r
+    WHERE r.ttipr_ttiam_activityid = @activity_id
+      AND r.ttipr_sessionid = @session_id
+      AND r.ttipr_contentid = @content_id
+      AND UPPER(r.ttipr_activitytype) = 'POLL'
+      AND UPPER(r.ttipr_status) = 'COMPLETED'
+),
+poll_counts AS (
+    SELECT
+        selected_option_id,
+        selected_option_text,
+        COUNT(1) AS response_count
+    FROM poll_rows
+    GROUP BY selected_option_id, selected_option_text
+)
+SELECT
+    c.selected_option_id,
+    c.selected_option_text,
+    c.response_count,
+    totals.total_responses
+FROM poll_counts c
+CROSS JOIN (
+    SELECT COUNT(1) AS total_responses
+    FROM poll_rows
+) totals
+ORDER BY c.response_count DESC, c.selected_option_text ASC;", con);
+
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@activity_id", parsedActivityId);
+            cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@content_id", contentId?.Trim() ?? string.Empty);
+
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                int totalResponses = SafeInt(reader, "total_responses", 0);
+                int responseCount = SafeInt(reader, "response_count", 0);
+
+                summary.TotalResponses = totalResponses;
+                summary.Items.Add(new InteractivePlayerPollSummaryItem
+                {
+                    SelectedOptionId = SafeString(reader, "selected_option_id"),
+                    SelectedOptionText = SafeString(reader, "selected_option_text"),
+                    ResponseCount = responseCount,
+                    Percentage = totalResponses > 0
+                        ? Math.Round((decimal)responseCount * 100m / totalResponses, 2, MidpointRounding.AwayFromZero)
+                        : 0m,
+                });
+            }
+
+            return summary;
+        }
+
         private static InteractivePlayerActivity MapActivity(SqlDataReader reader)
         {
             return new InteractivePlayerActivity
@@ -331,6 +424,7 @@ WHERE ttiam_activityid = @activity_id;", con);
                 PauseOnTrigger = SafeBool(reader, "pause_on_trigger"),
                 Skippable = SafeBool(reader, "skippable"),
                 DisplayOrder = SafeNullableInt(reader, "display_order"),
+                IsActive = SafeInt(reader, "activity_status", (int)ActivityStatus.Active),
                 CreatedBy = SafeNullableString(reader, "created_by"),
                 UpdatedBy = SafeNullableString(reader, "updated_by"),
                 BranchId = SafeNullableString(reader, "branch_id"),
@@ -481,7 +575,7 @@ VALUES
     @pause_on_trigger,
     @skippable,
     @display_order,
-    1,
+    @activity_status,
     @created_by,
     @branch_id,
     @updated_by
@@ -490,7 +584,7 @@ SELECT CAST(SCOPE_IDENTITY() AS bigint);", con, transaction);
 
             AddMasterActivityParameters(cmd, request.SessionId, request.ContentId, request.Type, request.Title, request.Instruction, request.BodyText,
                 request.TriggerMode, request.TriggerTime, request.PageNumber, request.PauseOnTrigger, request.Skippable,
-                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId);
+                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId, request.IsActive ?? (int)ActivityStatus.Active);
 
             return Convert.ToInt64(cmd.ExecuteScalar());
         }
@@ -516,15 +610,18 @@ SET
     ttiam_pauseontrigger = @pause_on_trigger,
     ttiam_skippable = @skippable,
     ttiam_displayorder = @display_order,
+    ttiam_isactive = COALESCE(@activity_status, ttiam_isactive),
     ttiam_branchid = @branch_id,
     ttiam_updatedby = @updated_by,
     ttiam_updatedon = SYSUTCDATETIME()
-WHERE ttiam_activityid = @activity_id;", con, transaction);
+WHERE ttiam_activityid = @activity_id
+  AND ttiam_isactive <> @deleted_status;", con, transaction);
 
             cmd.Parameters.AddWithValue("@activity_id", activityId);
+            cmd.Parameters.AddWithValue("@deleted_status", (int)ActivityStatus.Deleted);
             AddMasterActivityParameters(cmd, request.SessionId, request.ContentId, request.Type, request.Title, request.Instruction, request.BodyText,
                 request.TriggerMode, request.TriggerTime, request.PageNumber, request.PauseOnTrigger, request.Skippable,
-                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId);
+                request.DisplayOrder, request.CreatedBy, request.UpdatedBy, request.BranchId, request.IsActive);
 
             return cmd.ExecuteNonQuery() > 0;
         }
@@ -579,8 +676,10 @@ END", con, transaction);
         {
             using SqlCommand cmd = new SqlCommand($@"
 {ActivitySelectSql}
-WHERE m.ttiam_activityid = @activity_id;", con, transaction);
+WHERE m.ttiam_activityid = @activity_id
+  AND m.ttiam_isactive <> @deleted_status;", con, transaction);
             cmd.Parameters.AddWithValue("@activity_id", activityId);
+            cmd.Parameters.AddWithValue("@deleted_status", (int)ActivityStatus.Deleted);
 
             using SqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -607,13 +706,15 @@ WHERE m.ttiam_activityid = @activity_id;", con, transaction);
             int? displayOrder,
             string? createdBy,
             string? updatedBy,
-            string? branchId)
+            string? branchId,
+            int? isActive)
         {
             string normalizedTriggerMode = NormalizeTriggerMode(triggerMode);
             bool isCustom = normalizedTriggerMode == "custom";
             bool isPage = normalizedTriggerMode == "page";
             string resolvedCreatedBy = string.IsNullOrWhiteSpace(createdBy) ? "system" : createdBy.Trim();
             string resolvedUpdatedBy = string.IsNullOrWhiteSpace(updatedBy) ? resolvedCreatedBy : updatedBy.Trim();
+            int? normalizedStatus = isActive.HasValue ? NormalizeActivityStatus(isActive.Value) : null;
 
             cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
             cmd.Parameters.AddWithValue("@content_id", contentId?.Trim() ?? string.Empty);
@@ -627,9 +728,21 @@ WHERE m.ttiam_activityid = @activity_id;", con, transaction);
             cmd.Parameters.AddWithValue("@pause_on_trigger", pauseOnTrigger);
             cmd.Parameters.AddWithValue("@skippable", skippable);
             cmd.Parameters.AddWithValue("@display_order", DbValue(displayOrder));
+            cmd.Parameters.AddWithValue("@activity_status", DbValue(normalizedStatus));
             cmd.Parameters.AddWithValue("@created_by", resolvedCreatedBy);
             cmd.Parameters.AddWithValue("@updated_by", resolvedUpdatedBy);
             cmd.Parameters.AddWithValue("@branch_id", branchId?.Trim() ?? string.Empty);
+        }
+
+        private static int NormalizeActivityStatus(int value)
+        {
+            return value switch
+            {
+                (int)ActivityStatus.Active => (int)ActivityStatus.Active,
+                (int)ActivityStatus.Inactive => (int)ActivityStatus.Inactive,
+                (int)ActivityStatus.Deleted => (int)ActivityStatus.Deleted,
+                _ => (int)ActivityStatus.Active
+            };
         }
 
         private static string ResolveDetailJson(JsonElement? details, string? detailJson)

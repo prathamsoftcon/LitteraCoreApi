@@ -19,6 +19,7 @@ namespace LitteraCore.Models
         public string? CreatedBy { get; set; }
         public string? UpdatedBy { get; set; }
         public string? BranchId { get; set; }
+        public int? IsActive { get; set; }
         public JsonElement? Details { get; set; }
         public string? DetailJson { get; set; }
         public int SchemaVersion { get; set; } = 1;
@@ -41,6 +42,7 @@ namespace LitteraCore.Models
         public string? CreatedBy { get; set; }
         public string? UpdatedBy { get; set; }
         public string? BranchId { get; set; }
+        public int? IsActive { get; set; }
         public JsonElement? Details { get; set; }
         public string? DetailJson { get; set; }
         public int SchemaVersion { get; set; } = 1;
@@ -64,6 +66,7 @@ namespace LitteraCore.Models
         public string? CreatedBy { get; set; }
         public string? UpdatedBy { get; set; }
         public string? BranchId { get; set; }
+        public int IsActive { get; set; } = 1;
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public string? DetailJson { get; set; }
@@ -179,6 +182,23 @@ namespace LitteraCore.Models
         public string? LastSubmittedAt { get; set; }
         public string LastStatus { get; set; } = string.Empty;
         public JsonElement? LatestResponseJson { get; set; }
+    }
+
+    public class InteractivePlayerPollSummaryItem
+    {
+        public string SelectedOptionId { get; set; } = string.Empty;
+        public string SelectedOptionText { get; set; } = string.Empty;
+        public int ResponseCount { get; set; }
+        public decimal Percentage { get; set; }
+    }
+
+    public class InteractivePlayerPollSummary
+    {
+        public string ActivityId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public int TotalResponses { get; set; }
+        public List<InteractivePlayerPollSummaryItem> Items { get; set; } = new();
     }
 
 }

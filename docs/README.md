@@ -1,5 +1,10 @@
 # Documentation
 
+## Backend Notes
+
+- [`exception-handling-in-use.md`](exception-handling-in-use.md)
+- [`global_exception_handling_plan.md`](global_exception_handling_plan.md)
+
 ## Auth Notes
 
 - [`authentication_cookie_hardening.md`](authentication_cookie_hardening.md)
