@@ -284,17 +284,76 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To get client -IP.")]
         public string GetClientIp()
         {
-            var resolvedIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var forwardedIp = GetFirstForwardedIp(
+                Request.Headers["X-Forwarded-For"].FirstOrDefault(),
+                Request.Headers["X-Original-For"].FirstOrDefault(),
+                Request.Headers["X-Real-IP"].FirstOrDefault(),
+                Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+            );
 
-            if (!string.IsNullOrWhiteSpace(resolvedIp))
-                return resolvedIp;
+            if (!string.IsNullOrWhiteSpace(forwardedIp))
+            {
+                return forwardedIp;
+            }
 
-            var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            return NormalizeIpAddress(HttpContext.Connection.RemoteIpAddress?.ToString()) ?? string.Empty;
+        }
 
-            if (!string.IsNullOrWhiteSpace(forwardedFor))
-                return forwardedFor.Split(',')[0].Trim();
+        private static string? GetFirstForwardedIp(params string?[] headerValues)
+        {
+            foreach (var headerValue in headerValues)
+            {
+                if (string.IsNullOrWhiteSpace(headerValue))
+                {
+                    continue;
+                }
 
-            return string.Empty;
+                var forwardedAddresses = headerValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+                foreach (var address in forwardedAddresses)
+                {
+                    var normalizedIp = NormalizeIpAddress(address);
+
+                    if (!string.IsNullOrWhiteSpace(normalizedIp))
+                    {
+                        return normalizedIp;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static string? NormalizeIpAddress(string? rawValue)
+        {
+            if (string.IsNullOrWhiteSpace(rawValue))
+            {
+                return null;
+            }
+
+            var candidate = rawValue.Trim().Trim('"');
+
+            if (candidate.StartsWith("for=", StringComparison.OrdinalIgnoreCase))
+            {
+                candidate = candidate.Substring(4).Trim().Trim('"');
+            }
+
+            if (IPAddress.TryParse(candidate, out var parsedAddress))
+            {
+                return parsedAddress.IsIPv4MappedToIPv6
+                    ? parsedAddress.MapToIPv4().ToString()
+                    : parsedAddress.ToString();
+            }
+
+            if (Uri.TryCreate($"http://{candidate}", UriKind.Absolute, out var parsedUri)
+                && IPAddress.TryParse(parsedUri.Host, out parsedAddress))
+            {
+                return parsedAddress.IsIPv4MappedToIPv6
+                    ? parsedAddress.MapToIPv4().ToString()
+                    : parsedAddress.ToString();
+            }
+
+            return null;
         }
 
 

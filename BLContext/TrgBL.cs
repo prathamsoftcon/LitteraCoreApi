@@ -16,6 +16,7 @@ using System.Data;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using static LitteraCore.Common.CommonEnum;
 using static QRCoder.PayloadGenerator;
 
@@ -707,17 +708,52 @@ namespace LitteraCore.BLContext
             return certificateHtml;
         }
 
-        public string Geenerate_certificate_text_with_QR(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid, string APPURL, string Logo_Path,string? certificateid=null)
+        private certificate_obj Get_Certificate_Info_With_Retry(string certificateid, int maxAttempts = 3, int delayMs = 150)
+        {
+            if (string.IsNullOrWhiteSpace(certificateid))
+            {
+                return null;
+            }
+
+            ParticipantDB pdb = new ParticipantDB(_configuration);
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                certificate_obj certificate = pdb.Get_Certificate_info(null, certificateid).FirstOrDefault();
+                if (certificate?.Certificate_Info != null)
+                {
+                    return certificate;
+                }
+
+                if (attempt < maxAttempts - 1)
+                {
+                    Thread.Sleep(delayMs);
+                }
+            }
+
+            return null;
+        }
+
+        private string Format_Certificate_Print_Date(certificate_obj certificatedata)
+        {
+            if (DateTime.TryParse(certificatedata?.Certificate_Info?.certificate_dt, out DateTime certificateDate))
+            {
+                return certificateDate.ToString("dd-MM-yyyy");
+            }
+
+            return string.Empty;
+        }
+
+        public string Geenerate_certificate_text_with_QR(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid, string APPURL, string Logo_Path,string? certificateid=null, certificate_obj certificateSeed = null)
         {
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log", "Log.txt");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.AppendAllText(path, "Step 1 completed");
 
-            certificate_obj certificatedata =new certificate_obj();
-            ParticipantDB pdb = new ParticipantDB(_configuration);
-            certificatedata = pdb.Get_Certificate_info(null, certificateid).FirstOrDefault();
-
-
+            certificate_obj certificatedata = certificateSeed;
+            if (certificatedata?.Certificate_Info == null)
+            {
+                certificatedata = Get_Certificate_Info_With_Retry(certificateid);
+            }
 
             File.AppendAllText(path, "Step 2 completed");
 
@@ -879,14 +915,7 @@ namespace LitteraCore.BLContext
 
             certificateHtml = certificateHtml.Replace("certificate.png", APPURL + "/" + ct.certificate_bg_path);
             certificateHtml = certificateHtml.Replace("style.css", APPURL + "/css/certificate_style.css");
-            if(certificatedata != null)
-            {
-                certificateHtml = certificateHtml.Replace("##PrintDate##",Convert.ToDateTime(certificatedata.Certificate_Info.certificate_dt).ToString("dd-MM-yyyy"));
-            }
-            else
-            {
-                certificateHtml = certificateHtml.Replace("##PrintDate##", "");
-            }
+            certificateHtml = certificateHtml.Replace("##PrintDate##", Format_Certificate_Print_Date(certificatedata));
             File.AppendAllText(path, "Step 9 completed");
 
             certificateHtml = certificateHtml.Replace("##certtext##", f_cert_text);

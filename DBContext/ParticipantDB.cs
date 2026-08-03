@@ -990,21 +990,19 @@ namespace LitteraCore.DBContext
 
         public bool Update_Participant_certificate_info(certificate_obj[] Certificate_info, string trainingid)
         {
-            bool isexist = false;
-            DataTable dt = new DataTable();
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con = new SqlConnection(connectionString);
-            if (con.State != ConnectionState.Open) { con.Open(); }
-            SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_update_tp_participant_cert_info", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@TrainingId", trainingid);
-            string p1 = JsonConvert.SerializeObject(Certificate_info);
-            cmd.Parameters.AddWithValue("@JsonData", p1);
-            cmd.ExecuteNonQuery();
-
-           
-
-
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                if (con.State != ConnectionState.Open) { con.Open(); }
+                using (SqlCommand cmd = new SqlCommand("trainingplan.proc_tp_update_tp_participant_cert_info", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@TrainingId", trainingid);
+                    string p1 = JsonConvert.SerializeObject(Certificate_info);
+                    cmd.Parameters.AddWithValue("@JsonData", p1);
+                    cmd.ExecuteNonQuery();
+                }
+            }
 
             return true;
         }

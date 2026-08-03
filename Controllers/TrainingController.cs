@@ -635,14 +635,25 @@ namespace LitteraCore.Controllers
             {
                 ttpai_id = p.FirstOrDefault().ttpai_id;
             }
+            if (string.IsNullOrWhiteSpace(ttpai_id))
+            {
+                return NotFound("Certificate participant record not found.");
+            }
 
             string certificateid = Guid.NewGuid().ToString();
+            string generatedOnText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             certificate_obj c = new certificate_obj
             {
                 CertId = certificateid,
                 ttpai_id= ttpai_id,
-                CertInfo= "id="+ certificateid + ",date="+System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss")+",createdby="+ loginuserid + ""
+                CertInfo= "id="+ certificateid + ",date="+ generatedOnText +",createdby="+ loginuserid + "",
+                Certificate_Info = new Certificate_info
+                {
+                    certificate_id = certificateid,
+                    certificate_dt = generatedOnText,
+                    created_by = loginuserid
+                }
             };
 
             string certificatedata = "";
@@ -650,7 +661,16 @@ namespace LitteraCore.Controllers
             lc.Add(c);
             if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
             {
-                 certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+                 certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid, c);
+            }
+            else
+            {
+                return StatusCode(500, "Unable to persist certificate information.");
+            }
+
+            if (string.IsNullOrWhiteSpace(certificatedata))
+            {
+                return StatusCode(500, "Unable to generate certificate HTML.");
             }
 
 
@@ -679,8 +699,13 @@ namespace LitteraCore.Controllers
             {
                 ttpai_id = p.FirstOrDefault().ttpai_id;
             }
+            if (string.IsNullOrWhiteSpace(ttpai_id))
+            {
+                return NotFound("Certificate participant record not found.");
+            }
 
             string certificateid = Guid.NewGuid().ToString();
+            string generatedOnText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             certificate_obj c = new certificate_obj();
 
@@ -700,7 +725,13 @@ namespace LitteraCore.Controllers
                 {
                     CertId = certificateid,
                     ttpai_id = ttpai_id,
-                    CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ",grade="+ grade + ""
+                    CertInfo = "id=" + certificateid + ",date=" + generatedOnText + ",createdby=" + loginuserid + ",grade="+ grade + "",
+                    Certificate_Info = new Certificate_info
+                    {
+                        certificate_id = certificateid,
+                        certificate_dt = generatedOnText,
+                        created_by = loginuserid
+                    }
                     };
             }
             else
@@ -709,7 +740,13 @@ namespace LitteraCore.Controllers
                 {
                     CertId = certificateid,
                     ttpai_id = ttpai_id,
-                    CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ""
+                    CertInfo = "id=" + certificateid + ",date=" + generatedOnText + ",createdby=" + loginuserid + "",
+                    Certificate_Info = new Certificate_info
+                    {
+                        certificate_id = certificateid,
+                        certificate_dt = generatedOnText,
+                        created_by = loginuserid
+                    }
                 };
             }
 
@@ -722,7 +759,16 @@ namespace LitteraCore.Controllers
           
             if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
             {
-                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid, c);
+            }
+            else
+            {
+                return StatusCode(500, "Unable to persist certificate information.");
+            }
+
+            if (string.IsNullOrWhiteSpace(certificatedata))
+            {
+                return StatusCode(500, "Unable to generate certificate HTML.");
             }
 
 
@@ -857,12 +903,19 @@ namespace LitteraCore.Controllers
                     bool iseligible = tb.is_participant_eligible_for_certificate(part.ttpai_id, trainingid);
                     if (iseligible)
                     {
+                        string generatedOnText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                         lc.Add(new certificate_obj
                         {
-                            participantid=part.ttpai_id,
+                            participantid=part.ParticipantId,
                             CertId = certificateid,
                             ttpai_id = part.ttpai_id,
-                            CertInfo = "id=" + certificateid + ",date=" + DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid
+                            CertInfo = "id=" + certificateid + ",date=" + generatedOnText + ",createdby=" + loginuserid,
+                            Certificate_Info = new Certificate_info
+                            {
+                                certificate_id = certificateid,
+                                certificate_dt = generatedOnText,
+                                created_by = loginuserid
+                            }
                         });
                     }
                     else
@@ -884,7 +937,7 @@ namespace LitteraCore.Controllers
                     {
                         foreach(certificate_obj co in lc)
                         {
-                            certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, co.participantid, APPURL, Logo_Path, co.CertId);
+                            certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, co.participantid, APPURL, Logo_Path, co.CertId, co);
                         }
                         //certificatedata = certificatedata + tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
                     }
@@ -1417,14 +1470,25 @@ namespace LitteraCore.Controllers
             {
                 ttpai_id = p.FirstOrDefault().ttpai_id;
             }
+            if (string.IsNullOrWhiteSpace(ttpai_id))
+            {
+                return NotFound("Certificate participant record not found.");
+            }
 
             string certificateid = Guid.NewGuid().ToString();
+            string generatedOnText = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             certificate_obj c = new certificate_obj
             {
                 CertId = certificateid,
                 ttpai_id = ttpai_id,
-                CertInfo = "id=" + certificateid + ",date=" + System.DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss") + ",createdby=" + loginuserid + ""
+                CertInfo = "id=" + certificateid + ",date=" + generatedOnText + ",createdby=" + loginuserid + "",
+                Certificate_Info = new Certificate_info
+                {
+                    certificate_id = certificateid,
+                    certificate_dt = generatedOnText,
+                    created_by = loginuserid
+                }
             };
 
             string certificatedata = "";
@@ -1432,7 +1496,16 @@ namespace LitteraCore.Controllers
             lc.Add(c);
             if (pdb.Update_Participant_certificate_info(lc.ToArray(), trainingid) == true)
             {
-                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid);
+                certificatedata = tb.Geenerate_certificate_text_with_QR(Trg, dtsignatory, participantid, APPURL, Logo_Path, certificateid, c);
+            }
+            else
+            {
+                return StatusCode(500, "Unable to persist certificate information.");
+            }
+
+            if (string.IsNullOrWhiteSpace(certificatedata))
+            {
+                return StatusCode(500, "Unable to generate certificate HTML.");
             }
 
 
