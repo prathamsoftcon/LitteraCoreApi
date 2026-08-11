@@ -561,6 +561,14 @@ namespace LitteraCore.BLContext
             return issaved;
         }
 
+        // Mirrors the old LitteraAPI's Session_TrgController.Delete (DELETE api/Session), called by
+        // the old MVC app's Dashboard/Delete_Session action - a soft delete via
+        // Trainingplan.proc_tp_del_session, same parameters, same @ttttt_status = Session_Status.Delete.
+        public bool Delete_Session(string trainingid, string sessionid, string createdby, string branchid, string remark)
+        {
+            SessionDB sdb = new SessionDB(_configuration);
+            return sdb.Delete_Session(trainingid, sessionid, createdby, branchid, remark);
+        }
 
         public static SessionEntry GET_SESSION_ENTRY_CONTROLS(int trainingtype)
         {

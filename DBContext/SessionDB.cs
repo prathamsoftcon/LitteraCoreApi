@@ -1357,6 +1357,30 @@ namespace LitteraCore.DBContext
 
         }
 
+        // Mirrors the old LitteraAPI's SessionDB.Delete_Session exactly (same proc, same
+        // parameter names/order) - a soft delete: sets ttttt_status = Session_Status.Delete (9)
+        // with a required remark, rather than removing the row.
+        public bool Delete_Session(string trainingid, string sessionid, string createdby, string branchid, string remark)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_del_session", con);
+            cmd.Parameters.AddWithValue("@Trainingid", trainingid);
+            cmd.Parameters.AddWithValue("@createdby", createdby);
+            cmd.Parameters.AddWithValue("@createdon", DateTime.Now.ToString("yyyy/MM/dd"));
+            cmd.Parameters.AddWithValue("@branchid", branchid);
+            cmd.Parameters.AddWithValue("@ttttt_session_id", sessionid);
+            cmd.Parameters.AddWithValue("@ttttt_remark", remark);
+            cmd.Parameters.AddWithValue("@ttttt_status", (int)CommonEnum.Session_Status.Delete);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.ExecuteNonQuery();
+
+            return true;
+        }
+
         public bool Save_Session(CreateSessionDTO session, SqlTransaction transaction = null)
         {
 

@@ -6,6 +6,7 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
@@ -1183,6 +1184,24 @@ namespace LitteraCore.Controllers
                 });
             }
         }
+
+        [HttpDelete]
+        [Route("api/Session")]
+        [SwaggerOperation("To delete (soft-delete) a session - mirrors the old app's Dashboard/Delete_Session -> DELETE api/Session flow.")]
+        public IActionResult DeleteSession(string trainingid, string sessionid, string createdby, string branchid, string remark)
+        {
+            try
+            {
+                SessionBL sbl = new SessionBL(_configuration);
+                bool issaved = sbl.Delete_Session(trainingid, sessionid, createdby, branchid, remark);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
         [HttpGet]
         [Route("api/GET_SESSION_ENTRY_CONTROLS")]
         [SwaggerOperation("To get session entry controls on basis of training type.")]
