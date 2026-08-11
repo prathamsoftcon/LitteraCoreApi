@@ -33,6 +33,7 @@ namespace LitteraCore.Models
         public string QR_IMG { get; set; }
 
         public string FB_LINK { get; set; }
+        public string PLAY_STORE_LINK { get; set; }
 
         public string TWT_LINK { get; set; }
 
@@ -191,6 +192,10 @@ namespace LitteraCore.Models
                 else if (node.SelectSingleNode("key").InnerText == "FB_LINK")
                 {
                     cinfo.FB_LINK = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "PLAY_STORE_LINK")
+                {
+                    cinfo.PLAY_STORE_LINK = node.SelectSingleNode("value").InnerText;
                 }
                 else if (node.SelectSingleNode("key").InnerText == "TWT_LINK")
                 {
