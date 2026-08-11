@@ -6,6 +6,7 @@ using LitteraCore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
@@ -1157,14 +1158,21 @@ namespace LitteraCore.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "PublicApiKey")]
         [Route("api/Session")]
         [SwaggerOperation("To save session.")]
         public IActionResult SaveSession([FromBody] CreateSessionDTO session)
         {
-            
-            SessionBL sdb = new SessionBL(_configuration);
-            var issaved = sdb.Save_Session(session);
-            return Ok(issaved);
+            try
+            {
+                SessionBL sdb = new SessionBL(_configuration);
+                var issaved = sdb.Save_Session(session);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
         [HttpGet]
         [Route("api/GET_SESSION_ENTRY_CONTROLS")]
