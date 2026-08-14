@@ -1126,38 +1126,50 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To Send General OTP.")]
         public async Task<IActionResult> Send_General_OTP(string username)
         {
-            //Check Valid User
-            var auth = _authService;
-            AuthDB adb = new AuthDB(_configuration);
-            //List<User> lU = new List<User>();
-            var otp = await _otpManager.GenerateOtpAsync(username.ToString());
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return BadRequest("Username is required.");
+            }
+
+            var recipient = username.Trim();
+            var otp = await _otpManager.GenerateOtpAsync(recipient);
             var otpid = await _otpManager.GenerateOtpID();
-            if (username.Contains("@") == true)
+
+            try
             {
-              
-                SmsTemplate template = new SmsTemplate();
-                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                SmsTemplate template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
                 string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
 
-                SmtpEmailService s = new SmtpEmailService(_configuration);
-                await s.SendEmailAsync(username, "OTP Details", msg);
+                if (recipient.Contains("@"))
+                {
+                    SmtpEmailService s = new SmtpEmailService(_configuration);
+                    await s.SendEmailAsync(recipient, "OTP Details", msg);
+                }
+                else
+                {
+                    var existingUser = new AuthDB(_configuration).GetUserInfo(recipient);
+                    var smsRecipient = !string.IsNullOrWhiteSpace(existingUser?.Mobileno)
+                        ? existingUser.Mobileno
+                        : recipient;
 
+                    await _smsService.SendSmsAsync(
+                        smsRecipient,
+                        msg,
+                        template.TemplateID,
+                        throwOnFailure: true
+                    );
+                }
 
-
+                return Ok(new { message = "OTP sent successfully." });
             }
-            else
+            catch (Exception ex)
             {
-              
-                SmsTemplate template = new SmsTemplate();
-                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                await _smsService.SendSmsAsync(username.ToString(), msg, template.TemplateID);
+                Log.Error(ex, "Unable to send general OTP.");
+                return StatusCode(StatusCodes.Status502BadGateway, new
+                {
+                    message = "Unable to send OTP. Please try again later."
+                });
             }
-
-
-           
-
-            return Ok(otp);
         }
 
         [HttpGet]

@@ -13,7 +13,7 @@ namespace LitteraCore.Common.SmsService
         {
             _configuration = configuration;
         }
-        public async Task SendSmsAsync(string recipientMobile, string message, string templateId)
+        public async Task SendSmsAsync(string recipientMobile, string message, string templateId, bool throwOnFailure = false)
         {
       
             string url = "";
@@ -74,7 +74,11 @@ namespace LitteraCore.Common.SmsService
                 }
                 catch(Exception ex1)
                 {
-                   
+                }
+
+                if (throwOnFailure)
+                {
+                    throw new InvalidOperationException("The SMS provider could not accept the OTP message.", ex);
                 }
             }
           
