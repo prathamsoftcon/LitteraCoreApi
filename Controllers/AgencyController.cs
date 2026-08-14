@@ -91,6 +91,37 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (Training Master wizard, Step 2 Sponsor / Paid By
+        // dropdown). Reuses the same AgencyBL.Get_Agency(agencytype=00053)
+        // call as api/Agency above - same underlying data
+        // (yuser.proc_yuser_get_agency_vr1) - but WITHOUT that route's
+        // [Authorize(Policy = "PublicApiKey")] attribute. Confirmed live
+        // this blocked the wizard ("Unable to load: Sponsor / Paid By" -
+        // api/Agency was the one call in that pass gated behind
+        // PublicApiKey while every sibling dropdown, including the
+        // brand-new api/Trg_Payment_Type added alongside it, loaded fine).
+        // The PublicApiKey policy is meant for genuinely public/pre-login
+        // use (api/Training_Details and friends per
+        // session-create-edit-delete-functional-analysis.md's own
+        // authentication note) - that same doc records an earlier, similar
+        // mistake (reusing a PublicApiKey-gated endpoint from an
+        // authenticated flow) being reverted, so the fix here is a new,
+        // narrowly-scoped, unauthenticated wrapper rather than removing the
+        // attribute from the shared api/Agency route (which likely still
+        // needs it for whatever public-facing caller it was added for).
+        // Mirrors courseDirector immediately above: a thin, unauthenticated
+        // GET scoped to one agency type.
+        [HttpGet]
+        [Route("api/Trg_Sponsor_Agency")]
+        [SwaggerOperation("To get Sponsor / Paid By agencies (agency type 00053) for the Training Master Payment step.")]
+        public IActionResult Trg_Sponsor_Agency([FromQuery] PaginationParam param)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            PagedResult<Agency> AL = ABL.Get_Agency("00053", null, null, param, null);
+            return Ok(AL);
+        }
+
         [HttpGet]
         [Route("api/Search_Agency")]
         [SwaggerOperation("To search particular agency data ")]

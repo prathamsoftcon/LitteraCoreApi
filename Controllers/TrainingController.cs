@@ -512,6 +512,29 @@ namespace LitteraCore.Controllers
             }
         }
 
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (Training Master wizard, Step 2 Payment Type dropdown -
+        // confirmed genuine gap, no existing Payment endpoint anywhere in
+        // this controller or AgencyController.cs). See
+        // TrgBL.Get_Trg_Payment_Type for the traced old-action detail and
+        // which of its business rules were and weren't ported.
+        [HttpGet]
+        [Route("api/Trg_Payment_Type")]
+        [SwaggerOperation("To get training payment type list (Step 2 Payment Type dropdown).")]
+        public IActionResult Trg_Payment_Type()
+        {
+            try
+            {
+                TrgBL CBL = new TrgBL(_configuration);
+                var PT = CBL.Get_Trg_Payment_Type();
+                return Ok(PT);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
         [HttpGet]
         [Route("api/Trg_Title")]
         [SwaggerOperation("To get all training distinct titles.")]
@@ -595,6 +618,36 @@ namespace LitteraCore.Controllers
             TrgBL CBL = new TrgBL(_configuration);
             bool isdeleted = CBL.Delete_Trg_Fees_Master(feesId);
             return Ok(isdeleted);
+        }
+
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (TrainingMaster wizard, Step 1 "Basic Info" -
+        // Participant's Level dropdown). No dedicated old action name was
+        // found for this field (old page fills it inline via
+        // TP_FILL_PAR_LEVEL / Participant_SaveData rather than through a
+        // named TrainingAPI action), so this follows the same
+        // RCVP_<domain>_<action>_Data / Trg_<domain> gap-filling convention
+        // as the Fees tab. Verified via grep that api/Trg_Participant_Level
+        // and api/RCVP_Participant_Level_Save_Data are not used elsewhere
+        // in this file.
+        [HttpGet]
+        [Route("api/Trg_Participant_Level")]
+        [SwaggerOperation("To get all training participant level records.")]
+        public IActionResult Trg_Participant_Level()
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            List<Trg_Participant_Level> L = CBL.Get_Trg_Participant_Level();
+            return Ok(L);
+        }
+
+        [HttpPost]
+        [Route("api/RCVP_Participant_Level_Save_Data")]
+        [SwaggerOperation("To insert/update a training participant level record.")]
+        public IActionResult RCVP_Participant_Level_Save_Data([FromBody] Trg_Participant_Level level)
+        {
+            TrgBL CBL = new TrgBL(_configuration);
+            bool issaved = CBL.Save_Trg_Participant_Level(level);
+            return Ok(issaved);
         }
 
         // Named to match the real old dedicated action

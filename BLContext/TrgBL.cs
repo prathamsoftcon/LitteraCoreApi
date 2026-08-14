@@ -547,6 +547,48 @@ namespace LitteraCore.BLContext
             return TDB.Get_Trg_Sponsor_Type();
         }
 
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (Training Master wizard, Step 2 Payment Type dropdown).
+        // Old Get_Payment_Type_For_Training(Domain, IsOnline, APIKEY)
+        // (TRAININGAPIController.vb L100171) builds this from the exact
+        // same raw table as the Fees tab's Sponsor Type dropdown above
+        // (trainingplan.proc_tp_get_sponsor_type via Get_Trg_Sponsor_Type),
+        // so this reuses that call rather than re-querying, and replicates
+        // 3 of the old function's business rules on top of it:
+        //   1. drop ttst_id 1/2 (Single/Joint - not valid Payment Types)
+        //   2. synthesize a ttst_id=99999 "Sponsored" (hi: "प्रायोजित") row
+        //      - not a real row in the underlying table
+        //   3. sort the result by ttst_name
+        // NOT ported: the old function also conditionally drops ttst_id=4
+        // (Paid) when global setting IS_PAID_TRG_REQUIRED != "1", and
+        // returns isPaidRequired/paymentkeyavailable flags tied to
+        // online-payment-gateway config (Datamanager.vb
+        // GET_GLOBAL_SETTING/Get_Payment_Setting - both read off a
+        // hardcoded "YojnaAcademy" domain regardless of the calling
+        // tenant). No GlobalSetting/PaymentSetting equivalent exists
+        // anywhere in this backend yet, and this is the same open item
+        // already flagged for PaymentStep.jsx's online-payment banner
+        // (kept static/inert per user decision - see
+        // trainingmaster-migration-notes-2026-08-12.md). Paid is always
+        // offered here until that subsystem gets built for real; flagged
+        // rather than implemented, to avoid scope-creeping a dropdown fix
+        // into a new settings subsystem.
+        public List<Trg_Sponsor_Type> Get_Trg_Payment_Type()
+        {
+            List<Trg_Sponsor_Type> filtered = Get_Trg_Sponsor_Type()
+                .Where(o => o.ttst_id != "1" && o.ttst_id != "2")
+                .ToList();
+
+            filtered.Add(new Trg_Sponsor_Type
+            {
+                ttst_id = "99999",
+                ttst_name = "Sponsored",
+                ttst_hname = "प्रायोजित"
+            });
+
+            return filtered.OrderBy(o => o.ttst_name).ToList();
+        }
+
         public List<Trg_Title> Get_Trg_Title()
         {
             //File.AppendAllText(HostingEnvironment.MapPath("~/Log/Log.txt"), "Within Get_VW_Training_calendar" + System.DateTime.Now);
@@ -604,6 +646,23 @@ namespace LitteraCore.BLContext
         {
             TrainingDB TDB = new TrainingDB(_configuration);
             return TDB.Chk_Fees_In_Use(feesId);
+        }
+
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (TrainingMaster wizard, Step 1 "Basic Info" -
+        // Participant's Level dropdown). See TrainingDB's
+        // Get_Trg_Participant_Level / Save_Trg_Participant_Level for the
+        // traced stored-procedure detail.
+        public List<Trg_Participant_Level> Get_Trg_Participant_Level()
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Get_Trg_Participant_Level();
+        }
+
+        public bool Save_Trg_Participant_Level(Trg_Participant_Level level)
+        {
+            TrainingDB TDB = new TrainingDB(_configuration);
+            return TDB.Save_Trg_Participant_Level(level);
         }
 
         public string Geenerate_certificate_text(Training Trg, List<CERTIFICATE_SIGNATORY> dtsignatory, string participantid,string APPURL,string Logo_Path)

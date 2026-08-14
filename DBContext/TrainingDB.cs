@@ -1496,6 +1496,68 @@ namespace LitteraCore.DBContext
             return isused == "1" || string.Equals(isused, "true", StringComparison.OrdinalIgnoreCase);
         }
 
+        // Added 2026-08-13 for the frm_training_creation.aspx -> React
+        // migration (TrainingMaster wizard, Step 1 "Basic Info" -
+        // Participant's Level dropdown). Traced from
+        // JS_frm_training_creation.js $scope.TP_FILL_PAR_LEVEL (L2084-2117)
+        // -> TrainingPlan.proc_get_participantlevel, no params. Same
+        // column-existence-guarded read pattern as Get_Trg_Fees_Master.
+        public List<Trg_Participant_Level> Get_Trg_Participant_Level()
+        {
+            List<Trg_Participant_Level> leveldata = new List<Trg_Participant_Level>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_get_participantlevel", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Trg_Participant_Level l = new Trg_Participant_Level();
+                if (dt.Columns.Contains("levelid")) { l.LevelId = Convert.ToString(row["levelid"]); }
+                if (dt.Columns.Contains("leveldescription")) { l.LevelDescription = Convert.ToString(row["leveldescription"]); }
+                if (dt.Columns.Contains("hleveldescription")) { l.HLevelDescription = Convert.ToString(row["hleveldescription"]); }
+                leveldata.Add(l);
+            }
+            return leveldata;
+        }
+
+        // Added 2026-08-13, companion to Get_Trg_Participant_Level. Traced
+        // from JS_frm_training_creation.js $scope.Participant_SaveData
+        // (L4214-4330) -> Trainingplan.proc_tp_ins_upd_participantlevel,
+        // params @LevelId / @LevelDescription / @HLevelDescription (exact
+        // names per L4301-4323). IMPORTANT: the old JS computes LevelId
+        // client-side (next integer = max existing id + 1, L4279-4285)
+        // rather than the DB assigning it - this method just forwards
+        // whatever LevelId the caller supplies, preserving that quirk
+        // rather than silently changing the id-assignment strategy.
+        public bool Save_Trg_Participant_Level(Trg_Participant_Level level)
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("Trainingplan.proc_tp_ins_upd_participantlevel", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@LevelId", level.LevelId);
+            cmd.Parameters.AddWithValue("@LevelDescription", level.LevelDescription);
+            cmd.Parameters.AddWithValue("@HLevelDescription", level.HLevelDescription);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+            return true;
+        }
+
         public bool Update_Training_Status(string trainingid, int trainingstatus, string reason, string createdby, string branchid)
         {
             List<User> user = new List<User>();

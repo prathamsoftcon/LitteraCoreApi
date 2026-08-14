@@ -491,4 +491,26 @@ namespace LitteraCore.Models
         public string CreatedBy { get; set; }
         public string BranchId { get; set; }
     }
+
+    // Added 2026-08-13 for the frm_training_creation.aspx -> React
+    // migration (TrainingMaster wizard, Step 1 "Basic Info" - Stage 2
+    // gap-closing pass, "Participant's Level" dropdown). Traced from
+    // JS_frm_training_creation.js: GET via $scope.TP_FILL_PAR_LEVEL (L2084-
+    // 2117, calls TrainingPlan.proc_get_participantlevel, no params,
+    // columns levelid/leveldescription/hleveldescription) and SAVE via
+    // $scope.Participant_SaveData (L4214-4330, calls
+    // Trainingplan.proc_tp_ins_upd_participantlevel with params @LevelId /
+    // @LevelDescription / @HLevelDescription). Note the old JS computes
+    // LevelId client-side as the next integer (max existing id + 1, L4279-
+    // 4285) rather than letting the DB assign it - preserved here as-is;
+    // the frontend is responsible for supplying that value on save, same
+    // as the old page. All fields kept as string, same reasoning as
+    // Trg_Fees_Master - real SQL parameter/column types were never
+    // confirmed against a live database.
+    public class Trg_Participant_Level
+    {
+        public string LevelId { get; set; }
+        public string LevelDescription { get; set; }
+        public string HLevelDescription { get; set; }
+    }
 }
