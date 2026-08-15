@@ -2,6 +2,7 @@
 
 ## Backend Notes
 
+- [`email-sending-apis.md`](email-sending-apis.md)
 - [`exception-handling-in-use.md`](exception-handling-in-use.md)
 - [`global_exception_handling_plan.md`](global_exception_handling_plan.md)
 

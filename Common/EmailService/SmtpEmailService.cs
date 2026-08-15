@@ -132,7 +132,7 @@ namespace LitteraCore.Common.EmailService
         //    }
         //}
 
-        public async Task SendEmailAsync(string recipientEmail, string subject, string message)
+        public async Task SendEmailAsync(string recipientEmail, string subject, string message, bool throwOnFailure = false)
         {
             try
             {
@@ -167,20 +167,40 @@ namespace LitteraCore.Common.EmailService
             }
             catch (Exception e)
             {
-                ApplicationConfigDB ADB = new ApplicationConfigDB(_configuration);
-                Error_Log a=new Error_Log();
-                a.tyel_userid = "00002";
-                a.tyel_page_name = "Sending Email";
-                a.tyel_event_name = "Send";
-                a.tyel_error = e.Message;
-                a.tyel_createdon = System.DateTime.Now;
-                
-                ADB.Save_Error_Log(a);
-                Common.SmsService.SmsService s =new Common.SmsService.SmsService(_configuration);
-                SmsTemplate template = new SmsTemplate();
-                template = s.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                string msg = template.Message.Replace("(#otp#)", "Error").Replace("(#otpid#)", "Mail");
-                await s.SendSmsAsync("7566845855", msg, template.TemplateID);
+                try
+                {
+                    ApplicationConfigDB ADB = new ApplicationConfigDB(_configuration);
+                    Error_Log a = new Error_Log();
+                    a.tyel_userid = "00002";
+                    a.tyel_page_name = "Sending Email";
+                    a.tyel_event_name = "Send";
+                    a.tyel_error = e.Message;
+                    a.tyel_createdon = System.DateTime.Now;
+
+                    ADB.Save_Error_Log(a);
+                }
+                catch
+                {
+                    // Do not let failure logging hide the original mail failure.
+                }
+
+                try
+                {
+                    Common.SmsService.SmsService s = new Common.SmsService.SmsService(_configuration);
+                    SmsTemplate template = new SmsTemplate();
+                    template = s.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                    string msg = template.Message.Replace("(#otp#)", "Error").Replace("(#otpid#)", "Mail");
+                    await s.SendSmsAsync("7566845855", msg, template.TemplateID);
+                }
+                catch
+                {
+                    // Do not let alert SMS failure hide the original mail failure.
+                }
+
+                if (throwOnFailure)
+                {
+                    throw new InvalidOperationException("The email provider could not accept the message.", e);
+                }
             }
         }
 

@@ -181,11 +181,48 @@ namespace LitteraCore.Controllers
         [HttpPost]
         [Route("api/Send_Mail")]
         [SwaggerOperation("To send mail for single user.")]
-        public async Task<Boolean> Send_Mail(maildetails m)
+        public async Task<IActionResult> Send_Mail(maildetails m)
         {
-            SmtpEmailService s = new SmtpEmailService(_configuration);
-              await s.SendEmailAsync(m.recipientEmail, m.subject, m.message);
-            return true;
+            if (m == null)
+            {
+                return BadRequest(new { message = "Mail details are required." });
+            }
+
+            if (string.IsNullOrWhiteSpace(m.recipientEmail))
+            {
+                return BadRequest(new { message = "Recipient email is required." });
+            }
+
+            if (string.IsNullOrWhiteSpace(m.subject))
+            {
+                return BadRequest(new { message = "Subject is required." });
+            }
+
+            if (string.IsNullOrWhiteSpace(m.message))
+            {
+                return BadRequest(new { message = "Message is required." });
+            }
+
+            try
+            {
+                SmtpEmailService s = new SmtpEmailService(_configuration);
+                await s.SendEmailAsync(
+                    m.recipientEmail.Trim(),
+                    m.subject.Trim(),
+                    m.message,
+                    throwOnFailure: true
+                );
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to send public mail to {RecipientEmail}.", m.recipientEmail);
+                return StatusCode(
+                    StatusCodes.Status502BadGateway,
+                    new { message = "Unable to send email. Please try again later." }
+                );
+            }
 
         }
 
