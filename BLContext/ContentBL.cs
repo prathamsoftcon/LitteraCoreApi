@@ -364,7 +364,7 @@ namespace LitteraCore.BLContext
                 result.Add(new ShareContentMailResult
                 {
                     status = "FAILED",
-                    msg = ex.Message
+                    msg = "Unable to send email. Please try again later."
                 });
             }
 
