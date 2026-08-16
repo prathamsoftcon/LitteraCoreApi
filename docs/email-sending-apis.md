@@ -45,7 +45,7 @@ Sends the same HTML message either to an explicit list of recipients or to all p
 }
 ```
 
-The endpoint URL-decodes `message` before sending. It queues mail work and returns `200 OK` with `true`; this response does not confirm that every recipient accepted the email.
+The endpoint URL-decodes `message`, validates that at least one recipient is available, and waits for all sends to complete. It returns `200 OK` with the recipient count on success, `400 Bad Request` for invalid input, and `502 Bad Gateway` when the SMTP provider rejects a message.
 
 ## Workflow APIs That Send Mail
 
@@ -62,14 +62,14 @@ The endpoint URL-decodes `message` before sending. It queues mail work and retur
 
 ## Mail Delivery Implementation
 
-`SmtpEmailService.SendEmailAsync` builds an HTML `MimeMessage` and sends it using MailKit with STARTTLS. The configured SMTP host, port, username, and password are read from application settings:
+`SmtpEmailService.SendEmailAsync` builds an HTML `MimeMessage` and sends it using MailKit with STARTTLS. SMTP host, port, username, and password are read from application setting `7`; values in `wwwroot/Content/GlobalSetting/emailSetting.xml` are used only when a setting `7` value is unavailable.
 
 - Setting ID `6`: OTP email configuration.
 - Setting ID `7`: application email configuration.
 
-The service also reads `wwwroot/Content/GlobalSetting/emailSetting.xml` while loading configuration. Templates used by the registration workflow are read from `wwwroot/Content/GlobalSetting/emailTemplate.xml`.
+The service also reads `wwwroot/Content/GlobalSetting/emailSetting.xml` for branding and compatibility fallback values. Templates used by the registration workflow are read from `wwwroot/Content/GlobalSetting/emailTemplate.xml`.
 
-For normal mail sends, delivery failures are recorded in the application error log. Callers can pass `throwOnFailure: true`, which is used by `POST /api/Send_Mail` so that the endpoint can return a failure response.
+For normal mail sends, delivery failures are recorded in the application error log and are surfaced as `EmailDeliveryException` by default. Request-time APIs return a generic `502 Bad Gateway` response. Background certificate and registration notifications explicitly use best-effort sending; their failures are recorded in the error log without changing the already-completed workflow result.
 
 ## Source References
 

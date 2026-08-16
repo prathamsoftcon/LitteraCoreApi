@@ -249,6 +249,10 @@ namespace LitteraCore.Controllers
                         catch (Exception ex)
                         {
                             Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
+                            return StatusCode(StatusCodes.Status502BadGateway, new
+                            {
+                                message = "Unable to send OTP. Please try again later."
+                            });
                         }
                       
                     }
@@ -329,7 +333,11 @@ namespace LitteraCore.Controllers
                         }
                         catch (Exception ex)
                         {
-
+                            Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
+                            return StatusCode(StatusCodes.Status502BadGateway, new
+                            {
+                                message = "Unable to send OTP. Please try again later."
+                            });
                         }
 
                     }
@@ -703,7 +711,7 @@ namespace LitteraCore.Controllers
                     }
                     catch (Exception ex)
                     {
-
+                        Log.Warning(ex, "Unable to derive a default password for user {UserId}.", u.userid);
                     }
                    
                   
@@ -806,7 +814,11 @@ namespace LitteraCore.Controllers
                     }
                     catch (Exception ex)
                     {
-
+                        Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
+                        return StatusCode(StatusCodes.Status502BadGateway, new
+                        {
+                            message = "Unable to send OTP. Please try again later."
+                        });
                     }
                 }
 
@@ -850,7 +862,11 @@ namespace LitteraCore.Controllers
                         }
                         catch (Exception ex)
                         {
-
+                            Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
+                            return StatusCode(StatusCodes.Status502BadGateway, new
+                            {
+                                message = "Unable to send OTP. Please try again later."
+                            });
                         }
 
                     }

@@ -37,17 +37,39 @@ namespace LitteraCore.Common.EmailService
         private readonly string _footer;
         public SmtpEmailService(IConfiguration config)
         {
-          
-            _smtpServer = Get_Email_Conf("host");   //config["SmtpSettings:Server"];
-            _smtpPort = Get_Email_Conf("portno");  //int.Parse(config["SmtpSettings:Port"]);
-            _smtpUsername = Get_Email_Conf("login");//config["SmtpSettings:smtpUsername"];
-            _smtpPassword = Get_Email_Conf("password"); //config["SmtpSettings:smtpPassword"];
+            _configuration = config;
+
+            // Application setting 7 is the active SMTP configuration. XML remains
+            // a compatibility fallback for deployments that have not migrated it.
+            EmailConfiguration applicationSettings = GetApplicationMailSettings();
+            _smtpServer = FirstNonEmpty(applicationSettings.host, Get_Email_Conf("host"));
+            _smtpPort = FirstNonEmpty(applicationSettings.portno, Get_Email_Conf("portno"));
+            _smtpUsername = FirstNonEmpty(applicationSettings.login, Get_Email_Conf("login"));
+            _smtpPassword = FirstNonEmpty(applicationSettings.password, Get_Email_Conf("password"));
             _clientname = Get_Email_Conf("clientname");
             _clienturl = Get_Email_Conf("clienturl");
             _header = Get_Email_Conf("header");
             _footer = Get_Email_Conf("footer");
+        }
 
-            _configuration = config;
+        private EmailConfiguration GetApplicationMailSettings()
+        {
+            try
+            {
+                return Get_Mail_Setting();
+            }
+            catch
+            {
+                // Existing installations may not yet have application setting 7.
+                return new EmailConfiguration();
+            }
+        }
+
+        private static string FirstNonEmpty(string? preferredValue, string fallbackValue)
+        {
+            return string.IsNullOrWhiteSpace(preferredValue)
+                ? fallbackValue
+                : preferredValue.Trim();
         }
 
         //public async Task SendEmailAsync(string recipientEmail, string subject, string message)
@@ -132,7 +154,7 @@ namespace LitteraCore.Common.EmailService
         //    }
         //}
 
-        public async Task SendEmailAsync(string recipientEmail, string subject, string message, bool throwOnFailure = false)
+        public async Task SendEmailAsync(string recipientEmail, string subject, string message, bool throwOnFailure = true)
         {
             try
             {
@@ -184,49 +206,63 @@ namespace LitteraCore.Common.EmailService
                     // Do not let failure logging hide the original mail failure.
                 }
 
-                try
-                {
-                    Common.SmsService.SmsService s = new Common.SmsService.SmsService(_configuration);
-                    SmsTemplate template = new SmsTemplate();
-                    template = s.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                    string msg = template.Message.Replace("(#otp#)", "Error").Replace("(#otpid#)", "Mail");
-                    await s.SendSmsAsync("7566845855", msg, template.TemplateID);
-                }
-                catch
-                {
-                    // Do not let alert SMS failure hide the original mail failure.
-                }
-
                 if (throwOnFailure)
                 {
-                    throw new InvalidOperationException("The email provider could not accept the message.", e);
+                    throw new EmailDeliveryException("The email provider could not accept the message.", e);
                 }
             }
         }
 
-        public async Task SendEmailAsync_with_attachment(string recipientEmail, string subject, string message, List<(string FileName, Stream Content)>? attachments = null)
+        public async Task SendEmailAsync_with_attachment(string recipientEmail, string subject, string message, List<(string FileName, Stream Content)>? attachments = null, bool throwOnFailure = true)
         {
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(_smtpUsername);
-            email.To.Add(MailboxAddress.Parse(recipientEmail));
-            email.Subject = subject;
-            var builder = new BodyBuilder();
-
-            if (attachments != null)
+            try
             {
-                foreach (var attachment in attachments)
+                var email = new MimeMessage();
+                email.Sender = MailboxAddress.Parse(_smtpUsername);
+                email.To.Add(MailboxAddress.Parse(recipientEmail));
+                email.Subject = subject;
+                var builder = new BodyBuilder();
+
+                if (attachments != null)
                 {
-                    builder.Attachments.Add(attachment.FileName, attachment.Content);
+                    foreach (var attachment in attachments)
+                    {
+                        builder.Attachments.Add(attachment.FileName, attachment.Content);
+                    }
+                }
+
+                builder.HtmlBody = message;
+                email.Body = builder.ToMessageBody();
+                using var smtp = new SmtpClient();
+                smtp.Connect(_smtpServer, Convert.ToInt32(_smtpPort), SecureSocketOptions.StartTls);
+                smtp.Authenticate(_smtpUsername, _smtpPassword);
+                await smtp.SendAsync(email);
+                smtp.Disconnect(true);
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    ApplicationConfigDB adb = new ApplicationConfigDB(_configuration);
+                    adb.Save_Error_Log(new Error_Log
+                    {
+                        tyel_userid = "00002",
+                        tyel_page_name = "Sending Email",
+                        tyel_event_name = "Send attachment",
+                        tyel_error = e.Message,
+                        tyel_createdon = DateTime.Now
+                    });
+                }
+                catch
+                {
+                    // Do not let failure logging hide the mail failure.
+                }
+
+                if (throwOnFailure)
+                {
+                    throw new EmailDeliveryException("The email provider could not accept the message.", e);
                 }
             }
-
-            builder.HtmlBody = message;
-            email.Body = builder.ToMessageBody();
-            using var smtp = new SmtpClient();
-            smtp.Connect(_smtpServer, Convert.ToInt32(_smtpPort), SecureSocketOptions.StartTls);
-            smtp.Authenticate(_smtpUsername, _smtpPassword);
-            await smtp.SendAsync(email);
-            smtp.Disconnect(true);
         }
 
         public string Get_Email_Conf(string key)

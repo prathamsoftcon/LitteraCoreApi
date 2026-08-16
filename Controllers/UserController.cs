@@ -276,7 +276,7 @@ namespace LitteraCore.Controllers
                 .Replace("(#pwd#)", mailpassword);
 
             SmtpEmailService smtp = new SmtpEmailService(_configuration);
-            _ = smtp.SendEmailAsync(user.emailid, mailsubject, mailtext);
+            _ = smtp.SendEmailAsync(user.emailid, mailsubject, mailtext, throwOnFailure: false);
 
             ApplicationConfigDB configDb =
                 new ApplicationConfigDB(_configuration);
@@ -295,7 +295,7 @@ namespace LitteraCore.Controllers
                 string ccText =
                     "New user " + user.agency.ag_first_name
                     + " has been successfully registered.";
-                _ = smtp.SendEmailAsync(ccAddress, mailsubject, ccText);
+                _ = smtp.SendEmailAsync(ccAddress, mailsubject, ccText, throwOnFailure: false);
             }
         }
 

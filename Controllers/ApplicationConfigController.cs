@@ -31,11 +31,16 @@ namespace LitteraCore.Controllers
 
         private readonly ILogger<ApplicationConfigController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public ApplicationConfigController(IConfiguration configuration, ILogger<ApplicationConfigController> logger)
+        public ApplicationConfigController(
+            IConfiguration configuration,
+            ILogger<ApplicationConfigController> logger,
+            IEmailService emailService)
         {
             _configuration = configuration;
             _logger = logger;
+            _emailService = emailService;
         }
 
        [Authorize(Policy = "PublicApiKey")]
@@ -205,8 +210,7 @@ namespace LitteraCore.Controllers
 
             try
             {
-                SmtpEmailService s = new SmtpEmailService(_configuration);
-                await s.SendEmailAsync(
+                await _emailService.SendEmailAsync(
                     m.recipientEmail.Trim(),
                     m.subject.Trim(),
                     m.message,
@@ -429,82 +433,56 @@ namespace LitteraCore.Controllers
      string? participantttype,
      string? trainngid = null)  
         {
-         
-            var rows = new List<Dictionary<string, object>>();
+            if (m == null || string.IsNullOrWhiteSpace(m.subject) || string.IsNullOrWhiteSpace(m.message))
+            {
+                return BadRequest(new { message = "Subject and message are required." });
+            }
 
             try
             {
-              
                 string bodytxt = WebUtility.UrlDecode(m.message);
-
-              
-                // ===== Optional Fields =====
-                //if (s.ContainsKey("attachment"))
-                //    attachment = s["attachment"];
-
-                //if (s.ContainsKey("ccto"))
-                //    ccto = s["ccto"];
-
-                //if (s.ContainsKey("bccto"))
-                //    bccto = s["bccto"];
-
-                SmtpEmailService dm=new SmtpEmailService(_configuration);
-                EmailConfiguration emailSetting = dm.Get_Mail_Setting();
-
-                //if (!string.IsNullOrEmpty(attachment))
-                //    attachment = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", attachment.TrimStart('/'));
-
-                // ===== Send Mail =====
+                IEmailService dm = _emailService;
+                List<string> recipients;
                 if (participantttype == "2")
                 {
-                    var emails = m.recipientEmail;
-
-                    foreach (var mail in emails)
-                    {
-                        _ = Task.Run(() =>
-                            dm.SendEmailAsync(
-                                mail.Trim(),
-                                m.subject,
-                                bodytxt
-
-                            ));
-                    }
+                    recipients = m.recipientEmail?
+                        .Where(email => !string.IsNullOrWhiteSpace(email))
+                        .Select(email => email.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList() ?? new List<string>();
                 }
                 else
                 {
-                    List<Participant> trgparticipant = new List<Participant>();
                     ParticipantDB tdb = new ParticipantDB(_configuration);
-                    trgparticipant = tdb.Get_Trg_Participant_List(trainngid);
-
-
-
-                    foreach (Participant row in trgparticipant)
-                    {
-                        string email = row.email;
-                        if (!string.IsNullOrEmpty(email))
-                        {
-                            _ = Task.Run(() =>
-                                dm.SendEmailAsync(
-                                    email,
-                                    m.subject,
-                                    bodytxt
-                                   
-                                ));
-                        }
-                    }
+                    recipients = tdb.Get_Trg_Participant_List(trainngid)
+                        .Select(participant => participant.email)
+                        .Where(email => !string.IsNullOrWhiteSpace(email))
+                        .Select(email => email.Trim())
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
                 }
 
-                return Ok(true);
+                if (recipients.Count == 0)
+                {
+                    return BadRequest(new { message = "At least one recipient email is required." });
+                }
+
+                await Task.WhenAll(recipients.Select(recipient =>
+                    dm.SendEmailAsync(recipient, m.subject.Trim(), bodytxt, throwOnFailure: true)));
+
+                return Ok(new { sent = recipients.Count });
             }
-            catch (SqlException ex)
+            catch (EmailDeliveryException ex)
             {
-                return NotFound();
-       
+                _logger.LogError(ex, "Unable to send participant mail.");
+                return StatusCode(StatusCodes.Status502BadGateway,
+                    new { message = "Unable to send email. Please try again later." });
             }
             catch (Exception ex)
             {
-
-                return NotFound();
+                _logger.LogError(ex, "Unable to prepare participant mail.");
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Unable to prepare email delivery." });
             }
         }
 

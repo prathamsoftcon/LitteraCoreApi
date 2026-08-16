@@ -908,12 +908,13 @@ namespace LitteraCore.Controllers
 
                         await s.SendEmailAsync_with_attachment(mailid, "Certificate Generated",
                             "Certificate generation completed. Please find the not-eligible participant list attached.",
-                            attachments);
+                            attachments,
+                            throwOnFailure: false);
                     }
                     else
                     {
                         SmtpEmailService s = new SmtpEmailService(_configuration);
-                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.", throwOnFailure: false);
                     }
                    
                 }
@@ -1023,7 +1024,8 @@ namespace LitteraCore.Controllers
                             };
                         await s.SendEmailAsync_with_attachment(mailid, "Certificate Generated",
                             "Certificate generation completed. Please find the not-eligible participant list attached.",
-                            attachments);
+                            attachments,
+                            throwOnFailure: false);
                     }
                     else
                     {
@@ -1038,7 +1040,7 @@ namespace LitteraCore.Controllers
                          
                             ("GeneratedCertificates.html", certStream)
                         };
-                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                        await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.", throwOnFailure: false);
                     }
 
                 }
@@ -1107,7 +1109,7 @@ namespace LitteraCore.Controllers
 
                             ("GeneratedCertificates.html", certStream)
                         };
-                    await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.");
+                    await s.SendEmailAsync(mailid, "Certificate Generated", "Your Process to generate certificate is completed successfully.", throwOnFailure: false);
                 }
 
 
