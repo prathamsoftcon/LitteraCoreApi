@@ -163,7 +163,7 @@ namespace LitteraCore.Controllers
                 {
                     if (isUserCreationMail == true)
                     {
-                        if (user.emailid != null)
+                        if (!string.IsNullOrWhiteSpace(user.emailid))
                         {
                             try
                             {

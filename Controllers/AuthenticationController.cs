@@ -202,7 +202,8 @@ namespace LitteraCore.Controllers
 
 
             //Get the OTP from APi and return it back
-            if (lU.Mobileno==null && lU.emailid==null)
+            if (string.IsNullOrWhiteSpace(lU.Mobileno)
+                && string.IsNullOrWhiteSpace(lU.emailid))
             {
                 return Unauthorized();
             }
@@ -227,24 +228,17 @@ namespace LitteraCore.Controllers
                     SmsTemplate template = new SmsTemplate();
                     template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
                     string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                    if (lU.Mobileno != null)
+                    if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                     {
-                        if (ml.OTP_ON_SMS == "1")
-                        {
-                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
-                        }
-                      
+                        await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
                     }
-                    if (lU.emailid != null)
+
+                    if (ml.OTP_ON_MAIL == "1" && !string.IsNullOrWhiteSpace(lU.emailid))
                     {
                         try
                         {
-                            if (ml.OTP_ON_MAIL == "1")
-                            {
-                                SmtpEmailService s = new SmtpEmailService(_configuration);
-                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                            }
-                           
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
                         }
                         catch (Exception ex)
                         {
@@ -287,7 +281,8 @@ namespace LitteraCore.Controllers
 
 
             //Get the OTP from APi and return it back
-            if (lU.Mobileno == null && lU.emailid == null)
+            if (string.IsNullOrWhiteSpace(lU.Mobileno)
+                && string.IsNullOrWhiteSpace(lU.emailid))
             {
                 return Unauthorized();
             }
@@ -312,24 +307,17 @@ namespace LitteraCore.Controllers
                     SmsTemplate template = new SmsTemplate();
                     template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
                     string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                    if (lU.Mobileno != null)
+                    if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                     {
-                        if (ml.OTP_ON_SMS == "1")
-                        {
-                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
-                        }
-
+                        await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
                     }
-                    if (lU.emailid != null)
+
+                    if (ml.OTP_ON_MAIL == "1" && !string.IsNullOrWhiteSpace(lU.emailid))
                     {
                         try
                         {
-                            if (ml.OTP_ON_MAIL == "1")
-                            {
-                                SmtpEmailService s = new SmtpEmailService(_configuration);
-                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                            }
-
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
                         }
                         catch (Exception ex)
                         {
@@ -780,51 +768,10 @@ namespace LitteraCore.Controllers
 
 
             //Get the OTP from APi and return it back
-            if (lU.Mobileno == null && lU.emailid == null)
+            if (string.IsNullOrWhiteSpace(lU.Mobileno)
+                && string.IsNullOrWhiteSpace(lU.emailid))
             {
-                ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
-                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
-                DataTable dt = a.Get_Application_Setting("6");
-                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
-                ml.settingid = dt.Rows[0]["SettingID"].ToString();
-
-                var otp = await _otpManager.GenerateOtpAsync(username.ToString());
-                var otpid = await _otpManager.GenerateOtpID();
-                SmsTemplate template = new SmsTemplate();
-                template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                if (username.Contains("@") != false)
-                {
-                    if (ml.OTP_ON_SMS == "1")
-                    {
-                        await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
-                    }
-
-                }
-                else
-                {
-                    try
-                    {
-                        if (ml.OTP_ON_MAIL == "1")
-                        {
-                            SmtpEmailService s = new SmtpEmailService(_configuration);
-                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                        }
-
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
-                        return StatusCode(StatusCodes.Status502BadGateway, new
-                        {
-                            message = "Unable to send OTP. Please try again later."
-                        });
-                    }
-                }
-
-                   return Ok(new { otp = otp, userid = "" });
-
-
+                return Unauthorized();
             }
             else
             {
@@ -841,24 +788,17 @@ namespace LitteraCore.Controllers
                     SmsTemplate template = new SmsTemplate();
                     template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
                     string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                    if (lU.Mobileno != null)
+                    if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                     {
-                        if (ml.OTP_ON_SMS == "1")
-                        {
-                            await _smsService.SendSmsAsync(lU.Mobileno.ToString(), msg, template.TemplateID);
-                        }
-
+                        await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
                     }
-                    if (lU.emailid != null)
+
+                    if (ml.OTP_ON_MAIL == "1" && !string.IsNullOrWhiteSpace(lU.emailid))
                     {
                         try
                         {
-                            if (ml.OTP_ON_MAIL == "1")
-                            {
-                                SmtpEmailService s = new SmtpEmailService(_configuration);
-                                await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                            }
-
+                            SmtpEmailService s = new SmtpEmailService(_configuration);
+                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
                         }
                         catch (Exception ex)
                         {
