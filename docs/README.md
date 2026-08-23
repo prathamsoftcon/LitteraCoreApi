@@ -2,6 +2,8 @@
 
 ## Backend Notes
 
+- [`release-notes-after-74713f8.md`](release-notes-after-74713f8.md)
+- [`release-notes-2026-08-14-to-2026-08-23.md`](release-notes-2026-08-14-to-2026-08-23.md)
 - [`email-sending-apis.md`](email-sending-apis.md)
 - [`exception-handling-in-use.md`](exception-handling-in-use.md)
 - [`global_exception_handling_plan.md`](global_exception_handling_plan.md)
