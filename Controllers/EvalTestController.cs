@@ -46,7 +46,7 @@ namespace LitteraCore.Controllers
             int isTestAllowed = 0;
             ParticipantDB WDB = new ParticipantDB(_configuration);
             List<Participant> lwtc = new List<Participant>();
-            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid,null,null, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
+            lwtc = WDB.Get_TRG_PARTICIPANT_Data(trainingid, userid, null, "ParticipantId,ParticipantName,photopath,totalrecords,ttpai_id,is_approve");
             lwtc = lwtc.Where(o => o.ParticipantId.ToString().ToUpper() == userid.ToString().ToUpper()).ToList();
             if (lwtc.Count > 0)
             {
