@@ -331,9 +331,115 @@ namespace LitteraCore.Controllers
             }
         }
 
+        [HttpGet("resume")]
+        [SwaggerOperation("To get the authenticated learner's latest session-player resume checkpoint.")]
+        public IActionResult GetResumeCheckpoint(
+            [FromQuery] string trainingId,
+            [FromQuery] string sessionId,
+            [FromQuery] string userId,
+            [FromQuery] string userType,
+            [FromQuery] string branchId)
+        {
+            string? validationMessage = ValidateResumeScope(trainingId, sessionId, userId, userType, branchId);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.GetResumeCheckpoint(trainingId, sessionId, userId, userType, branchId));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "Unable to load the session-player resume checkpoint."
+                });
+            }
+        }
+
+        [HttpPost("resume")]
+        [SwaggerOperation("To save the authenticated learner's latest session-player resume checkpoint.")]
+        public IActionResult SaveResumeCheckpoint([FromBody] SaveInteractivePlayerResumeRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("A valid resume checkpoint payload is required.");
+            }
+
+            string? validationMessage = ValidateResumeScope(
+                request.TrainingId,
+                request.SessionId,
+                request.UserId,
+                request.UserType,
+                request.BranchId);
+            if (validationMessage != null)
+            {
+                return BadRequest(validationMessage);
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ContentId))
+            {
+                return BadRequest("contentId is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ContentKind))
+            {
+                return BadRequest("contentKind is required.");
+            }
+
+            if (request.MediaPositionSeconds.HasValue && request.MediaPositionSeconds < 0)
+            {
+                return BadRequest("mediaPositionSeconds cannot be negative.");
+            }
+
+            if (request.PageNumber.HasValue && request.PageNumber < 1)
+            {
+                return BadRequest("pageNumber must be at least 1.");
+            }
+
+            try
+            {
+                InteractivePlayerBL bl = new InteractivePlayerBL(_configuration);
+                return Ok(bl.SaveResumeCheckpoint(request));
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "Unable to save the session-player resume checkpoint."
+                });
+            }
+        }
+
         private static bool IsValidActivityId(string? activityId)
         {
             return long.TryParse(activityId, out _);
+        }
+
+        private static string? ValidateResumeScope(
+            string? trainingId,
+            string? sessionId,
+            string? userId,
+            string? userType,
+            string? branchId)
+        {
+            if (string.IsNullOrWhiteSpace(trainingId)) return "trainingId is required.";
+            if (string.IsNullOrWhiteSpace(sessionId)) return "sessionId is required.";
+            if (string.IsNullOrWhiteSpace(userId)) return "userId is required.";
+            if (string.IsNullOrWhiteSpace(userType)) return "userType is required.";
+            if (string.IsNullOrWhiteSpace(branchId)) return "branchId is required.";
+            return null;
         }
 
         private static string? ValidateActivityRequest(

@@ -201,4 +201,33 @@ namespace LitteraCore.Models
         public List<InteractivePlayerPollSummaryItem> Items { get; set; } = new();
     }
 
+    public class SaveInteractivePlayerResumeRequest
+    {
+        public string TrainingId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public string ContentKind { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public string BranchId { get; set; } = string.Empty;
+        public decimal? MediaPositionSeconds { get; set; }
+        public int? PageNumber { get; set; }
+        public string? ActiveActivityId { get; set; }
+    }
+
+    public class InteractivePlayerResumeCheckpoint
+    {
+        public string TrainingId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
+        public string ContentId { get; set; } = string.Empty;
+        public string ContentKind { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+        public string UserType { get; set; } = string.Empty;
+        public string BranchId { get; set; } = string.Empty;
+        public decimal? MediaPositionSeconds { get; set; }
+        public int? PageNumber { get; set; }
+        public string? ActiveActivityId { get; set; }
+        public DateTimeOffset UpdatedAt { get; set; }
+    }
+
 }

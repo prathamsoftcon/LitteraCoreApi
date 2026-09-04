@@ -57,7 +57,7 @@
 	</setting>
 <setting>
 		<key>QR_IMG</key>
-		<value></value>
+		<value>/Content/GlobalSetting/Dev/qr.png</value>
 	</setting>
 	<setting>
 		<key>FB_LINK</key>
@@ -679,7 +679,7 @@ No Cancellation and refund is entrtained.
 	</setting>
 	<setting>
 		<key>DEFAULT_LOGO2</key>
-		<value>/Content/GlobalSetting/Dev/default_logo2.png?1.3</value>
+		<value>/Content/GlobalSetting/Dev/default_logo_2.png?1.4</value>
 	</setting>
 	<setting>
 		<key>DASHBOARD_LOGO</key>
@@ -741,9 +741,12 @@ No Cancellation and refund is entrtained.
 			Certification
 		</value>
 	</setting>
+
+	<setting>
+		<key>INSTRUCTION_URL</key>
+		<value>
+			/Content/GlobalSetting/Dev/LMSUseInstruction.pdf?1.3
+		</value>
+	</setting>
 	
 </ClientData>
-
-
-
-

@@ -407,6 +407,127 @@ ORDER BY c.response_count DESC, c.selected_option_text ASC;", con);
             return summary;
         }
 
+        public InteractivePlayerResumeCheckpoint? GetResumeCheckpoint(
+            string trainingId,
+            string sessionId,
+            string userId,
+            string userType,
+            string branchId)
+        {
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand(@"
+SELECT TOP (1)
+    ttiprc_trainingid AS training_id,
+    ttiprc_sessionid AS session_id,
+    ttiprc_contentid AS content_id,
+    ttiprc_contentkind AS content_kind,
+    ttiprc_userid AS user_id,
+    ttiprc_usertype AS user_type,
+    ttiprc_branchid AS branch_id,
+    ttiprc_mediapositionseconds AS media_position_seconds,
+    ttiprc_pagenumber AS page_number,
+    ttiprc_activeactivityid AS active_activity_id,
+    ttiprc_updatedon AS updated_at
+FROM trainingplan.tbl_tp_ip_resume_checkpoint
+WHERE ttiprc_trainingid = @training_id
+  AND ttiprc_sessionid = @session_id
+  AND ttiprc_userid = @user_id
+  AND ttiprc_usertype = @user_type
+  AND ttiprc_branchid = @branch_id;", con);
+
+            AddResumeScopeParameters(cmd, trainingId, sessionId, userId, userType, branchId);
+            cmd.CommandTimeout = 5000;
+            con.Open();
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            return reader.Read() ? MapResumeCheckpoint(reader) : null;
+        }
+
+        public InteractivePlayerResumeCheckpoint SaveResumeCheckpoint(SaveInteractivePlayerResumeRequest request)
+        {
+            using SqlConnection con = new SqlConnection(_configuration.GetConnectionString("LitteraDatabase"));
+            using SqlCommand cmd = new SqlCommand(@"
+UPDATE trainingplan.tbl_tp_ip_resume_checkpoint
+SET
+    ttiprc_contentid = @content_id,
+    ttiprc_contentkind = @content_kind,
+    ttiprc_mediapositionseconds = @media_position_seconds,
+    ttiprc_pagenumber = @page_number,
+    ttiprc_activeactivityid = @active_activity_id,
+    ttiprc_updatedon = SYSUTCDATETIME()
+WHERE ttiprc_trainingid = @training_id
+  AND ttiprc_sessionid = @session_id
+  AND ttiprc_userid = @user_id
+  AND ttiprc_usertype = @user_type
+  AND ttiprc_branchid = @branch_id;
+
+IF @@ROWCOUNT = 0
+BEGIN
+    INSERT INTO trainingplan.tbl_tp_ip_resume_checkpoint
+    (
+        ttiprc_trainingid,
+        ttiprc_sessionid,
+        ttiprc_contentid,
+        ttiprc_contentkind,
+        ttiprc_userid,
+        ttiprc_usertype,
+        ttiprc_branchid,
+        ttiprc_mediapositionseconds,
+        ttiprc_pagenumber
+        ,ttiprc_activeactivityid
+    )
+    VALUES
+    (
+        @training_id,
+        @session_id,
+        @content_id,
+        @content_kind,
+        @user_id,
+        @user_type,
+        @branch_id,
+        @media_position_seconds,
+        @page_number
+        ,@active_activity_id
+    );
+END
+
+SELECT TOP (1)
+    ttiprc_trainingid AS training_id,
+    ttiprc_sessionid AS session_id,
+    ttiprc_contentid AS content_id,
+    ttiprc_contentkind AS content_kind,
+    ttiprc_userid AS user_id,
+    ttiprc_usertype AS user_type,
+    ttiprc_branchid AS branch_id,
+    ttiprc_mediapositionseconds AS media_position_seconds,
+    ttiprc_pagenumber AS page_number,
+    ttiprc_activeactivityid AS active_activity_id,
+    ttiprc_updatedon AS updated_at
+FROM trainingplan.tbl_tp_ip_resume_checkpoint
+WHERE ttiprc_trainingid = @training_id
+  AND ttiprc_sessionid = @session_id
+  AND ttiprc_userid = @user_id
+  AND ttiprc_usertype = @user_type
+  AND ttiprc_branchid = @branch_id;", con);
+
+            AddResumeScopeParameters(cmd, request.TrainingId, request.SessionId, request.UserId, request.UserType, request.BranchId);
+            cmd.Parameters.AddWithValue("@content_id", request.ContentId.Trim());
+            cmd.Parameters.AddWithValue("@content_kind", request.ContentKind.Trim().ToLowerInvariant());
+            cmd.Parameters.AddWithValue("@media_position_seconds", DbValue(request.MediaPositionSeconds));
+            cmd.Parameters.AddWithValue("@page_number", DbValue(request.PageNumber));
+            cmd.Parameters.AddWithValue("@active_activity_id", DbValue(request.ActiveActivityId?.Trim()));
+            cmd.CommandTimeout = 5000;
+            con.Open();
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return MapResumeCheckpoint(reader);
+            }
+
+            throw new Exception("Interactive player resume checkpoint could not be saved.");
+        }
+
         private static InteractivePlayerActivity MapActivity(SqlDataReader reader)
         {
             return new InteractivePlayerActivity
@@ -432,6 +553,24 @@ ORDER BY c.response_count DESC, c.selected_option_text ASC;", con);
                 UpdatedAt = SafeNullableDateTimeOffset(reader, "updated_at"),
                 DetailJson = SafeNullableString(reader, "detail_json"),
                 SchemaVersion = SafeInt(reader, "schema_version", 1)
+            };
+        }
+
+        private static InteractivePlayerResumeCheckpoint MapResumeCheckpoint(SqlDataReader reader)
+        {
+            return new InteractivePlayerResumeCheckpoint
+            {
+                TrainingId = SafeString(reader, "training_id"),
+                SessionId = SafeString(reader, "session_id"),
+                ContentId = SafeString(reader, "content_id"),
+                ContentKind = SafeString(reader, "content_kind"),
+                UserId = SafeString(reader, "user_id"),
+                UserType = SafeString(reader, "user_type"),
+                BranchId = SafeString(reader, "branch_id"),
+                MediaPositionSeconds = SafeNullableDecimal(reader, "media_position_seconds"),
+                PageNumber = SafeNullableInt(reader, "page_number"),
+                ActiveActivityId = SafeNullableString(reader, "active_activity_id"),
+                UpdatedAt = SafeDateTimeOffset(reader, "updated_at"),
             };
         }
 
@@ -514,6 +653,21 @@ ORDER BY c.response_count DESC, c.selected_option_text ASC;", con);
         private static object DbValue(object? value)
         {
             return value ?? DBNull.Value;
+        }
+
+        private static void AddResumeScopeParameters(
+            SqlCommand cmd,
+            string? trainingId,
+            string? sessionId,
+            string? userId,
+            string? userType,
+            string? branchId)
+        {
+            cmd.Parameters.AddWithValue("@training_id", trainingId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@session_id", sessionId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@user_id", userId?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@user_type", userType?.Trim() ?? string.Empty);
+            cmd.Parameters.AddWithValue("@branch_id", branchId?.Trim() ?? string.Empty);
         }
 
         private static string NormalizeTriggerMode(string? triggerMode)

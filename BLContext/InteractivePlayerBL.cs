@@ -65,5 +65,22 @@ namespace LitteraCore.BLContext
             InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
             return db.GetPollSummary(activityId, sessionId, contentId);
         }
+
+        public InteractivePlayerResumeCheckpoint? GetResumeCheckpoint(
+            string trainingId,
+            string sessionId,
+            string userId,
+            string userType,
+            string branchId)
+        {
+            InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
+            return db.GetResumeCheckpoint(trainingId, sessionId, userId, userType, branchId);
+        }
+
+        public InteractivePlayerResumeCheckpoint SaveResumeCheckpoint(SaveInteractivePlayerResumeRequest request)
+        {
+            InteractivePlayerDB db = new InteractivePlayerDB(_configuration);
+            return db.SaveResumeCheckpoint(request);
+        }
     }
 }
