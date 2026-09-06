@@ -98,7 +98,7 @@ namespace LitteraCore.Controllers
         [HttpGet]
         [Route("api/TRAINING_TEST_ANALYTIC_DATA")]
         [SwaggerOperation("To get training test alanytic data.[groupOn=1 for training, groupOn=2 for session,groupOn=3 for Participant,groupOn=4 for test ]")]
-        public IActionResult TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, string sessionid = null, string participantid = null, int groupOn = 1, int testtype = 3, string testid = null,string branchid=null)
+        public IActionResult TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, string sessionid = null, string participantid = null, int groupOn = 1, int testtype = 1, string testid = null,string branchid=null)
         {
             //groupOn=1 for training, groupOn=2 for session,groupOn=3 for Participant,groupOn=4 for test 
             EvalBL BL = new EvalBL(_configuration);
@@ -200,11 +200,11 @@ namespace LitteraCore.Controllers
         [HttpPost]
         [Route("api/get_user_tests")]
         [SwaggerOperation("To get user's test.")]
-        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias,string testtype="1",string trainingid=null)
+        public IActionResult get_user_tests(string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string testtype = "1", string trainingid = null)
         {
            List<Test> TESTS = new List<Test>();
            EvalDB tbl = new EvalDB(_configuration);
-           TESTS = tbl.Get_test_List(usertype, userid);
+           TESTS = tbl.Get_test_List(usertype, userid, testtype);
             if (trainingid != null)
             {
                 TESTS = TESTS.Where(o => o.trainingid.ToString().ToUpper() == trainingid.ToString().ToUpper()).ToList();
@@ -220,9 +220,6 @@ namespace LitteraCore.Controllers
             {
                 filteredItems = searchService.FilterItems(orderedTests, searchCriterias.SearchCriteria.ToList());
             }
-            //filteredItems = filteredItems.Where(o => o.type == testtype).ToList();
-            //TESTS = TESTS.Where(o => o.type == "1").ToList();
-          
             var pagedList = Paging.GetPagedList(param, filteredItems);
             var result = Paging.GetPagedData(param, filteredItems);
             return Ok(result);

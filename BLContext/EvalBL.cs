@@ -14,7 +14,7 @@ namespace LitteraCore.BLContext
         {
             _configuration = configuration;
         }
-        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3, string branchid = null)
+        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 1, string branchid = null)
         {
             EvalDB TBD = new EvalDB(_configuration);
             List<TEST_RESULT_DATA> T = new List<TEST_RESULT_DATA>();

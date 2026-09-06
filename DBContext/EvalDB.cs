@@ -15,7 +15,11 @@ namespace LitteraCore.DBContext
         {
             _configuration = configuration;
         }
-        public List<Test> Get_test_List(string usertype, string userid,string trainingid=null)
+        public List<Test> Get_test_List(
+            string usertype,
+            string userid,
+            string testtype = null,
+            string trainingid = null)
         {
 
             List<Test> assingvaluation = new List<Test>();
@@ -27,6 +31,10 @@ namespace LitteraCore.DBContext
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@userid", userid);
                 cmd.Parameters.AddWithValue("@usertype", usertype);
+                if (!string.IsNullOrWhiteSpace(testtype))
+                {
+                    cmd.Parameters.AddWithValue("@testType", testtype);
+                }
 
                 cmd.CommandTimeout = 5000;
 
@@ -149,7 +157,7 @@ namespace LitteraCore.DBContext
 
         }
 
-        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 3,string branchid=null)
+        public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 1,string branchid=null)
         {
 
 
@@ -163,6 +171,7 @@ namespace LitteraCore.DBContext
             cmd.Parameters.AddWithValue("@UserType", usertype);
             cmd.Parameters.AddWithValue("@fromdt", fromdate);
             cmd.Parameters.AddWithValue("@todate", todate);
+            cmd.Parameters.AddWithValue("@testtype", testtype);
 
             cmd.Connection = con;
             cmd.CommandTimeout = 5000;
