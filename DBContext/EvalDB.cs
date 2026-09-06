@@ -1,5 +1,6 @@
 ﻿using LitteraCore.Common.DMS;
 using LitteraCore.Models;
+using LitteraCore.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
@@ -155,6 +156,96 @@ namespace LitteraCore.DBContext
 
             return assingvaluation;
 
+        }
+
+        public List<Test> Get_test_List_by_testid(string testid, string usertype, string userid)
+        {
+            List<Test> tests = new List<Test>();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+
+            using SqlConnection con = new SqlConnection(connectionString);
+            con.Open();
+            using SqlCommand cmd = new SqlCommand("eval.GetTestListbytestid", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add("@testid", SqlDbType.UniqueIdentifier).Value = Guid.Parse(testid);
+            cmd.Parameters.AddWithValue("@UserType", usertype);
+            cmd.Parameters.Add("@UserID", SqlDbType.UniqueIdentifier).Value = Guid.Parse(userid);
+            cmd.CommandTimeout = 5000;
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            TrainingDB trainingDb = new TrainingDB(_configuration);
+            List<TrainingCategory> categories = trainingDb.Get_training_Category();
+
+            while (reader.Read())
+            {
+                Test test = new Test
+                {
+                    testquestionid = reader.GetStringSafe("testquestionid"),
+                    testid = reader.GetStringSafe("testid"),
+                    testname = reader.GetStringSafe("testname"),
+                    assesmenttime = reader.GetStringSafe("assesmenttime"),
+                    skilltag = reader.GetStringSafe("skilltag"),
+                    isactive = reader.GetIntSafe("isactive"),
+                    trainingid = reader.GetStringSafe("trainingid"),
+                    trainingcode = reader.GetStringSafe("trainingcode"),
+                    trg_type = reader.GetStringSafe("trg_type"),
+                    createdon = reader.GetDateSafe("createdon"),
+                    createdbyagencyid = reader.GetStringSafe("createdbyagencyid"),
+                    training_sponsortype = reader.GetStringSafe("training_sponsortype"),
+                    noofquestion = reader.GetIntSafe("noofquestion"),
+                    sessionid = reader.GetStringSafe("Training.sessionid"),
+                    ttttt_content_desc = reader.GetStringSafe("ttttt_content_desc"),
+                    ttttt_session_dt = reader.GetStringSafe("ttttt_session_dt"),
+                    ttttt_session_time = reader.GetStringSafe("ttttt_session_time"),
+                    ttttt_session_duration = reader.GetStringSafe("ttttt_session_duration"),
+                    ttpss_participant_id = reader.GetStringSafe("ttpss_participant_id"),
+                    ttpss_session_id = reader.GetStringSafe("ttpss_session_id"),
+                    ttpss_onscreen_time = reader.GetStringSafe("ttpss_onscreen_time"),
+                    ttpss_status = reader.GetStringSafe("ttpss_status"),
+                    ttpss_created_on = reader.GetStringSafe("ttpss_created_on"),
+                    participantstatus = reader.GetStringSafe("participantstatus"),
+                    participantenrollstatus = reader.GetStringSafe("participantenrollstatus"),
+                    tdds_status = reader.GetIntSafe("tdds_status"),
+                    type = reader.GetStringSafe("type"),
+                    mark_per_question = reader.GetDecimalSafe("mark_per_question") ?? 0,
+                    Test_time = reader.GetStringSafe("start_time"),
+                    ttttt_status = reader.GetStringSafe("ttttt_status"),
+                    TrainingCategoryId = reader.GetStringSafe("TrainingCategoryId"),
+                    QuestionDifficultyID = reader.GetStringSafe("QuestionDifficultyID")
+                };
+
+                test.maxMarks = test.noofquestion * test.mark_per_question;
+                test.issessioncompleted = Common.CommonEnum.Get_Self_Paced_Trg(test.trg_type) == 1
+                    ? test.ttpss_status == "1" ? 1 : 0
+                    : DateTime.TryParse(test.ttttt_session_dt, out DateTime sessionDate) && DateTime.Now > sessionDate ? 1 : 0;
+
+                var category = categories.FirstOrDefault(o =>
+                    o.TrainingCategoryId.ToString().Equals(test.TrainingCategoryId, StringComparison.OrdinalIgnoreCase));
+                test.Training_category_name = category?.TrainingCategoryName ?? string.Empty;
+
+                string trainingSetting = reader.GetStringSafe("trg_setting");
+                if (!string.IsNullOrWhiteSpace(trainingSetting))
+                {
+                    try
+                    {
+                        test.trg_Setting = JsonConvert.DeserializeObject<Trg_Setting>(trainingSetting);
+                        string configuredCode = test.trg_Setting?.displaycontrols?
+                            .FirstOrDefault(o => o.id == 9)?.displaytext;
+                        if (!string.IsNullOrWhiteSpace(configuredCode))
+                        {
+                            test.trainingcode = configuredCode;
+                        }
+                    }
+                    catch
+                    {
+                        test.trg_Setting = null;
+                    }
+                }
+
+                tests.Add(test);
+            }
+
+            return tests;
         }
 
         public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 1,string branchid=null)

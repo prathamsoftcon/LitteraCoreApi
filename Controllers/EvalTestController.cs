@@ -225,6 +225,33 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
+        [HttpPost]
+        [Route("api/get_user_test_by_testid")]
+        [SwaggerOperation("To get a user's test by its mapped test ID.")]
+        public IActionResult get_user_test_by_testid(string testid, string usertype, string userid, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias)
+        {
+            if (!Guid.TryParse(testid, out _) || !Guid.TryParse(userid, out _))
+            {
+                return BadRequest("testid and userid must be valid GUIDs.");
+            }
+
+            EvalDB tbl = new EvalDB(_configuration);
+            List<Test> tests = tbl.Get_test_List_by_testid(testid, usertype, userid);
+            var orderedTests = tests
+                .OrderBy(t => t.type == "1" ? 0 : t.type == "2" ? 1 : 2)
+                .ThenByDescending(t => t.createdon)
+                .ToList();
+
+            var filteredItems = orderedTests;
+            if (searchCriterias?.SearchCriteria != null)
+            {
+                var searchService = new SearchService();
+                filteredItems = searchService.FilterItems(orderedTests, searchCriterias.SearchCriteria.ToList());
+            }
+
+            return Ok(Paging.GetPagedData(param, filteredItems));
+        }
+
         [Route("api/get_test_participant_id")]
         [HttpGet]
         [SwaggerOperation("To get particular participant testparticipant id .")]
