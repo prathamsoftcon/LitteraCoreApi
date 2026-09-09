@@ -196,6 +196,7 @@ namespace LitteraCore.Controllers
             int iscdLogin = 0;
             int? participantstatus = 0;
             string testparticipantid = "";
+            string testresultstatus = "";
             int ismeetingavailable = 0;
 
             if (usertype != null)
@@ -215,9 +216,9 @@ namespace LitteraCore.Controllers
                     {
                         participantstatus = 0;
                     }
-                  
+                    
                     EvalDB tbl = new EvalDB(_configuration);
-                    TESTS = tbl.Get_trg_test_List_on_session(userid, usertype, trainingid);
+                    TESTS = tbl.Get_test_List(usertype, userid, "1", trainingid);
 
                    
 
@@ -291,13 +292,16 @@ namespace LitteraCore.Controllers
                     }
 
 
-                    if (TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).Count() > 0)
+                    Test sessionTest = TESTS.FirstOrDefault(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper());
+                    if (sessionTest != null)
                     {
-                        testparticipantid = TESTS.Where(o => o.sessionid.ToString().ToUpper() == sess.ttttt_session_id.ToString().ToUpper()).FirstOrDefault().participantstatus;
+                        testparticipantid = sessionTest.participantstatus;
+                        testresultstatus = sessionTest.testresultstatus;
                     }
                     else
                     {
                         testparticipantid = "";
+                        testresultstatus = "";
                     }
 
 
@@ -310,7 +314,7 @@ namespace LitteraCore.Controllers
                         DisplayInfo DI = new DisplayInfo();
                         DI.key = value.ToString();
                         DI.name = Enum.GetName(typeof(CommonEnum.SESSION_LIST_ACTIONS), value);
-                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage, mentors_session_slots);
+                        DI.value = SessionDB.SESSION_DISPLAY_ACTION(usertype, Convert.ToInt32(trgdetail.trg_type), Convert.ToInt32(sess.ttttt_type), Convert.ToInt32(sess.ttttt_status), value, Convert.ToInt32(sess.ttttt_complimentory), ismeetingavailable,iscdLogin,participantstatus,testparticipantid, sess.completiontype?.id.ToString(), sess.completionpercentage, mentors_session_slots, testresultstatus);
                         sessionActiondisplay.Add(DI);
                     }
                     sess.ActionInfos = sessionActiondisplay.ToArray();

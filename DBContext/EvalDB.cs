@@ -92,6 +92,7 @@ namespace LitteraCore.DBContext
                         T.ttpss_created_on = reader["ttpss_created_on"].ToString();
                         T.participantstatus = reader["participantstatus"].ToString();
                         T.participantenrollstatus = reader["participantenrollstatus"].ToString();
+                        T.testresultstatus = reader["testresultstatus"].ToString();
 
                         if (Common.CommonEnum.Get_Self_Paced_Trg(reader["trg_type"].ToString()) == 1)
                         {

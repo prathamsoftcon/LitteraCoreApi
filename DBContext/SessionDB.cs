@@ -1467,13 +1467,17 @@ namespace LitteraCore.DBContext
         }
 
 
-        public static bool SESSION_DISPLAY_ACTION(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int? participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0,int mentorslot_Count=0)
+        public static bool SESSION_DISPLAY_ACTION(string usertype, int trainingtype, int sessiontype, int sessionstatus, int ActionFor, int iscomplementory, int ismeetingavailable, int iscdlogin, int? participantstatus, string testparticipant = "", string session_completion_type = null, decimal completionpercentage = 0,int mentorslot_Count=0, string testresultstatus = "")
         {
 
             bool isdisplay = false;
             if (testparticipant == null)
             {
                 testparticipant = "";
+            }
+            if (testresultstatus == null)
+            {
+                testresultstatus = "";
             }
 
 
@@ -2121,7 +2125,7 @@ namespace LitteraCore.DBContext
                 {
                     if (sessiontype == (int)CommonEnum.SessionType.Test)
                     {
-                        if (testparticipant.ToString() == "")
+                        if (testparticipant.ToString() == "" && (testresultstatus == "" || testresultstatus == "0"))
                         {
                             isdisplay = true;
                         }
@@ -2153,7 +2157,7 @@ namespace LitteraCore.DBContext
                 {
                     if (sessiontype == (int)CommonEnum.SessionType.Test)
                     {
-                        if (testparticipant.ToString() != "")
+                        if (testparticipant.ToString() != "" || testresultstatus == "1" || testresultstatus == "3")
                         {
                             isdisplay = true;
                         }

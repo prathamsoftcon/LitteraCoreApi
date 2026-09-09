@@ -59,6 +59,7 @@
         public int passing_marks_percentage { get; set; } = 33;
         public int max_attempt { get; set; } = 3;
         public int attempted { get; set; } = 0;
+        public string testresultstatus { get; set; }
     }
     public class TEST_RESULT_DATA
     {
