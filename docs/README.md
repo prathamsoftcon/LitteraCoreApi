@@ -12,6 +12,7 @@
 
 - [`authentication_cookie_hardening.md`](authentication_cookie_hardening.md)
 - [`authentication_jwt_flow_update.md`](authentication_jwt_flow_update.md)
+- [`authentication_refresh_token_implementation_plan.md`](authentication_refresh_token_implementation_plan.md)
 - [`frontend_file_upload_instructions.md`](frontend_file_upload_instructions.md)
 - [`frontend_auth_migration_instructions.md`](frontend_auth_migration_instructions.md)
 - [`qa_auth_flow_instructions.md`](qa_auth_flow_instructions.md)
