@@ -153,6 +153,8 @@ namespace LitteraCore.DBContext
                         assingvaluation.Add(T);
                     }
                 }
+
+                ApplyParticipantAttemptStatuses(con, assingvaluation, userid);
             }
 
             return assingvaluation;
@@ -215,6 +217,10 @@ namespace LitteraCore.DBContext
                     QuestionDifficultyID = reader.GetStringSafe("QuestionDifficultyID")
                 };
 
+                test.tptss_status = reader.HasColumn("tptss_status") && reader["tptss_status"] != DBNull.Value
+                    ? reader.GetIntSafe("tptss_status")
+                    : null;
+
                 test.maxMarks = test.noofquestion * test.mark_per_question;
                 test.issessioncompleted = Common.CommonEnum.Get_Self_Paced_Trg(test.trg_type) == 1
                     ? test.ttpss_status == "1" ? 1 : 0
@@ -247,6 +253,42 @@ namespace LitteraCore.DBContext
             }
 
             return tests;
+        }
+
+        private static void ApplyParticipantAttemptStatuses(SqlConnection connection, List<Test> tests, string participantId)
+        {
+            if (tests.Count == 0 || !Guid.TryParse(participantId, out var parsedParticipantId))
+                return;
+
+            const string query = @"
+                WITH LatestAttempts AS (
+                    SELECT tptss_testid, tptss_status,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY tptss_testid
+                               ORDER BY tptss_createdon DESC, tptss_id DESC
+                           ) AS row_number
+                    FROM Eval.tbl_participat_test_start_status
+                    WHERE tptss_participantid = @participantId
+                )
+                SELECT tptss_testid, tptss_status
+                FROM LatestAttempts
+                WHERE row_number = 1;";
+
+            var statuses = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            using var command = new SqlCommand(query, connection);
+            command.Parameters.Add("@participantId", SqlDbType.UniqueIdentifier).Value = parsedParticipantId;
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                if (!reader.IsDBNull(0) && !reader.IsDBNull(1))
+                    statuses[reader.GetGuid(0).ToString()] = reader.GetInt32(1);
+            }
+
+            foreach (var test in tests)
+            {
+                if (statuses.TryGetValue(test.testid ?? string.Empty, out var status))
+                    test.tptss_status = status;
+            }
         }
 
         public List<TEST_RESULT_DATA> GET_TRAINING_TEST_ANALYTIC_DATA(string usertype, string userid, string fromdate, string todate, string trainingid = null, int testtype = 1,string branchid=null)
