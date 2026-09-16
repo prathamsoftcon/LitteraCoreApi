@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Linq;
 using System.Net;
 
 namespace LitteraCore.Controllers
@@ -120,6 +121,40 @@ namespace LitteraCore.Controllers
             AgencyBL ABL = new AgencyBL(_configuration);
             PagedResult<Agency> AL = ABL.Get_Agency("00053", null, null, param, null);
             return Ok(AL);
+        }
+
+        // Added 2026-09-14 for the session-level Content Library page's Faculty panel
+        // (frm_content_manager.aspx -> React migration). Old page's real flow:
+        // Show_Faculty_Details(facultyid) -> Angular scope's
+        // YF_GET_Particular_Faculty_Detail -> GET TrainingAPI/Get_Instructor_Data
+        // ?instructorid=X, which calls dm.GET_FACULTY_DATA_NEW(...) ->
+        // [yuser].[proc_yuser_get_agency] with @agencytype='00054' (Guest Faculty -
+        // a different, narrower agency type than the '00053' Faculty type used
+        // elsewhere for session-assignment dropdowns) and @AgencyId=instructorid, then
+        // enriches the base row from an XML blob column (name/designation/org/bank/
+        // IFSC/account/honorarium + a per-course specialization sub-table).
+        // Confirmed this app's own Get_Agency (called below) already runs the modern
+        // equivalent proc (yuser.proc_yuser_get_agency_vr1) and already does that same
+        // XML-blob enrichment into AgencyAdditionalInfo for every agencytype other than
+        // '00053' - so this endpoint is a thin, narrowly-scoped wrapper (matching
+        // Trg_Sponsor_Agency's own pattern immediately above) rather than a new
+        // hand-rolled query. The one real gap found and closed alongside this endpoint:
+        // AgencyAdditionalInfo had no field for the nested <DETAILS> specialization
+        // table, so it was being silently dropped for every agency type - see the new
+        // `DETAILS`/`FacultyCourseDetail` addition in Models/Agency.cs.
+        [HttpGet]
+        [Route("api/Get_Instructor_Data")]
+        [SwaggerOperation("To get a Guest Faculty's full profile detail (contact/bank/specialization) for the Faculty Details popup.")]
+        public IActionResult Get_Instructor_Data(string instructorid)
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            PagedResult<Agency> AL = ABL.Get_Agency("00054", instructorid, null, new PaginationParam(), null);
+            Agency agency = AL.Items?.FirstOrDefault();
+            if (agency == null)
+            {
+                return NotFound();
+            }
+            return Ok(agency);
         }
 
         [HttpGet]

@@ -657,6 +657,42 @@ where ttsam_id = @ContentId) and Participantid = @ParticipantId", con);
             return AL;
         }
 
+        // Fixed 2026-09-16 - see ContentPermissionSave's own comment in
+        // Models/Content.cs for the full trace. Calls the real save proc
+        // directly with typed parameters (this app's controllers don't have
+        // the old app's generic "run any named proc by string" dispatcher,
+        // so this is a normal purpose-built wrapper, matching every other
+        // method in this file - not a port of that generic mechanism).
+        public bool Save_Content_Permission(ContentPermissionSave p, string createdon)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+
+            SqlCommand cmd = new SqlCommand("TrainingPlan.proc_tp_insupd_attachement_permission", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.AddWithValue("@trgid", string.IsNullOrEmpty(p.trgid) ? (object)DBNull.Value : p.trgid);
+            cmd.Parameters.AddWithValue("@sessionid", DBNull.Value); // old app's own control always sends NULL here too (see trace comment)
+            cmd.Parameters.AddWithValue("@attachementid", p.attachementid ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@usertype", p.usertype ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@createdby", p.createdby ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@createdon", createdon);
+            cmd.Parameters.AddWithValue("@isdefault", string.IsNullOrEmpty(p.isdefault) ? "0" : p.isdefault);
+            cmd.Parameters.AddWithValue("@adminrights", string.IsNullOrEmpty(p.adminrights) ? (object)DBNull.Value : p.adminrights);
+            cmd.Parameters.AddWithValue("@cdrights", string.IsNullOrEmpty(p.cdrights) ? (object)DBNull.Value : p.cdrights);
+            cmd.Parameters.AddWithValue("@facultyrights", string.IsNullOrEmpty(p.facultyrights) ? (object)DBNull.Value : p.facultyrights);
+            cmd.Parameters.AddWithValue("@participantrights", string.IsNullOrEmpty(p.participantrights) ? (object)DBNull.Value : p.participantrights);
+
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+
+            cmd.ExecuteNonQuery();
+            con.Close();
+
+            return true;
+        }
+
         // ===================================================================
         // Everything below added 2026-07-12 for the frm_global_content_library.aspx
         // -> React migration.
@@ -1151,7 +1187,13 @@ WHERE ttsam_trg_id = @trainingid
             cmd.Parameters.AddWithValue("@CreatedBy_empid", sca.CreatedBy_empid ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@fwd_empid", sca.fwd_empid ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@tat_type_id", 119);
-            cmd.Parameters.AddWithValue("@procfor", 0);
+            // Fixed 2026-09-16 (was hardcoded 0 - see SessionContentAttachment.procfor's
+            // comment in Models/Content.cs for the full explanation): the
+            // frontend now sends procfor per-route (1 = new Global Content
+            // Master row for a direct session Upload/WYSIWYG create, 0 = just
+            // an attachment link for attaching an already-existing Global
+            // Content item).
+            cmd.Parameters.AddWithValue("@procfor", sca.procfor);
             cmd.Parameters.AddWithValue("@createdon", createdon);
 
             cmd.Connection = con;

@@ -185,6 +185,15 @@ namespace LitteraCore.BLContext
             return AL;
         }
 
+        public bool Save_Content_Permission(ContentPermissionSave p)
+        {
+            ContentDB CDB = new ContentDB(_configuration);
+            // Server-generated, same convention as Save_Session_Content_Attachment (below).
+            string createdon = System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            bool issaved = CDB.Save_Content_Permission(p, createdon);
+            return issaved;
+        }
+
         // ===================================================================
         // Everything below added 2026-07-12 for the frm_global_content_library.aspx
         // -> React migration.
@@ -244,6 +253,16 @@ namespace LitteraCore.BLContext
         // with every backslash doubled. Mirrors $scope.LMS_UPDATE_CONTENT_DATA in
         // JS_frm_global_content_library.js exactly - do NOT collapse these two
         // meanings or let one overwrite the other.
+        //
+        // Extended 2026-09-13 with a third case for the WYSIWYG editor page
+        // (/global-wysiwyg): editing existing WYSIWYG content (old
+        // $scope.LMS_SAVE_UPLOAD_CONTENT's HF_Attachmentid != '' branch, JS
+        // L519-534) posts the real CKEditor HTML into this exact same
+        // @p_GlobalWysiwagText param - before this change there was no way
+        // to get real WYSIWYG HTML through this endpoint at all, since
+        // anything that wasn't the CDN type always got hardcoded to "NULL".
+        // Unlike the CDN case, this text is real markup, not a file path, so
+        // it is NOT backslash-doubled.
         public bool Update_Global_Content(UpdateGlobalContent m)
         {
             ContentDB CDB = new ContentDB(_configuration);
@@ -253,6 +272,10 @@ namespace LitteraCore.BLContext
                 m.GlobalContentTypeID.Trim().ToUpper() == "6ECEC2CD-2780-4DB5-B03C-CA37D3CC8B29")
             {
                 wysiwygText = (m.CdnLinkText ?? string.Empty).Replace("\\", "\\\\");
+            }
+            else if (!string.IsNullOrEmpty(m.WysiwygHtml))
+            {
+                wysiwygText = m.WysiwygHtml;
             }
 
             bool issaved = CDB.Update_Global_Content(
@@ -310,6 +333,21 @@ namespace LitteraCore.BLContext
             });
 
             return result;
+        }
+
+        // Added 2026-09-13 for the WYSIWYG editor page handoff. GlobalContentLibrary.jsx
+        // already builds an encrypted "id" querystring via Get_Encrypted_QS above and
+        // navigates to /global-wysiwyg?<enc name>=<enc value>, but nothing on the
+        // receiving end could ever decrypt it back - only an Encrypt call existed
+        // here (this comment was flagged as a cross-page dependency when
+        // Get_Encrypted_QS was first added: "whatever decrypts this on the
+        // receiving end ... must use the matching YEncryptDecryptData.Decrypt call
+        // with the same bool flag"). Mirrors that call exactly, matching the
+        // pattern already used for password decryption in
+        // AuthenticationController.cs (YEncryptDecryptData.Decrypt(value, true)).
+        public string Decrypt_QS(string qsvalue)
+        {
+            return YEncryptDecryptData.YEncryptDecryptData.Decrypt(qsvalue, true);
         }
 
         // Splits the comma-separated AdditionalID recipient list and sends one

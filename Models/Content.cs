@@ -211,6 +211,13 @@ namespace LitteraCore.Models
         // relevant/used when GlobalContentTypeID == 6ECEC2CD-2780-4DB5-B03C-CA37D3CC8B29
         // (the CDN content type). Ignored for all other content types.
         public string CdnLinkText { get; set; }
+        // Added 2026-09-13 for the WYSIWYG editor page (/global-wysiwyg,
+        // GlobalWysiwygEditor.jsx - frm_global_wysiwyg.aspx's React
+        // replacement). Real CKEditor HTML for the content being edited, sent
+        // when GlobalContentTypeID is the WYSIWYG sentinel ('7'). Ignored for
+        // every other content type, same as CdnLinkText above - see
+        // ContentBL.Update_Global_Content for how the two are kept separate.
+        public string WysiwygHtml { get; set; }
         // @w_GlobalthumbnailPath
         public string GlobalthumbnailPath { get; set; }
         // @p_tcm_content_reading_time - total seconds (hh/mm/ss already combined
@@ -336,5 +343,40 @@ namespace LitteraCore.Models
         public string CreatedBy_empid { get; set; }
         public string fwd_empid { get; set; }
         public string contentdata { get; set; }          // wysiwyg text, was posted as top-level "contentdata" by the old Save_WYIWAG_Data dispatcher
+        // Fixed 2026-09-16 (per proc_tp_upload_session_attachement source +
+        // explicit user direction): the proc only inserts a real row into
+        // Content.tbl_ContentMaster (via content.sp_insert_tbl_ContentMaster)
+        // when @procfor=1, using @globalcontentid as the new row's id. The
+        // frontend now decides this per-route: a direct session Upload/
+        // WYSIWYG create (session-content-library) generates a new GUID and
+        // sends procfor=1 (genuinely new Global Content); attaching an
+        // EXISTING Global Content item to a session (global-content-library's
+        // Attach/From-Global-Repository flows) sends the existing item's real
+        // globalcontentid with procfor=0 (no new master row - it already
+        // exists). No server-side default - the frontend is the source of
+        // truth for which of these two cases this call is.
+        public int procfor { get; set; }
+    }
+
+    // Fixed 2026-09-16: ContentPermissionModal.jsx's "Save Permission" action
+    // had never been wired to a real backend call (see that file's own prior
+    // header comment, now removed). Traced the old app's real save mechanism
+    // directly - UserControls/uc_content_permission.ascx's LMS_UC_CP_SAVE_DATA()
+    // - which calls a DIFFERENT proc than the upload-time default-permission
+    // proc: [TrainingPlan].proc_tp_insupd_attachement_permission (plural
+    // "attachement_permission", vs. upload's singular default-setting proc
+    // proc_tp_insupd_default_attachement_permission). This is the real,
+    // confirmed shape of that call's parameters.
+    public class ContentPermissionSave
+    {
+        public string trgid { get; set; }              // old app always sent a real value here (page-level context); Global Content Library's own items currently have no per-row trgid surfaced to the frontend (Get_Global_Content_List's proc result has no trgid/ttsam_trg_id column mapped) - sent null from there for now, see UploadContentModal.jsx-adjacent comment in GlobalContentLibrary.jsx's own usage.
+        public string attachementid { get; set; }       // ttsam_id being permission-edited
+        public string usertype { get; set; }            // the VIEWER's usertype (the person making the change), not a per-row target - matches old app's HF_USER_TYPE
+        public string createdby { get; set; }
+        public string isdefault { get; set; }           // "1"/"0" - old app's "Default Setting" checkbox
+        public string adminrights { get; set; }         // "view,edit,download,delete" e.g. "1,0,1,0"
+        public string cdrights { get; set; }
+        public string facultyrights { get; set; }
+        public string participantrights { get; set; }
     }
 }

@@ -143,7 +143,28 @@
 
         public CONTACTPERSON[] contactPerson { get; set; }
 
+        // Added 2026-09-14 for the Faculty Details popup (frm_content_manager.aspx's
+        // Show_Faculty_Details -> TrainingAPI/Get_Instructor_Data, ported as
+        // api/Get_Instructor_Data - see AgencyController.Get_Instructor_Data). The old
+        // endpoint's per-course subspecialization/experience table lives in this same
+        // additional_val XML blob, under a "DETAILS" node - Get_Agency's existing XML
+        // -> JSON reshape (above) already renames a lone <DETAILS> element into a
+        // JSON array under the "DETAILS" key before deserializing into
+        // AgencyAdditionalInfo, but nothing here previously had a matching property to
+        // catch it, so it was silently dropped for every agency type, not just Faculty.
+        // Adding this property lets that already-working reshape populate it with no
+        // other change to Get_Agency's parsing logic.
+        public FacultyCourseDetail[] DETAILS { get; set; }
+    }
 
+    // One row of a Guest Faculty's per-course specialization, from the same
+    // additional_val XML blob's nested <DETAILS> table. Field names match the old
+    // app's real XML column names verbatim (SUB_SPECILIZATION is misspelled in the
+    // source data itself, not a typo introduced here).
+    public class FacultyCourseDetail
+    {
+        public string SUB_SPECILIZATION { get; set; }
+        public string TOPICEXPERIENCE { get; set; }
     }
 
     public class user_agency_mapping

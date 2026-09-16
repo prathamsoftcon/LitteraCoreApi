@@ -575,6 +575,39 @@ namespace LitteraCore.Controllers
             }
         }
 
+        // The receiving end of RCVP_TrainingSchedule_Get_Encrypted_QS above - added
+        // 2026-09-13 for the WYSIWYG editor page (/global-wysiwyg,
+        // GlobalWysiwygEditor.jsx), the one caller of this handoff that actually
+        // needs to read the id back (WhatsApp/email share just embed the encrypted
+        // link in a URL someone else opens in the old app). No DB access required,
+        // same Controller->BL shortcut as the Encrypt endpoint above.
+        [HttpGet]
+        [Route("api/RCVP_TrainingSchedule_Get_Decrypted_QS")]
+        [SwaggerOperation("To decrypt a query-string value produced by RCVP_TrainingSchedule_Get_Encrypted_QS (the WYSIWYG editor handoff's receiving end).")]
+        public IActionResult RCVP_TrainingSchedule_Get_Decrypted_QS(string qsvalue)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                string decrypted = CBL.Decrypt_QS(qsvalue);
+                return Ok(new { value = decrypted });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+            catch (Exception ex)
+            {
+                // Decrypt itself can throw on bad/garbled input rather than raising a
+                // SQL error - old app's Page_Load wrapped this whole block in a
+                // catch-all and silently fell through treating the page as "new
+                // content" (frm_global_wysiwyg.aspx.vb's outer Try/Catch). A 400
+                // here lets the frontend make that same "treat as create" decision
+                // deliberately instead of getting an opaque 500.
+                return BadRequest(new { message = "Could not decrypt query string value.", detail = ex.Message });
+            }
+        }
+
         // Email-share flow for frm_global_content_library.aspx. Reuses the
         // existing SmtpEmailService (no new SMTP code). Does NOT implement the old
         // external short-URL-shortening step (MP_HF_SHORT_URL_API) - out of scope,
@@ -626,6 +659,23 @@ namespace LitteraCore.Controllers
             {
                 ContentBL CBL = new ContentBL(_configuration);
                 bool issaved = CBL.Save_Session_Content_Attachment(sca);
+                return Ok(new { issaved = issaved });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/Save_Content_Permission")]
+        [SwaggerOperation("To save view/edit/download/delete permission (per user type - admin/CD/faculty/participant) for a content attachment.")]
+        public IActionResult Save_Content_Permission([FromBody] ContentPermissionSave p)
+        {
+            try
+            {
+                ContentBL CBL = new ContentBL(_configuration);
+                bool issaved = CBL.Save_Content_Permission(p);
                 return Ok(new { issaved = issaved });
             }
             catch (SqlException ex)
