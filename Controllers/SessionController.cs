@@ -50,8 +50,9 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To get training sessions.")]
         public IActionResult TrgSessions(string trainingid,int pagetype=0,string usertype=null,string userid=null,string branchid=null)
         {
-           
-            SessionBL cbl = new SessionBL(_configuration);
+            try
+            {
+             SessionBL cbl = new SessionBL(_configuration);
             List<Session> s=new List<Session>();
             //********Filter faculty data only
             if (usertype != null)
@@ -496,7 +497,39 @@ namespace LitteraCore.Controllers
 
 
 
-            return Ok(s);   
+             return Ok(s);
+            }
+            catch (SessionDisplaySettingsMissingException ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "TrgSessions configuration is incomplete. trainingid={TrainingId}",
+                    trainingid);
+
+                return UnprocessableEntity(new
+                {
+                    success = false,
+                    code = "SESSION_DISPLAY_SETTINGS_MISSING",
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "TrgSessions failed. trainingid={TrainingId} pagetype={PageType} usertype={UserType} userid={UserId} branchid={BranchId}",
+                    trainingid,
+                    pagetype,
+                    usertype,
+                    userid,
+                    branchid);
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    success = false,
+                    message = "Unable to load training sessions. Please try again later."
+                });
+            }
         }
 
 

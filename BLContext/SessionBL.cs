@@ -11,6 +11,14 @@ using static LitteraCore.Common.CommonEnum;
 
 namespace LitteraCore.BLContext
 {
+    public sealed class SessionDisplaySettingsMissingException : InvalidOperationException
+    {
+        public SessionDisplaySettingsMissingException()
+            : base("Session display settings are not configured for this training. Please contact your administrator.")
+        {
+        }
+    }
+
     public class SessionBL
     {
         private readonly IConfiguration _configuration;
@@ -226,8 +234,11 @@ namespace LitteraCore.BLContext
             //string Foldername = CommonEnum.GET_JSON_FOLDER();
             //string jsontxt = System.IO.File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Content/GlobalSetting", "TrainingSettings.json"));
             //TS = JsonConvert.DeserializeObject<TrainingSettings>(jsontxt);
-            SessionEntry SEI = new SessionEntry();
-            SEI=TS.Session.SessionEntry;
+            SessionEntry SEI = TS?.Session?.SessionEntry;
+            if (SEI == null)
+            {
+                throw new SessionDisplaySettingsMissingException();
+            }
             bool isdisplay = false;
 
             if ((int)DisplayFor == (int)CommonEnum.SESSION_LIST_DISPLAY_OPTIONS.Session_No)
