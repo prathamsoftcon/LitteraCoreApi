@@ -261,6 +261,14 @@ namespace LitteraCore.Controllers
 
                 return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
             }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+                when (ex.Number == 50000 && ex.Message.Contains("UserName/Password not valid"))
+            {
+                return Unauthorized(new
+                {
+                    message = "No active account was found for this email address or mobile number."
+                });
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Unable to generate OTP.");
