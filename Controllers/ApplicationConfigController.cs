@@ -16,6 +16,8 @@ using LitteraCore.Common.OTP;
 using LitteraCore.Common.Token;
 using static System.Net.WebRequestMethods;
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using LitteraCore.Common.SmsService;
 using LitteraCore.Models.SmsSettings;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +34,21 @@ namespace LitteraCore.Controllers
         private readonly ILogger<ApplicationConfigController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+
+        /// <summary>
+        /// Removes SMTP credentials from configuration objects returned to browser callers.
+        /// The original model remains intact for server-side SMTP operations.
+        /// </summary>
+        private static JsonObject CreatePublicEmailSettingResponse<T>(T setting)
+        {
+            var response = System.Text.Json.JsonSerializer.SerializeToNode(
+                setting,
+                new JsonSerializerOptions(JsonSerializerDefaults.Web))?.AsObject()
+                ?? throw new InvalidOperationException("Unable to serialize application setting response.");
+
+            response["emailsetting"]?.AsObject().Remove("pwd");
+            return response;
+        }
 
         public ApplicationConfigController(
             IConfiguration configuration,
@@ -117,7 +134,7 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting(settingtype.ToString());
                 ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
-                return Ok(ml);
+                return Ok(CreatePublicEmailSettingResponse(ml));
             }
             else if (settingtype == 7)
             {
@@ -125,7 +142,7 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting(settingtype.ToString());
                 ml = JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
-                return Ok(ml);
+                return Ok(CreatePublicEmailSettingResponse(ml));
             }
             else if (settingtype == 8)
             {
