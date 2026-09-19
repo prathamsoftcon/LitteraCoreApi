@@ -36,10 +36,10 @@ namespace LitteraCore.Controllers
         private readonly IEmailService _emailService;
 
         /// <summary>
-        /// Removes SMTP credentials from configuration objects returned to browser callers.
+        /// Removes credential-bearing configuration values from objects returned to browser callers.
         /// The original model remains intact for server-side SMTP operations.
         /// </summary>
-        private static JsonObject CreatePublicEmailSettingResponse<T>(T setting)
+        private static JsonObject CreatePublicApplicationSettingResponse<T>(T setting, bool removeSmsApi = false)
         {
             var response = System.Text.Json.JsonSerializer.SerializeToNode(
                 setting,
@@ -47,6 +47,11 @@ namespace LitteraCore.Controllers
                 ?? throw new InvalidOperationException("Unable to serialize application setting response.");
 
             response["emailsetting"]?.AsObject().Remove("pwd");
+            if (removeSmsApi)
+            {
+                response.Remove("smsapi");
+            }
+
             return response;
         }
 
@@ -120,7 +125,7 @@ namespace LitteraCore.Controllers
             {
                 MobileLogin ml = new MobileLogin();
                 ml = JsonConvert.DeserializeObject<MobileLogin>(a.Get_Application_Setting(settingtype.ToString()).Rows[0]["SettingValue"].ToString());
-                return Ok(ml);
+                return Ok(CreatePublicApplicationSettingResponse(ml, removeSmsApi: true));
             }
             else if (settingtype == 2)
             {
@@ -134,7 +139,7 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting(settingtype.ToString());
                 ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
-                return Ok(CreatePublicEmailSettingResponse(ml));
+                return Ok(CreatePublicApplicationSettingResponse(ml, removeSmsApi: true));
             }
             else if (settingtype == 7)
             {
@@ -142,7 +147,7 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting(settingtype.ToString());
                 ml = JsonConvert.DeserializeObject<EMAIL_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
-                return Ok(CreatePublicEmailSettingResponse(ml));
+                return Ok(CreatePublicApplicationSettingResponse(ml));
             }
             else if (settingtype == 8)
             {
@@ -150,7 +155,7 @@ namespace LitteraCore.Controllers
                 DataTable dt = a.Get_Application_Setting(settingtype.ToString());
                 ml = JsonConvert.DeserializeObject<SMS_SEND_BY_APPLICATION>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
-                return Ok(ml);
+                return Ok(CreatePublicApplicationSettingResponse(ml, removeSmsApi: true));
             }
             else if (settingtype == 9)
             {
