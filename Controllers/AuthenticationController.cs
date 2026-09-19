@@ -192,27 +192,23 @@ namespace LitteraCore.Controllers
         [SwaggerOperation("To Generate and send OTP.")]
         public async Task<IActionResult> GenerateMobileOTP(string username,int utilityOTP=0)
         {
-            //Check Valid User
-            var auth = _authService;
-            AuthDB adb = new AuthDB(_configuration);
-            //List<User> lU = new List<User>();
-            UserInfo lU = adb.GetUserInfo(username);
-
-          
-
-
-            //Get the OTP from APi and return it back
-            if (string.IsNullOrWhiteSpace(lU.Mobileno)
-                && string.IsNullOrWhiteSpace(lU.emailid))
+            try
             {
-                return Unauthorized();
-            }
-            else
-            {
+                AuthDB adb = new AuthDB(_configuration);
+                UserInfo lU = adb.GetUserInfo(username);
+
+                if (lU == null || (string.IsNullOrWhiteSpace(lU.Mobileno)
+                    && string.IsNullOrWhiteSpace(lU.emailid)))
+                {
+                    return Unauthorized(new
+                    {
+                        message = "No active account was found for this email address or mobile number."
+                    });
+                }
+
                 ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
-                OTP_LOGIN_REQUIRED_SETTING ml = new OTP_LOGIN_REQUIRED_SETTING();
                 DataTable dt = a.Get_Application_Setting("6");
-                ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
+                OTP_LOGIN_REQUIRED_SETTING ml = JsonConvert.DeserializeObject<OTP_LOGIN_REQUIRED_SETTING>(dt.Rows[0]["SettingValue"].ToString());
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
 
                 if (utilityOTP == 1)
@@ -223,45 +219,56 @@ namespace LitteraCore.Controllers
 
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
                 var otpid = await _otpManager.GenerateOtpID();
-                if (otp != null)
-                {
-                    SmsTemplate template = new SmsTemplate();
-                    template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                    string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
-                    if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
-                    {
-                        await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
-                    }
-
-                    if (ml.OTP_ON_MAIL == "1" && !string.IsNullOrWhiteSpace(lU.emailid))
-                    {
-                        try
-                        {
-                            SmtpEmailService s = new SmtpEmailService(_configuration);
-                            await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
-                            return StatusCode(StatusCodes.Status502BadGateway, new
-                            {
-                                message = "Unable to send OTP. Please try again later."
-                            });
-                        }
-                      
-                    }
-
-                    return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
- 
-                }
-                else
+                if (otp == null)
                 {
                     return Unauthorized();
                 }
-            }
-          
 
-            return Unauthorized();
+                SmsTemplate template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
+                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
+                {
+                    try
+                    {
+                        await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to send OTP SMS for user {UserId}.", lU.userid);
+                        return StatusCode(StatusCodes.Status502BadGateway, new
+                        {
+                            message = "Unable to send OTP. Please try again later."
+                        });
+                    }
+                }
+
+                if (ml.OTP_ON_MAIL == "1" && !string.IsNullOrWhiteSpace(lU.emailid))
+                {
+                    try
+                    {
+                        SmtpEmailService s = new SmtpEmailService(_configuration);
+                        await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
+                        return StatusCode(StatusCodes.Status502BadGateway, new
+                        {
+                            message = "Unable to send OTP. Please try again later."
+                        });
+                    }
+                }
+
+                return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Unable to generate OTP.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "Unable to process OTP request. Please try again later."
+                });
+            }
         }
 
 
