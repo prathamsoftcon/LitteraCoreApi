@@ -89,6 +89,12 @@ namespace LitteraCore.BLContext
             return a;
         }
 
-       
+        public AgencyExistenceLookup Check_Agency_Exists(string userMobileMail)
+        {
+            UserDB udb = new UserDB(_configuration);
+            return udb.Check_Agency_Exists(userMobileMail);
+        }
+
+        
     }
 }

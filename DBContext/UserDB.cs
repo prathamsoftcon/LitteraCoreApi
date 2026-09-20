@@ -159,6 +159,34 @@ namespace LitteraCore.DBContext
             return dt;
         }
 
+        public AgencyExistenceLookup Check_Agency_Exists(string userMobileMail)
+        {
+            const string procedureName = "yuser.proc_yuser_chk_agency_exists";
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+
+            using SqlConnection con = new SqlConnection(connectionString);
+            using SqlCommand cmd = new SqlCommand(procedureName, con)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.Add("@user_mobile_mail", SqlDbType.VarChar, 4000).Value = userMobileMail;
+            con.Open();
+
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (!reader.Read())
+            {
+                return new AgencyExistenceLookup { exists = false };
+            }
+
+            return new AgencyExistenceLookup
+            {
+                exists = true,
+                agencyid = reader["agencyid"]?.ToString(),
+                userid = reader["userid"]?.ToString()
+            };
+        }
+
         public bool Save_User(LoginUser user, SqlConnection con, SqlTransaction transaction = null)
         {
 

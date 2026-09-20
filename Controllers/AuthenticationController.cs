@@ -244,19 +244,19 @@ namespace LitteraCore.Controllers
 
                 SmsTemplate template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
                 string msg = BuildOtpMessage(template, otp);
+                bool smsDelivered = false;
+                bool emailDelivered = false;
+
                 if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                 {
                     try
                     {
                         await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
+                        smsDelivered = true;
                     }
                     catch (Exception ex)
                     {
                         Log.Warning(ex, "Failed to send OTP SMS for user {UserId}.", lU.userid);
-                        return StatusCode(StatusCodes.Status502BadGateway, new
-                        {
-                            message = "Unable to send OTP. Please try again later."
-                        });
                     }
                 }
 
@@ -266,15 +266,20 @@ namespace LitteraCore.Controllers
                     {
                         SmtpEmailService s = new SmtpEmailService(_configuration);
                         await s.SendEmailAsync(lU.emailid, "OTP Details", msg);
+                        emailDelivered = true;
                     }
                     catch (Exception ex)
                     {
                         Log.Warning(ex, "Failed to send OTP email to {Email} for user {UserId}.", lU.emailid, lU.userid);
-                        return StatusCode(StatusCodes.Status502BadGateway, new
-                        {
-                            message = "Unable to send OTP. Please try again later."
-                        });
                     }
+                }
+
+                if (!smsDelivered && !emailDelivered)
+                {
+                    return StatusCode(StatusCodes.Status502BadGateway, new
+                    {
+                        message = "Unable to send OTP. Please try again later."
+                    });
                 }
 
                 return Ok(new {message = "OTP sent successfully.", userid= lU.userid,agencyid=lU.agencyid});

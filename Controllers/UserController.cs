@@ -250,6 +250,27 @@ namespace LitteraCore.Controllers
             });
         }
 
+        [HttpGet]
+        [Route("api/Check_Agency_Exists")]
+        [SwaggerOperation("Checks whether a mobile number or email is registered.")]
+        public IActionResult Check_Agency_Exists([FromQuery] string user_mobile_mail)
+        {
+            if (string.IsNullOrWhiteSpace(user_mobile_mail))
+            {
+                return BadRequest("Mobile number or email is required.");
+            }
+
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                return Ok(userBL.Check_Agency_Exists(user_mobile_mail.Trim()));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
         private void SendUserCreationEmail(LoginUser user, string APPURL)
         {
             if (string.IsNullOrWhiteSpace(APPURL))
