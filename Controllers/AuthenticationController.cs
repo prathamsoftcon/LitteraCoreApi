@@ -60,6 +60,25 @@ namespace LitteraCore.Controllers
            
         }
 
+        private static string BuildOtpMessage(SmsTemplate template, string otp)
+        {
+            if (string.IsNullOrWhiteSpace(template?.Message))
+            {
+                throw new InvalidOperationException("The OTP SMS template is not configured.");
+            }
+
+            var portalName = ClientData.Get_Client_Data()?.APP_TITLE;
+            if (string.IsNullOrWhiteSpace(portalName))
+            {
+                throw new InvalidOperationException("ClientData APP_TITLE must be configured for OTP SMS messages.");
+            }
+
+            return template.Message
+                .Replace("(#otpid#)", portalName)
+                .Replace("(#portal#)", portalName)
+                .Replace("(#otp#)", otp);
+        }
+
 
 
         //[HttpGet]
@@ -218,14 +237,13 @@ namespace LitteraCore.Controllers
                 }
 
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
-                var otpid = await _otpManager.GenerateOtpID();
                 if (otp == null)
                 {
                     return Unauthorized();
                 }
 
                 SmsTemplate template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                string msg = BuildOtpMessage(template, otp);
                 if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                 {
                     try
@@ -316,12 +334,11 @@ namespace LitteraCore.Controllers
                 }
 
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
-                var otpid = await _otpManager.GenerateOtpID();
                 if (otp != null)
                 {
                     SmsTemplate template = new SmsTemplate();
                     template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                    string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                    string msg = BuildOtpMessage(template, otp);
                     if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                     {
                         await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
@@ -797,12 +814,11 @@ namespace LitteraCore.Controllers
                 ml.settingid = dt.Rows[0]["SettingID"].ToString();
 
                 var otp = await _otpManager.GenerateOtpAsync(username.ToString());
-                var otpid = await _otpManager.GenerateOtpID();
                 if (otp != null)
                 {
                     SmsTemplate template = new SmsTemplate();
                     template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                    string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                    string msg = BuildOtpMessage(template, otp);
                     if (ml.OTP_ON_SMS == "1" && !string.IsNullOrWhiteSpace(lU.Mobileno))
                     {
                         await _smsService.SendSmsAsync(lU.Mobileno, msg, template.TemplateID);
@@ -1104,12 +1120,11 @@ namespace LitteraCore.Controllers
 
             var recipient = username.Trim();
             var otp = await _otpManager.GenerateOtpAsync(recipient);
-            var otpid = await _otpManager.GenerateOtpID();
 
             try
             {
                 SmsTemplate template = _smsService.GetTemplateMsg(Convert.ToInt32(LitteraCore.Models.SmsSettings.TemplateType.Otp));
-                string msg = template.Message.Replace("(#otp#)", otp).Replace("(#otpid#)", otpid);
+                string msg = BuildOtpMessage(template, otp);
 
                 if (recipient.Contains("@"))
                 {
