@@ -182,8 +182,11 @@ namespace LitteraCore.DBContext
             return new AgencyExistenceLookup
             {
                 exists = true,
-                agencyid = reader["agencyid"]?.ToString(),
-                userid = reader["userid"]?.ToString()
+                agencyid = reader.GetStringSafe("agencyid"),
+                userid = reader.GetStringSafe("userid"),
+                name = reader.GetStringSafe("AgencyName"),
+                email = reader.GetStringSafe("ag_email"),
+                mobileno = reader.GetStringSafe("ag_mobileno")
             };
         }
 
