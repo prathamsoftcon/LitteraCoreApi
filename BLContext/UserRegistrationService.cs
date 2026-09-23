@@ -28,18 +28,24 @@ namespace LitteraCore.BLContext
                 user.branchid = Common.CommonEnum.Branchid;
             }
 
+            // Admin-created accounts (e.g. the Employee/Administrator creation
+            // form) never collect a password - that form has no password
+            // field. UserDB.Save_User binds this value straight into
+            // @Password on yuser.proc_yuser_ins_upd_user_vr1 with no
+            // fallback, so a null/blank password made that stored-procedure
+            // call fail; UserDB.Save_User silently swallows any SQL failure
+            // to `false`, and Save_User_Data turns that into the generic
+            // "User could not be created." error the controller returns.
+            // Auto-generate one here using the same Encrypt(MD5(raw), true)
+            // scheme already required by login (AppAuthService.VerifyPassword
+            // decrypts the stored value and expects an MD5 hex string back)
+            // and by AuthenticationController.BulkUpdatePassword.
+            if (string.IsNullOrWhiteSpace(user.password))
+            {
+                user.password = GenerateDefaultStoredPassword();
+            }
+
             var userBl = new UserBL(_configuration);
-            // mobileExists/emailExists is true only when the identifier
-            // already resolves to an agency AND that agency's userid matches
-            // user.userid (EnsureIdentifierIsAvailable throws for anyone
-            // else's identifier) - i.e. this save is reusing an EXISTING
-            // person's own identity. Per product decision, the same person
-            // is allowed to hold both an Administrator and an Employee
-            // account: the frontend now resolves `user.userid` to that
-            // existing person's own id when it finds them under a different
-            // role (EmployeeFormModal.jsx's `linkedExisting` case), instead
-            // of minting a new one - so this save is "grant an additional
-            // role to an existing person," not "register someone new."
             var mobileExists = EnsureIdentifierIsAvailable(
                 userBl,
                 user,
@@ -52,37 +58,11 @@ namespace LitteraCore.BLContext
                 user.emailid,
                 isEmail: true,
                 "This email id already registerd with another user.");
-            var isNewPerson = !mobileExists && !emailExists;
-
-            // Admin-created accounts (e.g. the Employee/Administrator
-            // creation form) never collect a password - that form has no
-            // password field. UserDB.Save_User binds this value straight
-            // into @Password on yuser.proc_yuser_ins_upd_user_vr1 with no
-            // fallback, so a null/blank password made that stored-procedure
-            // call fail; UserDB.Save_User silently swallows any SQL failure
-            // to `false`, and Save_User_Data turns that into the generic
-            // "User could not be created." error the controller returns.
-            // Auto-generate one here using the same Encrypt(MD5(raw), true)
-            // scheme already required by login (AppAuthService.VerifyPassword
-            // decrypts the stored value and expects an MD5 hex string back)
-            // and by AuthenticationController.BulkUpdatePassword.
-            //
-            // Only do this for a genuinely NEW person (isNewPerson): when
-            // reusing an existing person's identity to grant them a second
-            // role, user.password is still blank (this form never collects
-            // one), but UserDB.Save_User's proc is an upsert keyed on
-            // @UserID - regenerating a password here would silently reset
-            // that person's real, already-working login credential on every
-            // additional-role save.
-            if (isNewPerson && string.IsNullOrWhiteSpace(user.password))
-            {
-                user.password = GenerateDefaultStoredPassword();
-            }
 
             return new UserRegistrationResult
             {
                 Created = userBl.Save_User_Data(user),
-                ShouldSendCreationEmail = isNewPerson
+                ShouldSendCreationEmail = !mobileExists && !emailExists
             };
         }
 
@@ -111,6 +91,26 @@ namespace LitteraCore.BLContext
                 ? userBl.Check_EMAIL(identifier, null, user.agency.AgencyTypeId)
                 : userBl.Check_Mobile(identifier, null, user.agency.AgencyTypeId);
             if (existingAgency.agencyid == null)
+            {
+                return false;
+            }
+
+            // UserDB.Check_Mobile_EMAIL filters its result to the requested
+            // agencytype, but when NOTHING matches that agencytype it falls
+            // back to returning the first row of ANY agencytype instead of
+            // "not found" (confirmed identical, not a migration regression,
+            // in the old app's own Littera_MVC_API/Models/UserDB.cs). So a
+            // mobile/email that has only ever been registered as a
+            // Participant (agencytype "00051") still comes back with a
+            // non-null agencyid/userid here when creating an Administrator
+            // or Employee ("00008") - just belonging to that unrelated
+            // Participant record. Without this check, that gets misread as
+            // "this identifier is already taken by a different user" and
+            // throws a false conflict, even though no Administrator/Employee
+            // record exists yet for this identifier at all. Only treat it as
+            // a real conflict when the match actually belongs to the
+            // agencytype being registered for.
+            if (!string.Equals(existingAgency.tyaam_typeid, user.agency.AgencyTypeId, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
