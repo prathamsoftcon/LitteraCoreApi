@@ -89,12 +89,52 @@ namespace LitteraCore.BLContext
             return a;
         }
 
+        // Added: the email counterpart to Check_Mobile above. Both are thin
+        // wrappers over the same Check_Mobile_EMAIL(value, type, APPURL,
+        // agencytype) - type 2 = mobile column, type 1 = email column (mirrors
+        // the old Littera_MVC_API's UserBL.Check_Mobile/Check_EMAIL split).
+        // This method did not exist before; its absence is why
+        // UserRegistrationService.EnsureIdentifierIsAvailable was calling
+        // Check_Mobile for the email identifier too (searching the mobile
+        // column for an email value, so the check could never match) - see
+        // UserRegistrationService.cs for the fix that now calls this instead.
+        public Agency Check_EMAIL(string emailid, string APPURL, string agencytype)
+        {
+
+            UserDB udb = new UserDB(_configuration);
+            Agency a = new Agency();
+            a = udb.Check_Mobile_EMAIL(emailid, 1, APPURL, agencytype);
+            return a;
+        }
+
         public AgencyExistenceLookup Check_Agency_Exists(string userMobileMail)
         {
             UserDB udb = new UserDB(_configuration);
             return udb.Check_Agency_Exists(userMobileMail);
         }
 
-        
+        // Ported from Littera_MVC_API/Models/UserBL.cs (old app) - form-role
+        // lookups for the Administrator/Staff "Form Role" multi-select and its
+        // edit-mode display. No equivalent existed anywhere in this API before.
+        public List<Usertype> Get_Form_Role(string createdby)
+        {
+            UserDB udb = new UserDB(_configuration);
+            return udb.Get_Form_Role(createdby);
+        }
+
+        public List<Usertype> Get_User_Form_Rights(string userid)
+        {
+            UserDB udb = new UserDB(_configuration);
+            return udb.Get_User_Form_Rights(userid);
+        }
+
+        // See UserDB.Save_User_Roles_Standalone for why this is a narrow,
+        // standalone entry point rather than routing through Save_User_Data.
+        public bool Update_User_Roles(string userid, string roleid, string usertype, string createdby)
+        {
+            UserDB udb = new UserDB(_configuration);
+            return udb.Save_User_Roles_Standalone(userid, roleid, usertype, createdby);
+        }
+
     }
 }

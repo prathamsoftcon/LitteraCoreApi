@@ -274,6 +274,100 @@ namespace LitteraCore.Controllers
             return Ok(FAL);
         }
 
+        // Added for the Administrator/Staff (Employee) migration
+        // (/administrator-list, /employee-list). Old app's AdminListDetail /
+        // StaffListDetail actions both proxied to the shared api/Agency with a
+        // hardcoded &tdds_tat_type_id (125 for Admin, 106 for Staff) appended
+        // server-side - but api/Agency here is PublicApiKey-gated, which an
+        // authenticated page's own axios calls (Bearer token, no API key) can't
+        // satisfy. Mirrors the Trg_Sponsor_Agency / Get_Instructor_Data pattern
+        // immediately above in this file: a thin, non-PublicApiKey wrapper
+        // scoped to one agencytype, reusing the exact same AgencyBL.Get_Agency
+        // call the gated endpoint already makes. Serves both the paginated
+        // list grid (tat_type_id required, agencyid omitted) and single-record
+        // edit-prefill (agencyid supplied) - same dual role Get_Instructor_Data
+        // plays for its own feature.
+        [HttpGet]
+        [Route("api/Employee_Agency_List")]
+        [SwaggerOperation("To get Administrator/Staff (Employee, agencytype 00008) accounts scoped by tat_type_id (125=Administrator, 106=Staff), for the Administrator/Employee list grid and edit-prefill.")]
+        public IActionResult Employee_Agency_List([FromQuery] PaginationParam param, string tat_type_id, string agencyid = null, string search = null)
+        {
+            if (string.IsNullOrWhiteSpace(tat_type_id))
+            {
+                return BadRequest("tat_type_id is required.");
+            }
+
+            try
+            {
+                AgencyBL ABL = new AgencyBL(_configuration);
+                PagedResult<Agency> AL = ABL.Get_Agency(CommonEnum.Agencytype_Staff, agencyid, tat_type_id, param, search);
+                return Ok(AL);
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Added for the same migration - the Add New/Edit form's optional
+        // Salutation dropdown. api/Salutation above already returns exactly
+        // this data but is PublicApiKey-gated (same problem as api/Agency);
+        // this is a thin non-gated wrapper over the same AgencyBL.Get_Salutation,
+        // matching the api/Employee_Agency_List precedent just above.
+        [HttpGet]
+        [Route("api/Agency_Salutation")]
+        [SwaggerOperation("To get agency salutation data (authenticated, non-PublicApiKey).")]
+        public IActionResult Agency_Salutation()
+        {
+            AgencyBL cdb = new AgencyBL(_configuration);
+            List<SALUTATION> s = cdb.Get_Salutation();
+            return Ok(s);
+        }
+
+        // Added for the same migration - the Add New/Edit form's branch-scope
+        // picker (old app: State/RC/SC/Grampanchayat/Village radio group + a
+        // matching lookup select). api/Get_Branch_Types lists the available
+        // scope types (AgencyDB.BranchTypes(), already used internally by
+        // Get_user_branches above but never exposed on its own); api/Get_Branches
+        // is a non-PublicApiKey twin of api/Branches above, for the same reason
+        // as api/Employee_Agency_List/api/Agency_Salutation.
+        [HttpGet]
+        [Route("api/Get_Branch_Types")]
+        [SwaggerOperation("To get the available branch-scope types (State/RC/SC/Grampanchayat/Village).")]
+        public IActionResult Get_Branch_Types()
+        {
+            AgencyBL ABL = new AgencyBL(_configuration);
+            return Ok(ABL.Get_Branch_Types());
+        }
+
+        [HttpGet]
+        [Route("api/Get_Branches")]
+        [SwaggerOperation("To get branches for a branch-scope type (authenticated, non-PublicApiKey twin of api/Branches).")]
+        public IActionResult Get_Branches(string agencytypeid, string parentid = null)
+        {
+            if (string.IsNullOrWhiteSpace(agencytypeid))
+            {
+                return BadRequest("agencytypeid is required.");
+            }
+
+            PaginationParam filter = new PaginationParam();
+            AgencyBL ABL = new AgencyBL(_configuration);
+            PagedResult<Agency> AL = ABL.Get_Agency(agencytypeid, null, null, filter, null);
+            List<Agency> al;
+            if (parentid != null)
+            {
+                al = AL.Items.Where(ag => parentid.ToUpper() == (ag.ParentId ?? "").ToUpper()).ToList();
+            }
+            else
+            {
+                al = AL.Items.ToList();
+            }
+
+            PagedResult<Agency> FAL = new PagedResult<Agency>();
+            FAL.Items = al;
+            return Ok(FAL);
+        }
+
 
         [HttpPost]
         [Route("api/PARTICIPANT_PERSONAL_INFO")]

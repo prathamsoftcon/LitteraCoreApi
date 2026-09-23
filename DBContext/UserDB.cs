@@ -276,6 +276,39 @@ namespace LitteraCore.DBContext
             //if (con.State != ConnectionState.Open) { con.Open(); }
 
         }
+
+        // Added 2026-09-23 for the Administrator/Employee edit form's Form
+        // Role field (previously read-only once assigned, matching the old
+        // app - see the functional analysis, section 4.3 - now editable per
+        // product decision). Opens its own connection and calls the same
+        // Save_User_Roles proc call above directly, rather than routing
+        // through Save_User_Data's full multi-step pipeline (Save_User,
+        // Save_User_Roles, Save_User_Branches, Save_SignIn_Info,
+        // Save_Agency_Mapping_Data): that pipeline unconditionally re-runs
+        // Save_SignIn_Info and Save_Agency_Mapping_Data on every call
+        // (Save_User itself is the only step already guarded by an
+        // isexist check), which would re-touch agency sign-in/mapping data
+        // as an unintended side effect of what should only be a roles
+        // change. This mirrors how FormRoles/User_Form_Role above are their
+        // own narrow read endpoints rather than piggybacking on a bigger
+        // call.
+        public bool Save_User_Roles_Standalone(string userid, string roleid, string usertype, string createdby)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                LoginUser user = new LoginUser
+                {
+                    userid = userid,
+                    roleid = roleid,
+                    usertype = usertype,
+                    createdby = createdby
+                };
+                return Save_User_Roles(user, con);
+            }
+        }
+
         public bool Save_User_Branches(user_branches branches, SqlConnection con, LoginUser user, SqlTransaction transaction)
         {
             string branchstring = "";
@@ -930,6 +963,74 @@ namespace LitteraCore.DBContext
 
         }
 
+        // Ported from Littera_MVC_API/Models/UserDB.cs (old app) - backs the new
+        // api/FormRoles endpoint used by the Administrator/Staff "Form Role"
+        // multi-select. No equivalent existed in this project before (the old
+        // app's own React port never carried this over - see
+        // Controllers/UserController.cs's api/FormRoles for the caller).
+        public List<Usertype> Get_Form_Role(string createdby)
+        {
+            List<Usertype> formrole = new List<Usertype>();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("yuser.GetRoleName", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@type", "4");
+            cmd.Parameters.AddWithValue("@CreatedBY", createdby);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(dt);
+            con.Close();
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Usertype vw = new Usertype();
+                vw.id = Convert.ToString(row["FormRoleId"]);
+                vw.name = Convert.ToString(row["FormRoleName"]);
+                formrole.Add(vw);
+            }
+
+            return formrole;
+        }
+
+        // Ported from Littera_MVC_API/Models/UserDB.cs (old app) - the already-
+        // assigned form role(s) for one user, used to show an Administrator's
+        // current role(s) in edit mode (the create/edit form does not re-save
+        // role on edit, matching old app behavior - see the functional analysis
+        // for this feature).
+        public List<Usertype> Get_User_Form_Rights(string userid)
+        {
+            List<Usertype> formrole = new List<Usertype>();
+            DataSet ds = new DataSet();
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            SqlConnection con = new SqlConnection(connectionString);
+            if (con.State != ConnectionState.Open) { con.Open(); }
+            SqlCommand cmd = new SqlCommand("yuser.proc_yuser_get_particular_user_Detail", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Connection = con;
+            cmd.CommandTimeout = 5000;
+            cmd.Parameters.AddWithValue("@userid", userid);
+
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+            da.Fill(ds);
+            con.Close();
+            dt = ds.Tables[1];
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Usertype vw = new Usertype();
+                vw.id = Convert.ToString(row["FormRoleId"]);
+                vw.name = Convert.ToString(row["FormRoleName"]);
+                formrole.Add(vw);
+            }
+
+            return formrole;
+        }
 
     }
 }

@@ -271,6 +271,132 @@ namespace LitteraCore.Controllers
             }
         }
 
+        // Added for the Administrator/Staff (Employee) migration - mirrors the
+        // old littera_Main_MVC app's api/Check_Mobile / api/Check_EMAIL contract
+        // exactly (role-scoped lookup returning the full Agency including its
+        // userdetail[] array, which the caller filters by tat_type_id to decide
+        // new-vs-edit and to pre-fill the form). Neither endpoint existed here
+        // before - only the newer, non-role-scoped api/Check_Agency_Exists did,
+        // which can't support the old page's per-role pre-fill/edit-detection
+        // behavior. Both are thin wrappers over UserBL.Check_Mobile/Check_EMAIL,
+        // which in turn both call the already-ported UserDB.Check_Mobile_EMAIL.
+        [HttpGet]
+        [Route("api/Check_Mobile")]
+        [SwaggerOperation("Looks up an Agency by mobile number, scoped to agencytype, returning its role-scoped userdetail rows.")]
+        public IActionResult Check_Mobile(string mobileno, string agencytype, string APPURL = null)
+        {
+            if (string.IsNullOrWhiteSpace(mobileno) || string.IsNullOrWhiteSpace(agencytype))
+            {
+                return BadRequest("mobileno and agencytype are required.");
+            }
+
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                return Ok(userBL.Check_Mobile(mobileno.Trim(), APPURL, agencytype));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/Check_EMAIL")]
+        [SwaggerOperation("Looks up an Agency by email, scoped to agencytype, returning its role-scoped userdetail rows.")]
+        public IActionResult Check_EMAIL(string emailid, string agencytype, string APPURL = null)
+        {
+            if (string.IsNullOrWhiteSpace(emailid) || string.IsNullOrWhiteSpace(agencytype))
+            {
+                return BadRequest("emailid and agencytype are required.");
+            }
+
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                return Ok(userBL.Check_EMAIL(emailid.Trim(), APPURL, agencytype));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Added for the same migration - the Administrator/Staff "Form Role"
+        // multi-select (api/FormRoles) and its edit-mode display of a user's
+        // already-assigned role(s) (api/User_Form_Role). Ported from the old
+        // littera_Main_MVC app's Littera_MVC_API UserController; see
+        // UserDB.Get_Form_Role/Get_User_Form_Rights for the underlying query.
+        [HttpGet]
+        [Route("api/FormRoles")]
+        [SwaggerOperation("To get the list of assignable form roles.")]
+        public IActionResult FormRoles(string createdby)
+        {
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                return Ok(userBL.Get_Form_Role(createdby));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/User_Form_Role")]
+        [SwaggerOperation("To get a user's currently-assigned form role(s).")]
+        public IActionResult User_Form_Role(string userid)
+        {
+            if (string.IsNullOrWhiteSpace(userid))
+            {
+                return BadRequest("userid is required.");
+            }
+
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                return Ok(userBL.Get_User_Form_Rights(userid));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        // Added 2026-09-23 - lets the Administrator/Employee edit form change
+        // an existing person's Form Role assignment (previously read-only
+        // once assigned, matching the old app's own behavior - see
+        // UserBL.Update_User_Roles for why this is a narrow endpoint rather
+        // than re-posting to api/CreateUser). Reuses LoginUser as the
+        // request shape purely for its existing userid/roleid/usertype/
+        // createdby fields - agency/branches/etc. are ignored here.
+        [HttpPost]
+        [Route("api/Update_User_Roles")]
+        [SwaggerOperation("Updates an existing user's Form Role assignment.")]
+        public IActionResult Update_User_Roles([FromBody] LoginUser user)
+        {
+            if (user == null || string.IsNullOrWhiteSpace(user.userid))
+            {
+                return BadRequest("userid is required.");
+            }
+
+            try
+            {
+                UserBL userBL = new UserBL(_configuration);
+                bool saved = userBL.Update_User_Roles(user.userid, user.roleid, user.usertype, user.createdby);
+                if (!saved)
+                {
+                    return BadRequest("Form role could not be updated.");
+                }
+                return Ok(new { userid = user.userid });
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
         private void SendUserCreationEmail(LoginUser user, string APPURL)
         {
             if (string.IsNullOrWhiteSpace(APPURL))

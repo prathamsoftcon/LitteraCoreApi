@@ -150,6 +150,18 @@ namespace LitteraCore.BLContext
             s = adb.Get_SALUTATION();
             return s;
         }
+
+        // Added for the Administrator/Staff (Employee) migration's branch-scope
+        // picker (old app: a State/RC/SC/Grampanchayat/Village radio group).
+        // AgencyDB.BranchTypes() already existed and is already used internally
+        // by Get_User_Branches below, but had no BL/controller passthrough of
+        // its own - see AgencyController.cs's new api/Get_Branch_Types.
+        public List<BranchType> Get_Branch_Types()
+        {
+            AgencyDB adb = new AgencyDB(_configuration);
+            return adb.BranchTypes();
+        }
+
         public UserBranch Get_User_Branche(string userid)
         {
             UserBranch s = new UserBranch();

@@ -441,9 +441,28 @@ namespace LitteraCore.Controllers
             }
             return Ok(isConsentRequired);
 
-      
 
-         
+
+
+        }
+
+        // Added for the Administrator/Employee migration - the Add New/Edit
+        // form's cascading branch-scope picker (State/RC/SC/Grampanchayat/
+        // Village) needs the raw branch_selection_required/max_level_allowed
+        // values, not the derived boolean api/Get_Consent_Config above
+        // returns. Same settingtype=9 source, no [Authorize] attribute
+        // (matches Get_Consent_Config immediately above - default
+        // Bearer-authenticated policy), so an authenticated page can call it
+        // directly instead of going through the PublicApiKey-gated
+        // api/Get_Application_Setting.
+        [Route("api/Get_Branch_Configuration")]
+        [SwaggerOperation("To get branch selection configuration (branch_selection_required, max_level_allowed), authenticated non-PublicApiKey twin of api/Get_Application_Setting?settingtype=9.")]
+        [HttpGet]
+        public IActionResult Get_Branch_Configuration()
+        {
+            ApplicationConfigDB a = new ApplicationConfigDB(_configuration);
+            Branch_Configuration ml = JsonConvert.DeserializeObject<Branch_Configuration>(a.Get_Application_Setting("9").Rows[0]["SettingValue"].ToString());
+            return Ok(ml);
         }
 
 
