@@ -95,26 +95,28 @@ namespace LitteraCore.BLContext
                 return false;
             }
 
-            // UserDB.Check_Mobile_EMAIL filters its result to the requested
-            // agencytype, but when NOTHING matches that agencytype it falls
-            // back to returning the first row of ANY agencytype instead of
-            // "not found" (confirmed identical, not a migration regression,
-            // in the old app's own Littera_MVC_API/Models/UserDB.cs). So a
-            // mobile/email that has only ever been registered as a
-            // Participant (agencytype "00051") still comes back with a
-            // non-null agencyid/userid here when creating an Administrator
-            // or Employee ("00008") - just belonging to that unrelated
-            // Participant record. Without this check, that gets misread as
-            // "this identifier is already taken by a different user" and
-            // throws a false conflict, even though no Administrator/Employee
-            // record exists yet for this identifier at all. Only treat it as
-            // a real conflict when the match actually belongs to the
-            // agencytype being registered for.
-            if (!string.Equals(existingAgency.tyaam_typeid, user.agency.AgencyTypeId, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
+            // Reverted the agencytype-scoped bypass this method had for a
+            // few hours (2026-09-23): product decision is that one person's
+            // identity IS shared across every role/type they hold (an
+            // Administrator and an Employee record for the same person
+            // already share one agencyid/userid per the 9.12 linking
+            // design; the same now deliberately applies to a Participant
+            // becoming an Administrator/Employee too - "only difference is
+            // of type id and tat typeid"). So ANY existing match here - same
+            // agencytype or, via Check_Mobile_EMAIL's cross-agencytype
+            // fallback (see UserDB.cs; confirmed identical in the old app,
+            // not a migration regression), a different one entirely, e.g. a
+            // Participant - is real and must be honored: whatever userid the
+            // caller is submitting has to be THAT person's actual userid.
+            // The false "already registerd" conflict this used to throw for
+            // a Participant's mobile/email wasn't caused by that - it was
+            // EmployeeFormModal.jsx's handleSave conflating agencyid and
+            // userid into one reused value, when a person's agencyid and
+            // userid are NOT always equal (confirmed: neither this app's own
+            // participant registration nor the old app's own Administrator/
+            // Staff creation ever assume they are - see that fix's own
+            // comment). Fixed there instead, so this check goes back to
+            // being an unconditional identity guard.
             if (!string.Equals(
                     existingAgency.userid?.ToString(),
                     user.userid,
