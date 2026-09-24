@@ -89,6 +89,13 @@
         public string id { get; set; }
 
         public string name { get; set; }
+
+        // Added for Get_User_Form_Rights only (yuser.proc_yuser_get_particular_user_Detail's
+        // newly-added tyur_user_type_id column) - the usertype that was actually active when
+        // this specific role assignment was saved (Save_User_Roles binds @tyur_user_type_id
+        // straight from user.usertype). Left null by every other caller of this shared model
+        // (Get_Form_Role, AuthenticationController.Rights) - harmless, since they never set it.
+        public string usertype { get; set; }
     }
 
     public class PrintData

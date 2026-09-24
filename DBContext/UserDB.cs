@@ -1026,6 +1026,18 @@ namespace LitteraCore.DBContext
                 Usertype vw = new Usertype();
                 vw.id = Convert.ToString(row["FormRoleId"]);
                 vw.name = Convert.ToString(row["FormRoleName"]);
+                // tyur_user_type_id - newly added to yuser.proc_yuser_get_particular_user_Detail's
+                // result set: the usertype ("1" Administrator, "3" Employee, etc.) that was active
+                // when this role assignment was saved (Save_User_Roles above binds
+                // @tyur_user_type_id from user.usertype, so this is the same value, read back).
+                // Lets the frontend tell "this role was assigned under the form's own usertype"
+                // apart from "assigned under a different usertype but the id happens to also be a
+                // valid option here" - the id-only check it had before couldn't distinguish those.
+                // Guarded rather than assumed present, in case an environment's proc hasn't picked
+                // up the new column yet.
+                vw.usertype = dt.Columns.Contains("tyur_user_type_id")
+                    ? Convert.ToString(row["tyur_user_type_id"])
+                    : null;
                 formrole.Add(vw);
             }
 
