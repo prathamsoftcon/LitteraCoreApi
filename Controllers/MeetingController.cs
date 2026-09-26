@@ -2,6 +2,7 @@
 using LitteraCore.Common;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -93,6 +94,89 @@ namespace LitteraCore.Controllers
             return Ok(result);
         }
 
+        // ------------------------------------------------------------------
+        // Added 2026-09-25 - frm_session_meeting.aspx -> React migration
+        // (Create / Edit / Create-from-session meeting page).
+        //
+        // The old page had no dedicated action names: it called the generic
+        // API_ERP_TRAINING /TrainingAPI/Save_Data and /TrainingAPI/Get_Data
+        // dispatchers with ProcedureName=trainingplan.proc_tp_lms_save_meeting,
+        // TrainingPlan.proc_tp_lms_get_meeting_data and
+        // TrainingPlan.Proc_tp_get_session_detail. So route names follow the
+        // established gap-filling convention (RCVP_<domain>_<action>_Data for
+        // writes, plain <domain> names for reads - cf. RCVP_Fees_Master_Save_Data
+        // / Trg_Fees_Master in TrainingController). Grepped every controller
+        // for these three routes first - none existed.
+        //
+        // The Zoom meeting itself is created by the separate meeting service
+        // (reached from the browser via the /conference-api proxy); these
+        // endpoints only persist / read the Littera-side record, exactly as
+        // the old page did.
+        // ------------------------------------------------------------------
+
+        [HttpPost]
+        [Route("api/RCVP_Meeting_Save_Data")]
+        [SwaggerOperation("To insert/update a meeting record after the meeting has been created/updated on the meeting service.")]
+        public IActionResult RCVP_Meeting_Save_Data([FromBody] MeetingSaveRequest meeting)
+        {
+            if (meeting == null)
+            {
+                return BadRequest(new { success = false, message = "Meeting details are required." });
+            }
+
+            try
+            {
+                MeetingBL mbl = new MeetingBL(_configuration);
+                bool issaved = mbl.Save_Meeting(meeting);
+                return Ok(issaved);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/Meeting_Data")]
+        [SwaggerOperation("To get one meeting's saved details for editing.")]
+        public IActionResult Meeting_Data(string meetingid)
+        {
+            try
+            {
+                MeetingBL mbl = new MeetingBL(_configuration);
+                MeetingEditData? data = mbl.Get_Meeting_Data(meetingid);
+                if (data == null)
+                {
+                    return NotFound();
+                }
+                return Ok(data);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/Meeting_Session_Detail")]
+        [SwaggerOperation("To get session details used to prefill a meeting created from a session.")]
+        public IActionResult Meeting_Session_Detail(string sessionid)
+        {
+            try
+            {
+                MeetingBL mbl = new MeetingBL(_configuration);
+                MeetingSessionDetail? data = mbl.Get_Meeting_Session_Detail(sessionid);
+                if (data == null)
+                {
+                    return NotFound();
+                }
+                return Ok(data);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
 
     }
 }
