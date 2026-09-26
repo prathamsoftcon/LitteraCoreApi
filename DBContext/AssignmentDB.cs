@@ -80,6 +80,11 @@ namespace LitteraCore.DBContext
                 ass.ttttt_session_duration = Convert.ToInt32(row["ttttt_session_duration"]);
                 ass.tdds_doc_no = Convert.ToString(row["tdds_doc_no"]);
                 ass.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]);
+                // Assignment's own deadline (NULL for legacy assignments).
+                if (dt.Columns.Contains("assignmentEndDateTime") && row["assignmentEndDateTime"] != DBNull.Value)
+                {
+                    ass.assignmentEndDateTime = Convert.ToDateTime(row["assignmentEndDateTime"]);
+                }
                 if (Convert.ToString(row["question_max_marks"]) != "")
                 {
                     ass.AssignmentQuestionsMarks = JsonConvert.DeserializeObject<List<AssignmentQuestions>>(Convert.ToString(row["question_max_marks"]));
@@ -620,6 +625,21 @@ namespace LitteraCore.DBContext
             assignment_session_mapping_data T = new assignment_session_mapping_data();
             T = Get_Assignment_Session_Mapping_Data(d.doc_id);
 
+            // 2026-09-26: an assignment may now be attached to an EXISTING session
+            // (lecture etc.). Its status must never change that session - e.g. a
+            // reject (-1) used to set the session to 9 (Delete). Only legacy
+            // assignments that own their type-6 session keep syncing the status.
+            if (string.IsNullOrWhiteSpace(T.sessionid))
+            {
+                return true;
+            }
+            SessionDB mappedSessionDb = new SessionDB(_configuration);
+            Session mappedSession = mappedSessionDb.Get_Session_Details(T.sessionid);
+            if (mappedSession == null || mappedSession.ttttt_type != (int)Common.CommonEnum.SESSION_TYPE.Assignment)
+            {
+                return true;
+            }
+
 
             string sessionstatus = "0";
             if (d.doc_status == 1)
@@ -677,9 +697,244 @@ namespace LitteraCore.DBContext
             return assignment;
         }
 
+        // ------------------------------------------------------------------
+        // Added 2026-09-26 - frm_assignment_creation.aspx -> React migration.
+        // Old path: TrainingAPI/Save_Assignment_Creation_Data ->
+        // Datamanager.Save_Assignment_Rollback, which also created a NEW
+        // type-6 session via TrainingPlan.proc_tp_ins_upd_session. The new
+        // flow attaches the assignment to an EXISTING session, so that call
+        // is intentionally NOT made here (create or update).
+        // ------------------------------------------------------------------
 
+        private static object DbValue(object? value)
+        {
+            if (value == null) return DBNull.Value;
+            if (value is string s && string.IsNullOrWhiteSpace(s)) return DBNull.Value;
+            return value;
+        }
 
+        private static string ToFacultyJson(List<string>? faculty)
+        {
+            // Old page stored [{"id":"<agencyid>"}]
+            var list = (faculty ?? new List<string>())
+                .Where(f => !string.IsNullOrWhiteSpace(f))
+                .Select(f => new { id = f })
+                .ToList();
+            return JsonConvert.SerializeObject(list);
+        }
 
+        private static object ToQuestionJson(List<AssignmentQuestionInput>? questions)
+        {
+            if (questions == null || questions.Count == 0) return DBNull.Value;
+            // Same shape the old page stored ({questionid, description, max_marks}),
+            // plus optional tags.
+            var list = questions.Select(q => new
+            {
+                questionid = string.IsNullOrWhiteSpace(q.questionid) ? Guid.NewGuid().ToString() : q.questionid,
+                description = q.description,
+                max_marks = q.max_marks,
+                tags = q.tags ?? new List<string>()
+            }).ToList();
+            return JsonConvert.SerializeObject(list);
+        }
 
+        private static void AddAssignmentParams(SqlCommand cmd, AssignmentSaveRequest a)
+        {
+            cmd.Parameters.AddWithValue("@p_AssignmentID", a.assignmentid);
+            cmd.Parameters.AddWithValue("@p_Instructions", a.instructions);
+            cmd.Parameters.AddWithValue("@p_Tag", a.tag);
+            cmd.Parameters.AddWithValue("@p_AssesmentQuestions", a.assessmentquestion);
+            cmd.Parameters.AddWithValue("@p_FacultyID_Json", ToFacultyJson(a.faculty));
+            cmd.Parameters.AddWithValue("@p_AttachmentsID_Json", DbValue(a.attachments));
+            cmd.Parameters.AddWithValue("@question_max_marks", ToQuestionJson(a.questions));
+            cmd.Parameters.AddWithValue("@p_AssignmentTypeID", a.assignmenttypeid);
+            // Old UI always sent gradeapplicable = "0" (checkbox is commented out).
+            cmd.Parameters.AddWithValue("@p_GradeApplicable", "0");
+            cmd.Parameters.AddWithValue("@p_AssignmentName", a.assignmentname);
+            cmd.Parameters.AddWithValue("@MaxMarks", a.maxmarks);
+            cmd.Parameters.AddWithValue("@min_passing_marks", a.minmarks ?? 0);
+        }
+
+        public AssignmentSaveResult Save_Assignment(AssignmentSaveRequest a)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            string createdon = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+            if (string.IsNullOrWhiteSpace(a.assignmentid))
+            {
+                a.assignmentid = Guid.NewGuid().ToString();
+            }
+
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                SqlTransaction transaction = con.BeginTransaction();
+                try
+                {
+                    // 1. Assignment
+                    SqlCommand cmd = new SqlCommand("[Assessment].[sp_insert_Assignment]", con, transaction);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 5000;
+                    AddAssignmentParams(cmd, a);
+                    cmd.Parameters.AddWithValue("@p_createdon", createdon);
+                    cmd.Parameters.AddWithValue("@p_createdby", a.createdby);
+                    cmd.ExecuteNonQuery();
+
+                    // 2. Grade (old UI always sent Grademarks = "0")
+                    SqlCommand cmd1 = new SqlCommand("[Assessment].[sp_insert_Grade]", con, transaction);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.CommandTimeout = 5000;
+                    cmd1.Parameters.AddWithValue("@p_AssignmentID", a.assignmentid);
+                    cmd1.Parameters.AddWithValue("@p_GradeID", Guid.NewGuid().ToString());
+                    cmd1.Parameters.AddWithValue("@p_Marks", "0");
+                    cmd1.Parameters.AddWithValue("@p_GradeCritaria", DBNull.Value);
+                    cmd1.Parameters.AddWithValue("@p_RatingID", DBNull.Value);
+                    cmd1.Parameters.AddWithValue("@p_createdon", createdon);
+                    cmd1.Parameters.AddWithValue("@p_createdby", a.createdby);
+                    cmd1.ExecuteNonQuery();
+
+                    // 3. Link to the EXISTING session + separate deadline.
+                    //    (No proc_tp_ins_upd_session - no new session is created.)
+                    SqlCommand cmd3 = new SqlCommand("[Assessment].[sp_insert_Schedule]", con, transaction);
+                    cmd3.CommandType = CommandType.StoredProcedure;
+                    cmd3.CommandTimeout = 5000;
+                    cmd3.Parameters.AddWithValue("@p_AssignmentId", a.assignmentid);
+                    cmd3.Parameters.AddWithValue("@p_DeadlineType", a.isopenended);
+                    cmd3.Parameters.AddWithValue("@p_SessionID", a.sessionid);
+                    cmd3.Parameters.AddWithValue("@p_trainingID", a.trainingid);
+                    cmd3.Parameters.AddWithValue("@p_createdon", createdon);
+                    cmd3.Parameters.AddWithValue("@p_createdby", a.createdby);
+                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.enddatetime == null ? DBNull.Value : a.enddatetime.Value);
+                    cmd3.ExecuteNonQuery();
+
+                    // 4. DMS doc no (tat type 123) + initial status 0, same as old page.
+                    SqlCommand cmd5 = new SqlCommand("select [DMS].[f_dms_doc_ref_no](getdate(), @BranchId, '123', '$$', 'Year')", con, transaction);
+                    cmd5.CommandType = CommandType.Text;
+                    cmd5.CommandTimeout = 5000;
+                    cmd5.Parameters.AddWithValue("@BranchId", a.branchid);
+                    string docno = Convert.ToString(cmd5.ExecuteScalar());
+
+                    DMS d = new DMS
+                    {
+                        docno = docno,
+                        doc_id = a.assignmentid,
+                        createdon = DateTime.Now,
+                        createdby = a.createdby,
+                        branchid = a.branchid,
+                        docdate = DateTime.Now,
+                        actiondate = DateTime.Now,
+                        CreatedBy_empid = a.createdempid,
+                        fwd_empid = a.createdempid,
+                        tat_type_id = 123,
+                        doc_status = 0,
+                        docremark = "",
+                        doctype = 1,
+                        tttds_is_final = 1
+                    };
+                    DMSDB ddb = new DMSDB(_configuration);
+                    ddb.INS_UPD_DMS(d, con, transaction);
+
+                    transaction.Commit();
+                    return new AssignmentSaveResult { success = true, assignmentid = a.assignmentid, docno = docno };
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public AssignmentSaveResult Update_Assignment(AssignmentSaveRequest a)
+        {
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                SqlTransaction transaction = con.BeginTransaction();
+                try
+                {
+                    SqlCommand cmd = new SqlCommand("[Assessment].[sp_update_Assignment]", con, transaction);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandTimeout = 5000;
+                    AddAssignmentParams(cmd, a);
+                    cmd.ExecuteNonQuery();
+
+                    SqlCommand cmd1 = new SqlCommand("[Assessment].[sp_update_Grade]", con, transaction);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.CommandTimeout = 5000;
+                    cmd1.Parameters.AddWithValue("@p_AssignmentID", a.assignmentid);
+                    cmd1.Parameters.AddWithValue("@p_Marks", "0");
+                    cmd1.Parameters.AddWithValue("@p_GradeCritaria", DBNull.Value);
+                    cmd1.Parameters.AddWithValue("@p_RatingID", DBNull.Value);
+                    cmd1.ExecuteNonQuery();
+
+                    // Session itself is NEVER updated from here (decision 2026-09-26).
+                    // Only the link (session may change while Draft - checked in BL) + deadline.
+                    SqlCommand cmd3 = new SqlCommand("[Assessment].[sp_update_Schedule]", con, transaction);
+                    cmd3.CommandType = CommandType.StoredProcedure;
+                    cmd3.CommandTimeout = 5000;
+                    cmd3.Parameters.AddWithValue("@p_AssignmentId", a.assignmentid);
+                    cmd3.Parameters.AddWithValue("@p_DeadlineType", a.isopenended);
+                    cmd3.Parameters.AddWithValue("@p_SessionID", a.sessionid);
+                    cmd3.Parameters.AddWithValue("@p_trainingID", a.trainingid);
+                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.enddatetime == null ? DBNull.Value : a.enddatetime.Value);
+                    cmd3.ExecuteNonQuery();
+
+                    transaction.Commit();
+                    return new AssignmentSaveResult { success = true, assignmentid = a.assignmentid };
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public List<AssignmentType> Get_Assignment_Types()
+        {
+            DataTable dt = new DataTable();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("Assessment.sp_select_AssignmentType", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 5000;
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                da.Fill(dt);
+            }
+
+            List<AssignmentType> types = new List<AssignmentType>();
+            foreach (DataRow row in dt.Rows)
+            {
+                types.Add(new AssignmentType
+                {
+                    AssignmentTypeID = Convert.ToString(row["AssignmentTypeID"]).ToUpper(),
+                    AssignmentTypename = Convert.ToString(row["AssignmentType"])
+                });
+            }
+            return types;
+        }
+
+        public AssignmentType Save_Assignment_Type(AssignmentTypeSaveRequest t)
+        {
+            string typeid = Guid.NewGuid().ToString();
+            string connectionString = _configuration.GetConnectionString("LitteraDatabase");
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand("Assessment.sp_insert_AssignmentType", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 5000;
+                cmd.Parameters.AddWithValue("@p_AssignmentTypeID", typeid);
+                cmd.Parameters.AddWithValue("@p_AssignmentType", t.assignmenttype.Trim());
+                cmd.Parameters.AddWithValue("@p_createdby", t.createdby);
+                cmd.Parameters.AddWithValue("@p_createdon", DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
+                cmd.ExecuteNonQuery();
+            }
+            return new AssignmentType { AssignmentTypeID = typeid.ToUpper(), AssignmentTypename = t.assignmenttype.Trim() };
+        }
     }
 }

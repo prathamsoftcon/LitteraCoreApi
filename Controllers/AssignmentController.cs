@@ -5,6 +5,7 @@ using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Linq;
 using System.Net;
@@ -93,7 +94,9 @@ namespace LitteraCore.Controllers
                 {
                     if (a.status != 4)
                     {
-                        if (Convert.ToDateTime(a.ttttt_session_end_time) < System.DateTime.Now)
+                        // 2026-09-26: assignment's own deadline, else session end (legacy).
+                        // Open-ended assignments have no deadline, so never overdue.
+                        if (a.isOpenended != 1 && a.effectiveEndDateTime != null && Convert.ToDateTime(a.effectiveEndDateTime) < System.DateTime.Now)
                         {
                             a.status = 3;
                         }
@@ -130,7 +133,9 @@ namespace LitteraCore.Controllers
                 {
                     if (a.status != 4)
                     {
-                        if (Convert.ToDateTime(a.ttttt_session_end_time) < System.DateTime.Now)
+                        // 2026-09-26: assignment's own deadline, else session end (legacy).
+                        // Open-ended assignments have no deadline, so never overdue.
+                        if (a.isOpenended != 1 && a.effectiveEndDateTime != null && Convert.ToDateTime(a.effectiveEndDateTime) < System.DateTime.Now)
                         {
                             a.status = 3;
                         }
@@ -699,6 +704,106 @@ namespace LitteraCore.Controllers
 
 
             return Ok(assignments);
+        }
+
+        // ------------------------------------------------------------------
+        // Added 2026-09-26 - frm_assignment_creation.aspx -> React migration.
+        // Old page posted to API_ERP_TRAINING TrainingAPI/Save_Assignment_Creation_Data
+        // / Update_Assignment_Creation_Data (which also created/overwrote a type-6
+        // session) and read/saved types through the generic Get_Data / Save_Data
+        // dispatchers (Assessment.sp_select_AssignmentType / sp_insert_AssignmentType).
+        // Route names follow the RCVP_<domain>_<action>_Data convention for writes;
+        // grepped every controller first - none existed.
+        // ------------------------------------------------------------------
+
+        [HttpPost]
+        [Route("api/RCVP_Assignment_Save_Data")]
+        [SwaggerOperation("To create an assignment on an existing session of a training.")]
+        public IActionResult RCVP_Assignment_Save_Data([FromBody] AssignmentSaveRequest assignment)
+        {
+            if (assignment == null)
+            {
+                return BadRequest(new { success = false, message = "Assignment details are required." });
+            }
+            try
+            {
+                AssignmentBL abl = new AssignmentBL(_configuration);
+                AssignmentSaveResult result = abl.Save_Assignment(assignment);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPut]
+        [Route("api/RCVP_Assignment_Update_Data")]
+        [SwaggerOperation("To update an assignment. Never modifies the session; session can be changed only while the assignment is Draft.")]
+        public IActionResult RCVP_Assignment_Update_Data([FromBody] AssignmentSaveRequest assignment)
+        {
+            if (assignment == null)
+            {
+                return BadRequest(new { success = false, message = "Assignment details are required." });
+            }
+            try
+            {
+                AssignmentBL abl = new AssignmentBL(_configuration);
+                AssignmentSaveResult? result = abl.Update_Assignment(assignment);
+                if (result == null)
+                {
+                    return NotFound(new { success = false, message = "Assignment not found." });
+                }
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/AssignmentTypes")]
+        [SwaggerOperation("To get assignment type list.")]
+        public IActionResult AssignmentTypes()
+        {
+            try
+            {
+                AssignmentBL abl = new AssignmentBL(_configuration);
+                return Ok(abl.Get_Assignment_Types());
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
+        }
+
+        [HttpPost]
+        [Route("api/RCVP_AssignmentType_Save_Data")]
+        [SwaggerOperation("To add a new assignment type.")]
+        public IActionResult RCVP_AssignmentType_Save_Data([FromBody] AssignmentTypeSaveRequest type)
+        {
+            try
+            {
+                AssignmentBL abl = new AssignmentBL(_configuration);
+                return Ok(abl.Save_Assignment_Type(type));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
     }
 }

@@ -43,6 +43,17 @@
 
         public int ttttt_session_duration { get; set; }
         public DateTime? ttttt_session_end_time { get; set; }
+
+        // Assignment's own deadline (Assessment.Schedule.EndDateTime, returned by
+        // proc_get_assignment_list_data as assignmentEndDateTime). NULL for legacy
+        // assignments that own a type-6 session - those use the session end time.
+        public DateTime? assignmentEndDateTime { get; set; }
+
+        // Deadline to use everywhere (overdue check, "Last Date" display).
+        public DateTime? effectiveEndDateTime
+        {
+            get { return assignmentEndDateTime ?? ttttt_session_end_time; }
+        }
         public string tdds_doc_no { get; set; }
 
         public string ttttt_session_id { get; set; }
@@ -281,6 +292,9 @@
         public decimal max_marks { get; set; }
         public decimal? max_allocated { get; set; } = null;
 
+        // Per-question tags (added 2026-09-26). Optional - older questions have none.
+        public List<string>? tags { get; set; }
+
     }
     public class Assignment_Question_Valuation
     {
@@ -307,5 +321,63 @@
         public string assignmentid { get; set; }
         public string trainingid { get; set; }
         public string sessionid { get; set; }
+    }
+
+    // ------------------------------------------------------------------
+    // Added 2026-09-26 - frm_assignment_creation.aspx -> React migration.
+    // Assignment is now attached to an EXISTING session (no new type-6
+    // session is created). See project doc
+    // claude/assignment-creation-existing-session-analysis-2026-09-26.md
+    // ------------------------------------------------------------------
+    public class AssignmentSaveRequest
+    {
+        // Empty on create (a new GUID is generated); required on update.
+        public string? assignmentid { get; set; }
+        public string assignmentname { get; set; }
+        public string assignmenttypeid { get; set; }
+        public string instructions { get; set; }
+        public string tag { get; set; }
+        // Assignment description (rich HTML) - old "asswesmentquestion".
+        public string assessmentquestion { get; set; }
+        // Faculty ids; stored as JSON [{"id":"..."}] exactly like the old page.
+        public List<string>? faculty { get; set; }
+        public string? attachments { get; set; }
+        public decimal maxmarks { get; set; }
+        public decimal? minmarks { get; set; }
+        public List<AssignmentQuestionInput>? questions { get; set; }
+
+        public string trainingid { get; set; }
+        // Existing session the assignment is attached to.
+        public string sessionid { get; set; }
+        // Deadline, passed separately from the session. Required unless open-ended.
+        public DateTime? enddatetime { get; set; }
+        public int isopenended { get; set; }
+
+        public string createdby { get; set; }
+        public string createdempid { get; set; }
+        public string branchid { get; set; }
+    }
+
+    public class AssignmentQuestionInput
+    {
+        public string? questionid { get; set; }
+        // Rich HTML (text, images, diagrams as images).
+        public string description { get; set; }
+        public decimal max_marks { get; set; }
+        public List<string>? tags { get; set; }
+    }
+
+    public class AssignmentSaveResult
+    {
+        public bool success { get; set; }
+        public string assignmentid { get; set; }
+        public string? docno { get; set; }
+        public string? message { get; set; }
+    }
+
+    public class AssignmentTypeSaveRequest
+    {
+        public string assignmenttype { get; set; }
+        public string createdby { get; set; }
     }
 }
