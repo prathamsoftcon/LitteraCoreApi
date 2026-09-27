@@ -51,6 +51,7 @@ namespace LitteraCore.DBContext
                 //ass.createdon = Convert.ToDateTime(row["createdon"]);
                 ass.createdby = Convert.ToString(row["createdby"]);
                 ass.status = Convert.ToInt32(row["tdds_status"]);
+                ass.dms_status = ass.status;
                 //ass.session = Convert.ToString(row["session"]);
                 ass.ttttt_session_id = Convert.ToString(row["SessionID"]);
                 if (row["MaxMarks"].ToString() != "")
@@ -80,6 +81,19 @@ namespace LitteraCore.DBContext
                 ass.ttttt_session_duration = Convert.ToInt32(row["ttttt_session_duration"]);
                 ass.tdds_doc_no = Convert.ToString(row["tdds_doc_no"]);
                 ass.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]);
+                if (dt.Columns.Contains("AssignmentTypeID") && row["AssignmentTypeID"] != DBNull.Value)
+                {
+                    ass.AssignmentTypeID = Convert.ToString(row["AssignmentTypeID"]).ToUpper();
+                }
+                // Column name depends on proc_get_assignment_list_data; accept the usual spellings.
+                foreach (string minCol in new[] { "min_passing_marks", "minpassingmarks", "min_marks", "minmarks" })
+                {
+                    if (dt.Columns.Contains(minCol) && row[minCol] != DBNull.Value && Convert.ToString(row[minCol]) != "")
+                    {
+                        ass.min_passing_marks = Convert.ToDecimal(row[minCol]);
+                        break;
+                    }
+                }
                 // Assignment's own deadline (NULL for legacy assignments).
                 if (dt.Columns.Contains("assignmentEndDateTime") && row["assignmentEndDateTime"] != DBNull.Value)
                 {
@@ -617,46 +631,30 @@ namespace LitteraCore.DBContext
 
         public bool update_Assignment_status(DMS d)
         {
+            // 2026-09-27 (migration decision): changing an assignment's status only
+            // writes a DMS status row (tat_type_id 123). It NEVER touches any session
+            // (the old code also set the linked session's status, e.g. reject -> 9).
+            d.tat_type_id = 123;
+
+            // The React list sends the assignment id as docno; the real DMS document
+            // number is the one created at save time (tdds_doc_no). Resolve it here so
+            // every status row stays on the assignment's own document number.
+            if (string.IsNullOrWhiteSpace(d.docno) || string.Equals(d.docno, d.doc_id, StringComparison.OrdinalIgnoreCase))
+            {
+                Assignment existing = Get_Assignment_Data(d.doc_id).FirstOrDefault();
+                d.docno = string.IsNullOrWhiteSpace(existing?.tdds_doc_no) ? null : existing.tdds_doc_no;
+            }
+            if (d.docremark == null)
+            {
+                d.docremark = "";
+            }
+
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
-            SqlConnection con1 = new SqlConnection(connectionString);
-            DMSDB ddb = new DMSDB(_configuration);
-            ddb.INS_UPD_DMS(d, con1, null);
-
-            assignment_session_mapping_data T = new assignment_session_mapping_data();
-            T = Get_Assignment_Session_Mapping_Data(d.doc_id);
-
-            // 2026-09-26: an assignment may now be attached to an EXISTING session
-            // (lecture etc.). Its status must never change that session - e.g. a
-            // reject (-1) used to set the session to 9 (Delete). Only legacy
-            // assignments that own their type-6 session keep syncing the status.
-            if (string.IsNullOrWhiteSpace(T.sessionid))
+            using (SqlConnection con1 = new SqlConnection(connectionString))
             {
-                return true;
+                DMSDB ddb = new DMSDB(_configuration);
+                return ddb.INS_UPD_DMS(d, con1, null);
             }
-            SessionDB mappedSessionDb = new SessionDB(_configuration);
-            Session mappedSession = mappedSessionDb.Get_Session_Details(T.sessionid);
-            if (mappedSession == null || mappedSession.ttttt_type != (int)Common.CommonEnum.SESSION_TYPE.Assignment)
-            {
-                return true;
-            }
-
-
-            string sessionstatus = "0";
-            if (d.doc_status == 1)
-            {
-                sessionstatus = "0";
-            }
-            else if (d.doc_status == -1)
-            {
-                sessionstatus = "9";
-            }
-            else
-            {
-                sessionstatus = d.doc_status.ToString();
-            }
-            SessionDB sdb = new SessionDB(_configuration);
-            bool isupdated = sdb.Update_session_dms_status(T.trainingid, T.sessionid, d, sessionstatus);
-            return isupdated;
         }
 
 
@@ -803,7 +801,7 @@ namespace LitteraCore.DBContext
                     cmd3.Parameters.AddWithValue("@p_trainingID", a.trainingid);
                     cmd3.Parameters.AddWithValue("@p_createdon", createdon);
                     cmd3.Parameters.AddWithValue("@p_createdby", a.createdby);
-                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.enddatetime == null ? DBNull.Value : a.enddatetime.Value);
+                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.EndDateTimeValue == null ? DBNull.Value : a.EndDateTimeValue.Value);
                     cmd3.ExecuteNonQuery();
 
                     // 4. DMS doc no (tat type 123) + initial status 0, same as old page.
@@ -878,7 +876,7 @@ namespace LitteraCore.DBContext
                     cmd3.Parameters.AddWithValue("@p_DeadlineType", a.isopenended);
                     cmd3.Parameters.AddWithValue("@p_SessionID", a.sessionid);
                     cmd3.Parameters.AddWithValue("@p_trainingID", a.trainingid);
-                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.enddatetime == null ? DBNull.Value : a.enddatetime.Value);
+                    cmd3.Parameters.AddWithValue("@p_EndDateTime", a.isopenended == 1 || a.EndDateTimeValue == null ? DBNull.Value : a.EndDateTimeValue.Value);
                     cmd3.ExecuteNonQuery();
 
                     transaction.Commit();

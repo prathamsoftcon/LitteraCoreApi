@@ -466,13 +466,28 @@ namespace LitteraCore.Controllers
         public IActionResult Update_Assignment_Status([FromBody] DMS d)
         {
 
-            bool is_used = false;
-            AssignmentBL ebl = new AssignmentBL(_configuration);
-            is_used = ebl.update_Assignment_status(d);
-
-
-
-            return Ok(is_used);
+            if (d == null || string.IsNullOrWhiteSpace(d.doc_id))
+            {
+                return BadRequest(new { success = false, message = BindingErrorMessage("Assignment id is required.") });
+            }
+            // DMS proc requires branch / user; fall back to the logged-in user's token claims.
+            if (string.IsNullOrWhiteSpace(d.branchid)) d.branchid = User?.FindFirst("branchid")?.Value;
+            if (string.IsNullOrWhiteSpace(d.createdby)) d.createdby = User?.FindFirst("agencyid")?.Value;
+            if (string.IsNullOrWhiteSpace(d.CreatedBy_empid)) d.CreatedBy_empid = d.createdby;
+            if (string.IsNullOrWhiteSpace(d.branchid))
+            {
+                return BadRequest(new { success = false, message = "Branch is required." });
+            }
+            try
+            {
+                AssignmentBL ebl = new AssignmentBL(_configuration);
+                bool is_used = ebl.update_Assignment_status(d);
+                return Ok(is_used);
+            }
+            catch (SqlException ex)
+            {
+                return SqlExceptionResponseHelper.CreateBadRequest(ex);
+            }
         }
 
 
@@ -716,6 +731,18 @@ namespace LitteraCore.Controllers
         // grepped every controller first - none existed.
         // ------------------------------------------------------------------
 
+
+        private string BindingErrorMessage(string fallback)
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => !string.IsNullOrWhiteSpace(e.ErrorMessage) ? e.ErrorMessage : e.Exception?.Message)
+                .Where(m => !string.IsNullOrWhiteSpace(m))
+                .Distinct()
+                .ToList();
+            return errors.Count > 0 ? fallback + "\n" + string.Join("\n", errors) : fallback;
+        }
+
         [HttpPost]
         [Route("api/RCVP_Assignment_Save_Data")]
         [SwaggerOperation("To create an assignment on an existing session of a training.")]
@@ -723,7 +750,9 @@ namespace LitteraCore.Controllers
         {
             if (assignment == null)
             {
-                return BadRequest(new { success = false, message = "Assignment details are required." });
+                // Body failed to bind (e.g. a date not in the global "yyyy-MM-dd HH:mm:ss"
+                // format) - surface the real binding error instead of a generic message.
+                return BadRequest(new { success = false, message = BindingErrorMessage("Assignment details are required.") });
             }
             try
             {
@@ -741,14 +770,18 @@ namespace LitteraCore.Controllers
             }
         }
 
-        [HttpPut]
+        // POST (PUT kept for compatibility): PUT returned 405 through the app's
+        // localhost:3000 /api path - every other write in the React app uses POST.
+        [AcceptVerbs("POST", "PUT")]
         [Route("api/RCVP_Assignment_Update_Data")]
         [SwaggerOperation("To update an assignment. Never modifies the session; session can be changed only while the assignment is Draft.")]
         public IActionResult RCVP_Assignment_Update_Data([FromBody] AssignmentSaveRequest assignment)
         {
             if (assignment == null)
             {
-                return BadRequest(new { success = false, message = "Assignment details are required." });
+                // Body failed to bind (e.g. a date not in the global "yyyy-MM-dd HH:mm:ss"
+                // format) - surface the real binding error instead of a generic message.
+                return BadRequest(new { success = false, message = BindingErrorMessage("Assignment details are required.") });
             }
             try
             {

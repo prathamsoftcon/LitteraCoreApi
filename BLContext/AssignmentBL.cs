@@ -271,6 +271,11 @@ namespace LitteraCore.BLContext
         private List<string> Validate_Assignment_Fields(AssignmentSaveRequest a)
         {
             List<string> errors = new List<string>();
+            // 2026-09-27: with questions, Max Marks is always the sum of question marks.
+            if (a.questions != null && a.questions.Count > 0)
+            {
+                a.maxmarks = a.questions.Sum(q => q.max_marks);
+            }
             if (string.IsNullOrWhiteSpace(a.assignmentname)) errors.Add("Enter assignment name.");
             if (string.IsNullOrWhiteSpace(a.assignmenttypeid)) errors.Add("Select assignment type.");
             if (string.IsNullOrWhiteSpace(a.instructions)) errors.Add("Enter instructions.");
@@ -281,7 +286,27 @@ namespace LitteraCore.BLContext
             if (string.IsNullOrWhiteSpace(a.trainingid)) errors.Add("Training is required.");
             if (string.IsNullOrWhiteSpace(a.sessionid)) errors.Add("Select session.");
             if (string.IsNullOrWhiteSpace(a.createdby) || string.IsNullOrWhiteSpace(a.branchid)) errors.Add("User details are missing.");
-            if (a.isopenended != 1 && a.enddatetime == null) errors.Add("Enter end date and end time.");
+            a.EndDateTimeValue = null;
+            if (a.isopenended != 1)
+            {
+                if (string.IsNullOrWhiteSpace(a.enddatetime))
+                {
+                    errors.Add("Enter end date and end time.");
+                }
+                else
+                {
+                    string[] formats = { "yyyy-MM-dd HH:mm:ss", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-ddTHH:mm", "yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd HH:mm" };
+                    DateTime parsed;
+                    if (DateTime.TryParseExact(a.enddatetime.Trim(), formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsed))
+                    {
+                        a.EndDateTimeValue = parsed;
+                    }
+                    else
+                    {
+                        errors.Add("End date/time is not valid.");
+                    }
+                }
+            }
 
             if (a.questions != null)
             {
@@ -321,11 +346,11 @@ namespace LitteraCore.BLContext
 
         private static void Validate_End_After_Session_Start(AssignmentSaveRequest a, Session s, List<string> errors)
         {
-            if (a.isopenended == 1 || a.enddatetime == null || s == null) return;
+            if (a.isopenended == 1 || a.EndDateTimeValue == null || s == null) return;
             DateTime start;
             if (DateTime.TryParse(Convert.ToString(s.ttttt_session_dt) + " " + Convert.ToString(s.ttttt_session_time), out start))
             {
-                if (a.enddatetime.Value <= start)
+                if (a.EndDateTimeValue.Value <= start)
                 {
                     errors.Add("End date/time must be after the session start (" + start.ToString("dd/MM/yyyy HH:mm") + ").");
                 }

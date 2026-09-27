@@ -22,6 +22,10 @@
 
         public int status { get; set; }
 
+        // Raw DMS status (tdds_status) before the list/detail endpoints turn overdue
+        // rows into 3. Used by the React edit form (session change only while 0).
+        public int dms_status { get; set; }
+
         public Session session { get; set; }
 
         public decimal MaxMarks { get; set; }
@@ -34,6 +38,9 @@
         //Below parameters are extra parameters which not required in further process
         public string facultyname { get; set; }
         public string AssignmentTypeName { get; set; }
+        // Added 2026-09-26 for the React edit form (prefill type dropdown / min marks).
+        public string? AssignmentTypeID { get; set; }
+        public decimal? min_passing_marks { get; set; }
         public string TrainingCode { get; set; }
         public string Trainingid { get; set; }
 
@@ -350,7 +357,13 @@
         // Existing session the assignment is attached to.
         public string sessionid { get; set; }
         // Deadline, passed separately from the session. Required unless open-ended.
-        public DateTime? enddatetime { get; set; }
+        // Accepted as a string on purpose: the API's global JsonDateTimeConverter
+        // (Program.cs, ParseExact "yyyy-MM-dd HH:mm:ss") would make the whole body
+        // bind as null for any other format. Parsed leniently in AssignmentBL.
+        public string? enddatetime { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        public DateTime? EndDateTimeValue { get; set; }
         public int isopenended { get; set; }
 
         public string createdby { get; set; }
