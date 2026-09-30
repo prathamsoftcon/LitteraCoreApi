@@ -102,13 +102,15 @@ namespace LitteraCore.Models
 
         public string LITTERA_LOGO { get; set; }
         public string DEFAULT_LOGO2 { get; set; }
+        public string YT_LINK { get; set; }
+        public string INSTARGAM_LINK { get; set; }
+        public string STATUE_IMG { get; set; }
+        public string MENTOR1_IMG { get; set; }
+        public string MENTOR2_IMG { get; set; }       
+        public string DIRECTOR_IMG { get; set; }       
         public string DASHBOARD_LOGO { get; set; }
-
         public string APP_TITLE { get; set; }
-
         public string FAV_ICON { get; set; }
-
-
         public string TRENDING_TRG_Header { get; set; }
 
         public string TRG_CALENDAR_TEXT { get; set; }
@@ -336,6 +338,30 @@ namespace LitteraCore.Models
                 else if (node.SelectSingleNode("key").InnerText == "DEFAULT_LOGO2")
                 {
                     cinfo.DEFAULT_LOGO2 = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "YT_LINK")
+                {
+                    cinfo.YT_LINK = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "INSTARGAM_LINK")
+                {
+                    cinfo.INSTARGAM_LINK = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "STATUE_IMG")
+                {
+                    cinfo.STATUE_IMG = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "MENTOR1_IMG")
+                {
+                    cinfo.MENTOR1_IMG = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "MENTOR2_IMG")
+                {
+                    cinfo.MENTOR2_IMG = node.SelectSingleNode("value").InnerText;
+                }
+                else if (node.SelectSingleNode("key").InnerText == "DIRECTOR_IMG")
+                {
+                    cinfo.DIRECTOR_IMG = node.SelectSingleNode("value").InnerText;
                 }
                 else if (node.SelectSingleNode("key").InnerText == "DASHBOARD_LOGO")
                 {
