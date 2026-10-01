@@ -1138,7 +1138,21 @@ namespace LitteraCore.Controllers
                 }
                 else
                 {
-                    var existingUser = new AuthDB(_configuration).GetUserInfo(recipient);
+                    UserInfo existingUser = null;
+                    try
+                    {
+                        existingUser = new AuthDB(_configuration).GetUserInfo(recipient);
+                    }
+                    catch (Exception lookupException)
+                    {
+                        // A new registration is expected to have no existing user record.
+                        // Do not prevent OTP delivery when the legacy lookup reports an
+                        // unknown identifier or otherwise fails; use the submitted number.
+                        Log.Warning(
+                            lookupException,
+                            "Existing-user lookup failed while sending general OTP; using submitted recipient.");
+                    }
+
                     var smsRecipient = !string.IsNullOrWhiteSpace(existingUser?.Mobileno)
                         ? existingUser.Mobileno
                         : recipient;
