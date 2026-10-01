@@ -69,6 +69,7 @@
         public int ttttt_session_week { get; set; }
         public int ttttt_session_no { get; set; }
         public string ttttt_session_module { get; set; }
+        public string ttttt_session_description { get; set; }
 
         public int isOpenended { get; set; }
 
@@ -81,6 +82,24 @@
 
         public UserBranch userbranches { get; set; }
     }
+
+    public class AssignmentSessionGroup
+    {
+        public string GroupKey { get; set; }
+        public string SessionId { get; set; }
+        public string TrainingId { get; set; }
+        public string TrainingCode { get; set; }
+        public DateTime? SessionDate { get; set; }
+        public string SessionTime { get; set; }
+        public int SessionDay { get; set; }
+        public int SessionWeek { get; set; }
+        public int SessionNumber { get; set; }
+        public string SessionModule { get; set; }
+        public string SessionDescription { get; set; }
+        public int AssignmentCount { get; set; }
+        public List<Assignment> Assignments { get; set; }
+    }
+
     public class AssignmentType
     {
         public string AssignmentTypeID { get; set; }

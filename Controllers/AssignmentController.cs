@@ -27,7 +27,7 @@ namespace LitteraCore.Controllers
         [HttpPost]
         [Route("api/Assignment")]
         [SwaggerOperation("To get user's assignment list .")]
-        public IActionResult Assignment(string usertype, string userid, DateTime Startdate, DateTime Enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string trainingid = null)
+        public IActionResult Assignment(string usertype, string userid, DateTime Startdate, DateTime Enddate, [FromQuery] PaginationParam param, [FromBody] SearchParam? searchCriterias, string trainingid = null, bool groupBySession = false)
         {
 
             AssignmentBL ABL = new AssignmentBL(_configuration);
@@ -102,6 +102,45 @@ namespace LitteraCore.Controllers
                         }
                     }
                 }
+            }
+
+            if (groupBySession)
+            {
+                var groupedItems = filteredItems
+                    .Select((assignment, index) => new
+                    {
+                        Assignment = assignment,
+                        GroupKey = !string.IsNullOrWhiteSpace(assignment.ttttt_session_id)
+                            ? $"session:{assignment.ttttt_session_id.Trim().ToUpperInvariant()}"
+                            : $"assignment:{assignment.AssignmentID ?? index.ToString()}"
+                    })
+                    .GroupBy(item => item.GroupKey)
+                    .Select(group =>
+                    {
+                        var first = group.First().Assignment;
+                        var groupAssignments = group.Select(item => item.Assignment).ToList();
+                        return new AssignmentSessionGroup
+                        {
+                            GroupKey = group.Key,
+                            SessionId = first.ttttt_session_id,
+                            TrainingId = first.Trainingid,
+                            TrainingCode = first.TrainingCode,
+                            SessionDate = first.ttttt_session_dt,
+                            SessionTime = first.ttttt_session_time,
+                            SessionDay = first.ttttt_session_day,
+                            SessionWeek = first.ttttt_session_week,
+                            SessionNumber = first.ttttt_session_no,
+                            SessionModule = first.ttttt_session_module,
+                            SessionDescription = first.ttttt_session_description,
+                            AssignmentCount = groupAssignments.Count,
+                            Assignments = groupAssignments
+                        };
+                    })
+                    .OrderByDescending(group => group.SessionDate ?? DateTime.MinValue)
+                    .ThenBy(group => group.TrainingCode)
+                    .ToList();
+
+                return Ok(Paging.GetPagedData(param, groupedItems));
             }
 
             //if (status != 99)

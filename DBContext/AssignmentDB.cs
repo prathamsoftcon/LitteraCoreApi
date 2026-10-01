@@ -66,7 +66,14 @@ namespace LitteraCore.DBContext
                 ass.uploadpath = Convert.ToString("");
                 // ass.training = Convert.ToString(row["training"]);
 
-                ass.facultyname = Convert.ToString(row["faculty"]);
+                foreach (string facultyColumn in new[] { "faculty", "facultyname", "FacultyName" })
+                {
+                    if (dt.Columns.Contains(facultyColumn) && row[facultyColumn] != DBNull.Value && !string.IsNullOrWhiteSpace(Convert.ToString(row[facultyColumn])))
+                    {
+                        ass.facultyname = Convert.ToString(row[facultyColumn]);
+                        break;
+                    }
+                }
                 ass.AssignmentTypeName = Convert.ToString(row["AssignmentType"]);
                 ass.TrainingCode = Convert.ToString(row["TrainingCode"]);
                 ass.Trainingid = Convert.ToString(row["ttttt_trainingid"]);
@@ -79,6 +86,28 @@ namespace LitteraCore.DBContext
                 ass.ttttt_session_dt = combinedDateTime;
                 ass.ttttt_session_time = Convert.ToString(row["ttttt_session_time"]);
                 ass.ttttt_session_duration = Convert.ToInt32(row["ttttt_session_duration"]);
+                ass.ttttt_session_day = dt.Columns.Contains("ttttt_session_day") && row["ttttt_session_day"] != DBNull.Value
+                    ? Convert.ToInt32(row["ttttt_session_day"]) : 0;
+                ass.ttttt_session_week = dt.Columns.Contains("ttttt_session_week") && row["ttttt_session_week"] != DBNull.Value
+                    ? Convert.ToInt32(row["ttttt_session_week"]) : 0;
+                ass.ttttt_session_no = dt.Columns.Contains("ttttt_session_no") && row["ttttt_session_no"] != DBNull.Value
+                    ? Convert.ToInt32(row["ttttt_session_no"]) : 0;
+                foreach (string moduleColumn in new[] { "ttttt_session_module", "modulename", "ttttt_module_no" })
+                {
+                    if (dt.Columns.Contains(moduleColumn) && row[moduleColumn] != DBNull.Value && !string.IsNullOrWhiteSpace(Convert.ToString(row[moduleColumn])))
+                    {
+                        ass.ttttt_session_module = Convert.ToString(row[moduleColumn]);
+                        break;
+                    }
+                }
+                foreach (string descriptionColumn in new[] { "ttttt_content_desc", "sessiondescription", "session_description" })
+                {
+                    if (dt.Columns.Contains(descriptionColumn) && row[descriptionColumn] != DBNull.Value)
+                    {
+                        ass.ttttt_session_description = Convert.ToString(row[descriptionColumn]);
+                        break;
+                    }
+                }
                 ass.tdds_doc_no = Convert.ToString(row["tdds_doc_no"]);
                 ass.ttttt_session_end_time = Convert.ToDateTime(row["ttttt_session_end_time"]);
                 if (dt.Columns.Contains("AssignmentTypeID") && row["AssignmentTypeID"] != DBNull.Value)

@@ -748,5 +748,39 @@ No Cancellation and refund is entrtained.
 			/Content/GlobalSetting/Dev/LMSUseInstruction.pdf?1.3
 		</value>
 	</setting>
+
+	<setting>
+		<key>YT_LINK</key>
+		<value>https://www.youtube.com/@emprcmpbou5280</value>
+	</setting>
+
+	<setting>
+		<key>INSTARGAM_LINK</key>
+		<value></value>
+	</setting>
+
+	<setting>
+		<key>STATUE_IMG</key>
+		<value>/Content/GlobalSetting/Dev/statue.png</value>
+	</setting>
+
+	<setting>
+		<key>MENTOR1_IMG</key>
+		<value>/Content/GlobalSetting/Dev/mentor1.png</value>
+	</setting>
+
+	<setting>
+		<key>MENTOR2_IMG</key>
+		<value>/Content/GlobalSetting/Dev/mentor2.png</value>
+	</setting>
+
+	<setting>
+		<key>DIRECTOR_IMG</key>
+		<value>/Content/GlobalSetting/Dev/director.png</value>
+	</setting>
 	
 </ClientData>
+
+
+
+
