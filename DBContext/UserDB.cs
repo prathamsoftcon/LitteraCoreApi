@@ -8,22 +8,23 @@ using static Azure.Core.HttpHeader;
 using Newtonsoft.Json;
 using System.Xml;
 using LitteraCore.Controllers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace LitteraCore.DBContext
 {
     public class UserDB 
     {
          private readonly IConfiguration _configuration;
-        public UserDB(IConfiguration configuration)
+        private readonly ILogger<UserDB> _logger;
+
+        public UserDB(IConfiguration configuration, ILogger<UserDB>? logger = null)
         {
             _configuration = configuration;
+            _logger = logger ?? NullLogger<UserDB>.Instance;
         }
         public bool Save_User_Data(LoginUser user)
         {
-            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Log", "Log.txt");
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-       
-
             //SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["LitteraAPIstr"].ConnectionString);
             string connectionString = _configuration.GetConnectionString("LitteraDatabase");
             SqlConnection con = new SqlConnection(connectionString);
@@ -34,7 +35,7 @@ namespace LitteraCore.DBContext
                 DataTable dtuserdetail = new DataTable();
                 dtuserdetail = Get_User_Details(user.userid);
 
-                File.AppendAllText(path, "save_user start " +System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") +" ");
+                _logger.LogInformation("Save user started for {UserId}.", user.userid);
                 if (dtuserdetail.Rows[0]["isexist"].ToString() == "0")
                 {
                     if (Save_User(user, con, st) == false)
@@ -42,9 +43,9 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save user");
                     }
                 }
-                File.AppendAllText(path, "Save_User end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") +" ");
+                _logger.LogInformation("Save user completed for {UserId}.", user.userid);
 
-                File.AppendAllText(path, "Save_User_Roles start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save user roles started for {UserId}.", user.userid);
                 if (user.agency.AgencyTypeId != "00053")
                 {
                     if (Save_User_Roles(user, con, st) == false)
@@ -52,8 +53,8 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save role");
                     }
                 }
-                File.AppendAllText(path, "Save_User_Roles end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
-                File.AppendAllText(path, "Save_User_Branches start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save user roles completed for {UserId}.", user.userid);
+                _logger.LogInformation("Save user branches started for {UserId}.", user.userid);
                 if (user.branches != null)
                 {
                     if (Save_User_Branches(user.branches, con, user, st) == false)
@@ -61,7 +62,7 @@ namespace LitteraCore.DBContext
                         throw new Exception("Error on save branches");
                     }
                 }
-                File.AppendAllText(path, "Save_User_Branches end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save user branches completed for {UserId}.", user.userid);
 
 
 
@@ -80,20 +81,20 @@ namespace LitteraCore.DBContext
                 {
                     usercode = dbl.Get_agency_doc_no(System.DateTime.Now.ToString("yyyy/MM/dd"), user.branchid, "$$", "YEAR");
                 }
-                File.AppendAllText(path, "Save_SignIn_Info start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save sign-in information started for {UserId}.", user.userid);
                 if (Save_SignIn_Info(user, con, usercode, st) == false)
                 {
                     throw new Exception("Error on save Sign In Info");
                 }
-                File.AppendAllText(path, "Save_SignIn_Info end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save sign-in information completed for {UserId}.", user.userid);
 
-                File.AppendAllText(path, "Save_Agency_Mapping_Data start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save agency mapping started for {UserId}.", user.userid);
                 if (Save_Agency_Mapping_Data(user, con, st) == false)
                 {
                     throw new Exception("Error on save Mapping data");
                 }
 
-                File.AppendAllText(path, "Save_Agency_Mapping_Data end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save agency mapping completed for {UserId}.", user.userid);
                 //Code to save DMS DATA
              
                 DMS d = new DMS
@@ -110,9 +111,9 @@ namespace LitteraCore.DBContext
                     tat_type_id = Convert.ToInt32(Common.CommonEnum.Get_Default_USER_TAT_TYPE(Convert.ToInt32(user.usertype), user.agency.AgencyTypeId)),
                     doc_status = Convert.ToInt32(user.agency.agencystatus),
                 };
-                File.AppendAllText(path, "Save_DMS_DATA start " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save DMS data started for {UserId}.", user.userid);
                 dbl.Save_DMS_DATA(d, con, st);
-                File.AppendAllText(path, "Save_DMS_DATA end " + System.DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") + " ");
+                _logger.LogInformation("Save DMS data completed for {UserId}.", user.userid);
 
                 //Code to save Delegate department entry in case of Staff
                 if (Convert.ToInt32(user.usertype) == Convert.ToInt32(CommonEnum.UserType.CD))
@@ -132,6 +133,7 @@ namespace LitteraCore.DBContext
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Save user transaction failed for {UserId}.", user.userid);
                 st.Rollback();
                 throw new Exception(ex.Message);
                 return false;

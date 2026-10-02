@@ -1,5 +1,6 @@
 using LitteraCore.DBContext;
 using LitteraCore.Models;
+using Microsoft.Extensions.Logging;
 
 namespace LitteraCore.BLContext
 {
@@ -12,10 +13,14 @@ namespace LitteraCore.BLContext
     public sealed class UserRegistrationService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<UserDB> _userDbLogger;
 
-        public UserRegistrationService(IConfiguration configuration)
+        public UserRegistrationService(
+            IConfiguration configuration,
+            ILogger<UserDB> userDbLogger)
         {
             _configuration = configuration;
+            _userDbLogger = userDbLogger;
         }
 
         public UserRegistrationResult Create(LoginUser user)
@@ -45,7 +50,7 @@ namespace LitteraCore.BLContext
                 user.password = GenerateDefaultStoredPassword();
             }
 
-            var userBl = new UserBL(_configuration);
+            var userBl = new UserBL(_configuration, _userDbLogger);
             var mobileExists = EnsureIdentifierIsAvailable(
                 userBl,
                 user,

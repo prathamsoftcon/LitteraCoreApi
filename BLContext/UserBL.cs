@@ -1,15 +1,19 @@
 ﻿using LitteraCore.DBContext;
 using LitteraCore.Models;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace LitteraCore.BLContext
 {
     public class UserBL
     {
         private readonly IConfiguration _configuration;
-        public UserBL(IConfiguration configuration)
+        private readonly ILogger<UserDB>? _userDbLogger;
+
+        public UserBL(IConfiguration configuration, ILogger<UserDB>? userDbLogger = null)
         {
             _configuration = configuration;
+            _userDbLogger = userDbLogger;
         }
         public bool Save_User_Data(LoginUser user)
         {
@@ -75,7 +79,7 @@ namespace LitteraCore.BLContext
 
 
 
-            UserDB udb = new UserDB(_configuration);
+            UserDB udb = new UserDB(_configuration, _userDbLogger);
             bool issave = udb.Save_User_Data(user);
             return true;
         }
